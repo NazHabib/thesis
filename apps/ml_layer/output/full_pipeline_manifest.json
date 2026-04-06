@@ -1,0 +1,121 @@
+{
+  "cold_start": {},
+  "ranking": {
+    "ranking_version": "ranking_1.0.0",
+    "participants": 22282,
+    "input_candidates": 169009,
+    "output_ranked_candidates": 93629,
+    "triage_count": 471,
+    "feature_tier_counts": {
+      "minimal": 4153,
+      "core": 2053,
+      "full": 16076
+    },
+    "avg_ranked_per_participant": 4.202,
+    "confidence_counts": {
+      "high": 35420,
+      "medium": 40984,
+      "low": 17225
+    },
+    "action_type_counts": {
+      "recommend": 60605,
+      "inform": 25208,
+      "escalate": 7816
+    },
+    "bundle_family_counts": {
+      "Monitoring": 37184,
+      "DietPattern": 26828,
+      "Movement": 11857,
+      "Weight": 7387,
+      "Lipids": 6171,
+      "Smoking": 3211,
+      "IntegratedCardiometabolic": 991
+    },
+    "score_summary": {
+      "min_total_score": -14.0,
+      "max_total_score": 241.0,
+      "mean_total_score": 121.7832
+    }
+  },
+  "ml_reranking": {
+    "ml_reranking_version": "0.1.0",
+    "participants": 22282,
+    "input_ranked_candidates": 93629,
+    "output_reranked_candidates": 93629,
+    "triage_count": 471,
+    "feature_tier_counts": {
+      "minimal": 4153,
+      "core": 2053,
+      "full": 16076
+    },
+    "rerank_mode": "rules_only_fallback",
+    "rerank_status_counts": {
+      "rules_only_fallback": 93629
+    },
+    "fallback_reason_counts": {
+      "prediction_failure": 93121,
+      "triage_mode": 494,
+      "insufficient_candidates": 14
+    },
+    "score_summary": {
+      "min_total_score": -14.0,
+      "max_total_score": 241.0,
+      "mean_total_score": 121.7832,
+      "min_final_score": -14.0,
+      "max_final_score": 241.0,
+      "mean_final_score": 121.7832
+    }
+  },
+  "bundling": {
+    "bundling_version": "bundling_1.0.0",
+    "participants": 22282,
+    "input_ranked_candidates": 93629,
+    "output_final_recommendations": 64265,
+    "triage_count": 471,
+    "avg_bundles_per_participant": 2.8842,
+    "bundle_family_counts": {
+      "Monitoring": 17206,
+      "DietPattern": 14669,
+      "Movement": 10450,
+      "Weight": 9822,
+      "Lipids": 5896,
+      "Smoking": 3211,
+      "DataQuality": 1757,
+      "DiabetesSelfManagement": 1247,
+      "Alcohol": 7
+    },
+    "confidence_counts": {
+      "high": 17819,
+      "medium": 34823,
+      "low": 11623
+    },
+    "score_summary": {
+      "min_bundle_score": 31.0,
+      "max_bundle_score": 241.0,
+      "mean_bundle_score": 133.7136
+    }
+  },
+  "explainability": {
+    "explainability_version": "1.0.0",
+    "participants": 22282,
+    "input_final_recommendations": 64265,
+    "output_explained_recommendations": 64265,
+    "triage_count": 471,
+    "confidence_counts": {
+      "high": 17819,
+      "medium": 34823,
+      "low": 11623
+    },
+    "bundle_family_counts": {
+      "Monitoring": 17206,
+      "DietPattern": 14669,
+      "Movement": 10450,
+      "Weight": 9822,
+      "Lipids": 5896,
+      "Smoking": 3211,
+      "DataQuality": 1757,
+      "DiabetesSelfManagement": 1247,
+      "Alcohol": 7
+    }
+  }
+}

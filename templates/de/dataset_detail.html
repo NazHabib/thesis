@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}{{ ds.name }}{% endblock %}
+{% block content %}
+<h2>{{ ds.name }}</h2>
+<p class="text-muted">{{ ds.description }}</p>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body">
+    <h5>Upload file</h5>
+    <form method="post" enctype="multipart/form-data" action="{% url 'de:dataset_upload' ds.id %}">
+      {% csrf_token %}
+      <input class="form-control mb-2" type="file" name="file" />
+      <button class="btn btn-outline-primary" type="submit">Upload</button>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body">
+    <h5>Files</h5>
+    {% if ds.files.all %}
+      <ul class="mb-0">
+        {% for f in ds.files.all %}
+          <li>{{ f.original_name }} <span class="text-muted">({{ f.uploaded_at }})</span></li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="mb-0">No files uploaded.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body">
+    <h5>Pipeline runs</h5>
+    <a class="btn btn-sm btn-outline-dark" href="{% url 'de:run_profile' ds.id %}">Run profiling (stub)</a>
+
+    <div class="mt-3">
+      {% if ds.runs.all %}
+        <ul class="mb-0">
+          {% for r in ds.runs.all %}
+            <li>
+              <strong>{{ r.status }}</strong>
+              <span class="text-muted">started {{ r.started_at }}{% if r.finished_at %}, finished {{ r.finished_at }}{% endif %}</span>
+              <pre class="bg-light p-2 mt-1">{{ r.logs }}</pre>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="mb-0">No runs yet.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<a class="btn btn-outline-secondary" href="{% url 'de:datasets' %}">Back</a>
+{% endblock %}

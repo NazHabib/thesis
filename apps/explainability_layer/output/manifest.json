@@ -1,0 +1,23 @@
+{
+  "explainability_version": "1.0.0",
+  "participants": 22282,
+  "input_final_recommendations": 64265,
+  "output_explained_recommendations": 64265,
+  "triage_count": 471,
+  "confidence_counts": {
+    "high": 17819,
+    "medium": 34823,
+    "low": 11623
+  },
+  "bundle_family_counts": {
+    "Monitoring": 17206,
+    "DietPattern": 14669,
+    "Movement": 10450,
+    "Weight": 9822,
+    "Lipids": 5896,
+    "Smoking": 3211,
+    "DataQuality": 1757,
+    "DiabetesSelfManagement": 1247,
+    "Alcohol": 7
+  }
+}

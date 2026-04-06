@@ -1,0 +1,1014 @@
+rules:
+  - rule_id: SAFETY-0001
+    rule_version: "1.0.0"
+    name: "Âmbito e limitação do assistente"
+    group: SAFETY
+    priority: 15
+    condition: "notna(SEQN) or isna(SEQN)"
+    missing_policy: na_true
+    severity: low
+    action_type: inform
+    action_code: INFORM_SYSTEM_SCOPE
+    tags: ["safety", "disclaimer", "not_a_diagnosis", "audit"]
+    suppresses: []
+    conflict_group: GLOBAL_SAFETY_MESSAGING
+    conflict_policy: keep_strongest
+    explanation_template: "Este sistema dá recomendações de apoio com base em dados disponíveis e diretrizes gerais. Não substitui a avaliação do seu médico/enfermeiro."
+    citations:
+      - "Thesis safety-layer principle (project documentation)"
+    provenance: "Safety framing; deterministic assistant layer (do not replace clinicians)"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: SAFETY-0002
+    rule_version: "1.0.0"
+    name: "Fora do âmbito: não adulto"
+    group: SAFETY
+    priority: 970
+    condition: "isna(Adult18plus_flag) or Adult18plus_flag == 0"
+    missing_policy: na_false
+    severity: high
+    action_type: escalate
+    action_code: ESCALATE_OUT_OF_SCOPE_NONADULT
+    tags: ["safety", "scope", "pediatrics", "triage"]
+    suppresses: []
+    conflict_group: OUT_OF_SCOPE
+    conflict_policy: keep_strongest
+    explanation_template: "As regras deste assistente foram desenhadas para adultos. Para menores de 18 anos, a interpretação e recomendações devem ser feitas por um profissional de saúde com orientações pediátricas."
+    citations:
+      - "Pediatric BP guidance differs; keep out-of-scope (design constraint)"
+    provenance: "Scope guardrail (adult-only ruleset)"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: DATA-0101
+    rule_version: "1.0.0"
+    name: "Qualidade de dados: poucas medições de pressão arterial"
+    group: DATA_QUALITY
+    priority: 420
+    condition: "Adult18plus_flag == 1 and (isna(BP_n_used) or BP_n_used < 2)"
+    missing_policy: na_false
+    severity: moderate
+    action_type: inform
+    action_code: INFORM_BP_MEASUREMENT_LIMITED
+    tags: ["data_quality", "blood_pressure", "measurement", "nhanes"]
+    suppresses: ["RECOMMEND_HTN_ST2_CLINIC_REVIEW_1M", "RECOMMEND_HTN_ST1_LIFESTYLE_3_6M", "RECOMMEND_BP_ELEVATED_LIFESTYLE_3_6M", "INFORM_BP_NORMAL_MAINTAIN_ANNUAL"]
+    conflict_group: DATA_QUALITY_BP
+    conflict_policy: keep_strongest
+    explanation_template: "A classificação da sua pressão arterial tem menor confiança porque existem poucas medições válidas. Idealmente, confirme com novas medições (em consulta ou em casa, com técnica correta)."
+    citations:
+      - "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/1999/DataFiles/BPX.htm"
+      - "https://www.heart.org/-/media/files/health-topics/high-blood-pressure/hypertension-guideline-highlights-flyer.pdf"
+    provenance: "NHANES BP measurement averaging + guideline emphasis on repeated measures"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: DATA-0102
+    rule_version: "1.0.0"
+    name: "Qualidade de dados: recordatório alimentar não fiável"
+    group: DATA_QUALITY
+    priority: 380
+    condition: "Adult18plus_flag == 1 and (isna(DietDay1_reliable_flag) or DietDay1_reliable_flag == 0 or (notna(DR1DRSTZ) and DR1DRSTZ != 1))"
+    missing_policy: na_false
+    severity: moderate
+    action_type: inform
+    action_code: INFORM_DIET_RECALL_NOT_RELIABLE
+    tags: ["data_quality", "diet", "nhanes", "AMPM"]
+    suppresses: ["RECOMMEND_SODIUM_REDUCTION_2300", "RECOMMEND_SODIUM_REDUCTION_1500_IDEAL", "INFORM_VERY_HIGH_SODIUM", "RECOMMEND_INCREASE_DIETARY_FIBER_DENSITY", "RECOMMEND_REDUCE_SATURATED_FAT", "RECOMMEND_DASH_OR_MEDITERRANEAN_PATTERN", "INFORM_LOW_POTASSIUM_SODIUM_RATIO_CAUTIOUS", "RECOMMEND_REDUCE_ALCOHOL"]
+    conflict_group: DATA_QUALITY_DIET
+    conflict_policy: keep_strongest
+    explanation_template: "O seu recordatório alimentar (dia 1) pode não ser suficientemente fiável para tirar conclusões. As recomendações de alimentação devem ser confirmadas com dados mais consistentes ou avaliação por nutricionista."
+    citations:
+      - "https://wwwn.cdc.gov/Nchs/Data/Nhanes/Public/2021/DataFiles/DR1IFF_L.htm"
+      - "https://www.ars.usda.gov/ARSUserFiles/80400530/pdf/1718/Key%20Points%20Using%20WWEIA%20NHANES%202017-2018.pdf"
+    provenance: "NHANES dietary recall status (DR1DRSTZ) and reliability gating"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: DATA-0103
+    rule_version: "1.0.0"
+    name: "Qualidade de dados: método de PA inferido"
+    group: DATA_QUALITY
+    priority: 130
+    condition: "Adult18plus_flag == 1 and notna(BP_method_inferred) and BP_method_inferred == 1"
+    missing_policy: na_false
+    severity: low
+    action_type: inform
+    action_code: INFORM_BP_METHOD_INFERRED
+    tags: ["data_quality", "provenance", "blood_pressure"]
+    suppresses: []
+    conflict_group: DATA_QUALITY_BP
+    conflict_policy: keep_strongest
+    explanation_template: "Nota: o método da medição de pressão arterial foi inferido a partir dos dados disponíveis. Interprete as comparações com cautela."
+    citations:
+      - "Internal dataset provenance: BP_method_inferred"
+    provenance: "Transparency about measurement provenance"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: DATA-0104
+    rule_version: "1.0.0"
+    name: "Qualidade de dados: métricas essenciais em falta"
+    group: DATA_QUALITY
+    priority: 260
+    condition: "Adult18plus_flag == 1 and (isna(SBP_mean) or isna(DBP_mean) or isna(LBXGH) or isna(BMXBMI))"
+    missing_policy: na_false
+    severity: moderate
+    action_type: inform
+    action_code: INFORM_DATA_MISSING_KEY_METRICS
+    tags: ["data_quality", "missingness", "safety"]
+    suppresses: []
+    conflict_group: DATA_QUALITY_GENERAL
+    conflict_policy: keep_strongest
+    explanation_template: "Faltam alguns dados essenciais (ex.: pressão arterial média, HbA1c ou IMC). Isso limita recomendações específicas; considere completar medições/avaliação clínica."
+    citations:
+      - "Design: fail-safe under missingness"
+    provenance: "Fail-safe rule: reduce specificity when key inputs absent"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: ACUTE-0201
+    rule_version: "1.0.0"
+    name: "Emergência combinada: PA muito elevada + HbA1c muito elevada"
+    group: SAFETY
+    priority: 1100
+    condition: "Adult18plus_flag == 1 and ((notna(SBP_mean) and SBP_mean >= 180) or (notna(DBP_mean) and DBP_mean >= 120) or (notna(Hypertensive_crisis_flag) and Hypertensive_crisis_flag == 1)) and ((notna(LBXGH) and LBXGH >= 10) or (notna(Severe_hyperglycemia_flag) and Severe_hyperglycemia_flag == 1))"
+    missing_policy: na_false
+    severity: critical
+    action_type: escalate
+    action_code: ESCALATE_EMERGENCY_HTN_DM
+    tags: ["emergency", "hypertension", "diabetes", "safety_first"]
+    suppresses: ["ESCALATE_HTN_CRISIS", "ESCALATE_SEVERE_HYPERGLYCEMIA"]
+    conflict_group: ACUTE_EMERGENCY
+    conflict_policy: keep_strongest
+    explanation_template: "Há sinais de risco elevado que justificam avaliação urgente (pressão arterial muito alta e HbA1c muito alta). Procure assistência médica urgente/serviço de urgência."
+    citations:
+      - "https://www.heart.org/en/health-topics/high-blood-pressure/understanding-blood-pressure-readings/when-to-call-911-for-high-blood-pressure"
+      - "https://diabetesjournals.org/care/article/48/Supplement_1/S181/157569/9-Pharmacologic-Approaches-to-Glycemic-Treatment"
+      - "https://www.heart.org/-/media/files/health-topics/high-blood-pressure/hypertension-guideline-highlights-flyer.pdf"
+    provenance: "AHA crisis threshold + ADA severe hyperglycemia marker; combined triage to reduce duplicate critical alerts"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: HTNACUTE-0202
+    rule_version: "1.0.0"
+    name: "Crise hipertensiva (triagem por limiar)"
+    group: HTN_ACUTE
+    priority: 1050
+    condition: "Adult18plus_flag == 1 and ((notna(SBP_mean) and SBP_mean >= 180) or (notna(DBP_mean) and DBP_mean >= 120) or (notna(Hypertensive_crisis_flag) and Hypertensive_crisis_flag == 1))"
+    missing_policy: na_false
+    severity: critical
+    action_type: escalate
+    action_code: ESCALATE_HTN_CRISIS
+    tags: ["hypertension", "crisis", "emergency"]
+    suppresses: ["RECOMMEND_HTN_ST2_CLINIC_REVIEW_1M", "RECOMMEND_HTN_ST1_LIFESTYLE_3_6M", "RECOMMEND_BP_ELEVATED_LIFESTYLE_3_6M", "RECOMMEND_MVPA_START_GRADUAL", "RECOMMEND_REDUCE_SEDENTARY_TIME", "RECOMMEND_SODIUM_REDUCTION_2300", "RECOMMEND_SODIUM_REDUCTION_1500_IDEAL", "RECOMMEND_REDUCE_ALCOHOL"]
+    conflict_group: ACUTE_EMERGENCY
+    conflict_policy: keep_strongest
+    explanation_template: "A sua pressão arterial está muito elevada. Isto pode ser uma urgência/emergência. Procure avaliação médica urgente (especialmente se houver sintomas como dor no peito, falta de ar, fraqueza ou alterações da visão)."
+    citations:
+      - "https://www.heart.org/en/health-topics/high-blood-pressure/understanding-blood-pressure-readings/when-to-call-911-for-high-blood-pressure"
+      - "https://www.heart.org/-/media/files/health-topics/high-blood-pressure/hypertension-guideline-highlights-flyer.pdf"
+    provenance: "Hypertensive crisis threshold; symptoms not available => conservative escalation"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: DMACUTE-0203
+    rule_version: "1.0.0"
+    name: "Hiperglicemia muito marcada por HbA1c"
+    group: DIABETES_ACUTE
+    priority: 1030
+    condition: "Adult18plus_flag == 1 and ((notna(LBXGH) and LBXGH >= 10) or (notna(Severe_hyperglycemia_flag) and Severe_hyperglycemia_flag == 1))"
+    missing_policy: na_false
+    severity: critical
+    action_type: escalate
+    action_code: ESCALATE_SEVERE_HYPERGLYCEMIA
+    tags: ["diabetes", "a1c", "severe", "safety_first"]
+    suppresses: ["RECOMMEND_DIABETES_SELF_MANAGEMENT_CORE", "RECOMMEND_MVPA_START_GRADUAL"]
+    conflict_group: ACUTE_EMERGENCY
+    conflict_policy: keep_strongest
+    explanation_template: "A HbA1c está muito elevada, o que sugere dificuldade significativa no controlo glicémico. Deve contactar um profissional de saúde com urgência para avaliação e plano personalizado."
+    citations:
+      - "https://diabetesjournals.org/care/article/48/Supplement_1/S181/157569/9-Pharmacologic-Approaches-to-Glycemic-Treatment"
+      - "https://diabetesjournals.org/care/article/48/Supplement_1/S27/157566/2-Diagnosis-and-Classification-of-Diabetes"
+    provenance: "ADA uses A1c >10% as severe hyperglycemia marker in clinical algorithms; engine uses for triage only (no prescribing)"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: HTNACUTE-0204
+    rule_version: "1.0.0"
+    name: "PA muito elevada (não crise) — avaliação breve"
+    group: HTN_ACUTE
+    priority: 900
+    condition: "Adult18plus_flag == 1 and notna(SBP_mean) and notna(DBP_mean) and SBP_mean < 180 and DBP_mean < 120 and (SBP_mean >= 160 or DBP_mean >= 100)"
+    missing_policy: na_false
+    severity: high
+    action_type: escalate
+    action_code: ESCALATE_HTN_MARKEDLY_ELEVATED
+    tags: ["hypertension", "markedly_elevated", "follow_up"]
+    suppresses: ["RECOMMEND_BP_ELEVATED_LIFESTYLE_3_6M"]
+    conflict_group: HTN_URGENCY
+    conflict_policy: keep_strongest
+    explanation_template: "A sua pressão arterial está bastante elevada. Mesmo sem sinais de emergência, recomenda-se contacto clínico em breve para confirmar medições e definir um plano."
+    citations:
+      - "https://www.heart.org/-/media/files/health-topics/high-blood-pressure/hypertension-guideline-highlights-flyer.pdf"
+    provenance: "Risk stratification within HTN; conservative triage"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: HTN-0301
+    rule_version: "1.0.0"
+    name: "HTA estádio 2 — caminho de seguimento"
+    group: HTN_MANAGEMENT
+    priority: 760
+    condition: "Adult18plus_flag == 1 and notna(BP_n_used) and BP_n_used >= 2 and notna(SBP_mean) and notna(DBP_mean) and SBP_mean < 180 and DBP_mean < 120 and (SBP_mean >= 140 or DBP_mean >= 90)"
+    missing_policy: na_false
+    severity: high
+    action_type: recommend
+    action_code: RECOMMEND_HTN_ST2_CLINIC_REVIEW_1M
+    tags: ["hypertension", "stage2", "follow_up", "lifestyle"]
+    suppresses: ["RECOMMEND_HTN_ST1_LIFESTYLE_3_6M", "RECOMMEND_BP_ELEVATED_LIFESTYLE_3_6M", "INFORM_BP_NORMAL_MAINTAIN_ANNUAL"]
+    conflict_group: HTN_BP_CATEGORY
+    conflict_policy: keep_strongest
+    explanation_template: "A média da sua pressão arterial está na gama de hipertensão (estádio 2). Recomenda-se uma consulta/seguimento próximo (≈1 mês) para confirmar valores e definir plano. Comece/continue mudanças de estilo de vida (sal, peso, atividade, álcool)."
+    citations:
+      - "https://www.heart.org/-/media/files/health-topics/high-blood-pressure/hypertension-guideline-highlights-flyer.pdf"
+    provenance: "ACC/AHA 2017 categories and follow-up timing (highlights table)"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: HTN-0302
+    rule_version: "1.0.0"
+    name: "HTA estádio 1 com diabetes — seguimento mais próximo"
+    group: HTN_MANAGEMENT
+    priority: 640
+    condition: "Adult18plus_flag == 1 and notna(BP_n_used) and BP_n_used >= 2 and notna(SBP_mean) and notna(DBP_mean) and SBP_mean < 140 and DBP_mean < 90 and ((between(SBP_mean, 130, 139)) or (between(DBP_mean, 80, 89))) and notna(Diabetes) and Diabetes == 1"
+    missing_policy: na_false
+    severity: moderate
+    action_type: recommend
+    action_code: RECOMMEND_HTN_ST1_LIFESTYLE_3_6M
+    tags: ["hypertension", "stage1", "diabetes", "lifestyle"]
+    suppresses: ["RECOMMEND_BP_ELEVATED_LIFESTYLE_3_6M", "INFORM_BP_NORMAL_MAINTAIN_ANNUAL"]
+    conflict_group: HTN_BP_CATEGORY
+    conflict_policy: keep_strongest
+    explanation_template: "A sua pressão arterial está na gama de hipertensão (estádio 1) e existe diabetes. Recomenda-se reforço de estilo de vida e seguimento clínico (por vezes mais cedo) para reduzir risco cardiometabólico."
+    citations:
+      - "https://www.heart.org/-/media/files/health-topics/high-blood-pressure/hypertension-guideline-highlights-flyer.pdf"
+    provenance: "ACC/AHA highlights: stage 1 with diabetes is higher-risk pathway (engine avoids med advice; keeps follow-up emphasis)"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: HTN-0303
+    rule_version: "1.0.0"
+    name: "HTA estádio 1 sem diabetes — lifestyle e reavaliação"
+    group: HTN_MANAGEMENT
+    priority: 600
+    condition: "Adult18plus_flag == 1 and notna(BP_n_used) and BP_n_used >= 2 and notna(SBP_mean) and notna(DBP_mean) and SBP_mean < 140 and DBP_mean < 90 and ((between(SBP_mean, 130, 139)) or (between(DBP_mean, 80, 89))) and (isna(Diabetes) or Diabetes == 0)"
+    missing_policy: na_false
+    severity: moderate
+    action_type: recommend
+    action_code: RECOMMEND_HTN_ST1_LIFESTYLE_3_6M
+    tags: ["hypertension", "stage1", "lifestyle"]
+    suppresses: ["RECOMMEND_BP_ELEVATED_LIFESTYLE_3_6M", "INFORM_BP_NORMAL_MAINTAIN_ANNUAL"]
+    conflict_group: HTN_BP_CATEGORY
+    conflict_policy: keep_strongest
+    explanation_template: "A sua pressão arterial está na gama de hipertensão (estádio 1). Mudanças de estilo de vida (sal, atividade, peso, álcool, tabaco) e reavaliação em ~3–6 meses podem ajudar."
+    citations:
+      - "https://www.heart.org/-/media/files/health-topics/high-blood-pressure/hypertension-guideline-highlights-flyer.pdf"
+    provenance: "ACC/AHA stage 1 pathway (low-risk variant; no ASCVD available => conservative lifestyle emphasis)"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: HTN-0304
+    rule_version: "1.0.0"
+    name: "PA elevada — prevenção"
+    group: HTN_MANAGEMENT
+    priority: 410
+    condition: "Adult18plus_flag == 1 and notna(BP_n_used) and BP_n_used >= 2 and notna(SBP_mean) and notna(DBP_mean) and between(SBP_mean, 120, 129) and DBP_mean < 80"
+    missing_policy: na_false
+    severity: low
+    action_type: recommend
+    action_code: RECOMMEND_BP_ELEVATED_LIFESTYLE_3_6M
+    tags: ["blood_pressure", "elevated", "prevention"]
+    suppresses: ["INFORM_BP_NORMAL_MAINTAIN_ANNUAL"]
+    conflict_group: HTN_BP_CATEGORY
+    conflict_policy: keep_strongest
+    explanation_template: "A sua pressão arterial está ‘elevada’ (ainda não hipertensão). Pequenas mudanças (menos sal, mais atividade, peso saudável, menos álcool) e reavaliação em ~3–6 meses são recomendadas."
+    citations:
+      - "https://www.heart.org/-/media/files/health-topics/high-blood-pressure/hypertension-guideline-highlights-flyer.pdf"
+    provenance: "ACC/AHA elevated BP category + follow-up window"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: HTN-0305
+    rule_version: "1.0.0"
+    name: "PA normal — manutenção"
+    group: HTN_MANAGEMENT
+    priority: 120
+    condition: "Adult18plus_flag == 1 and notna(BP_n_used) and BP_n_used >= 2 and notna(SBP_mean) and notna(DBP_mean) and SBP_mean < 120 and DBP_mean < 80"
+    missing_policy: na_false
+    severity: low
+    action_type: inform
+    action_code: INFORM_BP_NORMAL_MAINTAIN_ANNUAL
+    tags: ["blood_pressure", "prevention"]
+    suppresses: []
+    conflict_group: HTN_BP_CATEGORY
+    conflict_policy: keep_strongest
+    explanation_template: "A sua pressão arterial está em valores normais. Mantenha hábitos saudáveis e faça monitorização/avaliação periódica (por exemplo, anual)."
+    citations:
+      - "https://www.heart.org/-/media/files/health-topics/high-blood-pressure/hypertension-guideline-highlights-flyer.pdf"
+    provenance: "ACC/AHA normal BP category and general follow-up"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: HTN-0306
+    rule_version: "1.0.0"
+    name: "Self-monitoring de PA (educação)"
+    group: HTN_MANAGEMENT
+    priority: 260
+    condition: "Adult18plus_flag == 1 and notna(SBP_mean) and notna(DBP_mean) and ((SBP_mean >= 120) or (DBP_mean >= 80))"
+    missing_policy: na_false
+    severity: low
+    action_type: recommend
+    action_code: RECOMMEND_BP_SELF_MONITORING
+    tags: ["blood_pressure", "self_monitoring", "education"]
+    suppresses: []
+    conflict_group: HTN_SELF_MONITORING
+    conflict_policy: keep_strongest
+    explanation_template: "Considere monitorizar a pressão arterial também fora da consulta (em casa), com aparelho validado e técnica correta. Isto ajuda a confirmar valores e acompanhar o plano."
+    citations:
+      - "https://www.heart.org/-/media/files/health-topics/high-blood-pressure/hypertension-guideline-highlights-flyer.pdf"
+    provenance: "Guideline highlights emphasize accurate measurement and self-monitoring"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: DM-0401
+    rule_version: "1.0.0"
+    name: "Diabetes por HbA1c — base de auto-gestão"
+    group: DIABETES_MANAGEMENT
+    priority: 560
+    condition: "Adult18plus_flag == 1 and notna(LBXGH) and LBXGH >= 6.5 and LBXGH < 10"
+    missing_policy: na_false
+    severity: moderate
+    action_type: recommend
+    action_code: RECOMMEND_DIABETES_SELF_MANAGEMENT_CORE
+    tags: ["diabetes", "a1c", "self_management"]
+    suppresses: []
+    conflict_group: DIABETES_CORE
+    conflict_policy: keep_strongest
+    explanation_template: "A HbA1c está na gama da diabetes. Recomenda-se seguimento regular e um plano de estilo de vida (alimentação, atividade física, peso, sono e tabaco) ajustado com a sua equipa de saúde."
+    citations:
+      - "https://diabetesjournals.org/care/article/48/Supplement_1/S27/157566/2-Diagnosis-and-Classification-of-Diabetes"
+      - "https://diabetesjournals.org/care/article/48/Supplement_1/S128/157561/6-Glycemic-Goals-and-Hypoglycemia-Standards-of"
+    provenance: "ADA diagnostic threshold + glycemic goals as context; no medication guidance"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: DM-0402
+    rule_version: "1.0.0"
+    name: "Diabetes: controlo glicémico subótimo (HbA1c >= 9)"
+    group: DIABETES_MANAGEMENT
+    priority: 780
+    condition: "Adult18plus_flag == 1 and notna(LBXGH) and LBXGH >= 9 and LBXGH < 10"
+    missing_policy: na_false
+    severity: high
+    action_type: recommend
+    action_code: RECOMMEND_DIABETES_POOR_CONTROL_REVIEW
+    tags: ["diabetes", "a1c", "follow_up", "poor_control"]
+    suppresses: []
+    conflict_group: DIABETES_GLYCEMIC_SEVERITY
+    conflict_policy: keep_strongest
+    explanation_template: "A HbA1c está elevada, sugerindo controlo glicémico subótimo. Recomenda-se revisão clínica em breve para ajustar objetivos e plano diário."
+    citations:
+      - "https://diabetesjournals.org/care/article/48/Supplement_1/S128/157561/6-Glycemic-Goals-and-Hypoglycemia-Standards-of"
+    provenance: "ADA emphasizes individualized goals; higher A1c suggests need for review (no prescribing)"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: DM-0403
+    rule_version: "1.0.0"
+    name: "Diabetes: HbA1c acima do objetivo típico (>= 7)"
+    group: DIABETES_MANAGEMENT
+    priority: 620
+    condition: "Adult18plus_flag == 1 and notna(LBXGH) and LBXGH >= 7 and LBXGH < 9"
+    missing_policy: na_false
+    severity: moderate
+    action_type: recommend
+    action_code: RECOMMEND_DIABETES_POOR_CONTROL_REVIEW
+    tags: ["diabetes", "a1c", "targets"]
+    suppresses: []
+    conflict_group: DIABETES_GLYCEMIC_SEVERITY
+    conflict_policy: keep_strongest
+    explanation_template: "A HbA1c está acima do objetivo comum para muitos adultos (o objetivo deve ser individualizado). Vale a pena discutir com a sua equipa de saúde quais as mudanças mais viáveis no estilo de vida e no plano de controlo."
+    citations:
+      - "https://diabetesjournals.org/care/article/48/Supplement_1/S128/157561/6-Glycemic-Goals-and-Hypoglycemia-Standards-of"
+    provenance: "ADA typical A1c goal (<7) for many adults; individualized targets"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: DM-0404
+    rule_version: "1.0.0"
+    name: "Pré-diabetes por HbA1c — prevenção"
+    group: DIABETES_MANAGEMENT
+    priority: 520
+    condition: "Adult18plus_flag == 1 and notna(LBXGH) and between(LBXGH, 5.7, 6.4)"
+    missing_policy: na_false
+    severity: moderate
+    action_type: recommend
+    action_code: RECOMMEND_PREDIABETES_LIFESTYLE
+    tags: ["prediabetes", "prevention", "lifestyle"]
+    suppresses: []
+    conflict_group: DIABETES_GLYCEMIC_SEVERITY
+    conflict_policy: keep_strongest
+    explanation_template: "A HbA1c está na gama de pré-diabetes. Mudanças de estilo de vida (atividade física regular, alimentação com mais fibra e menos ultraprocessados, e gestão de peso) podem reduzir o risco de progressão."
+    citations:
+      - "https://diabetesjournals.org/care/article/48/Supplement_1/S27/157566/2-Diagnosis-and-Classification-of-Diabetes"
+    provenance: "ADA prediabetes range; lifestyle prevention focus"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: DM-0405
+    rule_version: "1.0.0"
+    name: "Glicemia em gama normal — reforço preventivo"
+    group: DIABETES_MANAGEMENT
+    priority: 160
+    condition: "Adult18plus_flag == 1 and notna(LBXGH) and LBXGH < 5.7"
+    missing_policy: na_false
+    severity: low
+    action_type: inform
+    action_code: INFORM_NORMAL_GLYCEMIA_PREVENTION
+    tags: ["prevention", "glycemia"]
+    suppresses: []
+    conflict_group: DIABETES_GLYCEMIC_SEVERITY
+    conflict_policy: keep_strongest
+    explanation_template: "A HbA1c está em valores normalmente considerados ‘normais’. Mantenha hábitos saudáveis para reduzir risco futuro (peso, atividade regular, alimentação com baixa densidade de sal e gordura saturada)."
+    citations:
+      - "https://diabetes.org/about-diabetes/diagnosis"
+    provenance: "ADA normal A1c threshold for context; preventive reinforcement"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: OB-0501
+    rule_version: "1.0.0"
+    name: "Obesidade grave (IMC >= 40) — abordagem intensiva"
+    group: OBESITY
+    priority: 860
+    condition: "Adult18plus_flag == 1 and notna(BMXBMI) and BMXBMI >= 40"
+    missing_policy: na_false
+    severity: high
+    action_type: escalate
+    action_code: ESCALATE_SEVERE_OBESITY_INTENSIVE_REFERRAL
+    tags: ["severe_obesity", "bmi", "referral"]
+    suppresses: []
+    conflict_group: WEIGHT_MANAGEMENT_LEVEL
+    conflict_policy: keep_strongest
+    explanation_template: "O IMC sugere obesidade grave. Beneficia frequentemente de avaliação multidisciplinar (médico + nutrição + exercício) para um plano seguro e eficaz."
+    citations:
+      - "https://www.cdc.gov/bmi/adult-calculator/bmi-categories.html"
+    provenance: "Adult BMI categories (class 3 obesity = BMI >=40)"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: OB-0502
+    rule_version: "1.0.0"
+    name: "Obesidade (IMC 30–39,9) — programa estruturado"
+    group: OBESITY
+    priority: 610
+    condition: "Adult18plus_flag == 1 and notna(BMXBMI) and between(BMXBMI, 30, 39.9)"
+    missing_policy: na_false
+    severity: moderate
+    action_type: recommend
+    action_code: RECOMMEND_WEIGHT_MANAGEMENT_OBESITY
+    tags: ["obesity", "weight_management", "bmi"]
+    suppresses: []
+    conflict_group: WEIGHT_MANAGEMENT_LEVEL
+    conflict_policy: keep_strongest
+    explanation_template: "O IMC está na gama de obesidade. Um plano estruturado (alimentação, atividade e monitorização) pode melhorar pressão arterial, glicemia e risco global."
+    citations:
+      - "https://www.cdc.gov/bmi/adult-calculator/bmi-categories.html"
+      - "https://diabetesjournals.org/care/article/49/Supplement_1/S166/163915/8-Obesity-and-Weight-Management-for-the-Prevention"
+    provenance: "BMI obesity classes + ADA obesity/weight management benefits in T2D"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: OB-0503
+    rule_version: "1.0.0"
+    name: "Excesso de peso (IMC 25–29,9) — prevenção de progressão"
+    group: OBESITY
+    priority: 360
+    condition: "Adult18plus_flag == 1 and notna(BMXBMI) and between(BMXBMI, 25, 29.9)"
+    missing_policy: na_false
+    severity: low
+    action_type: recommend
+    action_code: RECOMMEND_WEIGHT_MANAGEMENT_OVERWEIGHT
+    tags: ["overweight", "prevention", "bmi"]
+    suppresses: []
+    conflict_group: WEIGHT_MANAGEMENT_LEVEL
+    conflict_policy: keep_strongest
+    explanation_template: "Existe excesso de peso. Pequenas mudanças sustentáveis (alimentação com mais fibra, menos sal e atividade regular) podem evitar progressão para obesidade e reduzir risco cardiometabólico."
+    citations:
+      - "https://www.cdc.gov/bmi/adult-calculator/bmi-categories.html"
+    provenance: "BMI overweight category"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: OB-0504
+    rule_version: "1.0.0"
+    name: "Adiposidade central por cintura (ATP III) — marcador de risco"
+    group: OBESITY
+    priority: 300
+    condition: "Adult18plus_flag == 1 and notna(BMXWAIST) and ((notna(RIAGENDR) and RIAGENDR == 1 and BMXWAIST >= 102) or (notna(RIAGENDR) and RIAGENDR == 2 and BMXWAIST >= 88) or (notna(Central_obesity_flag_atp3) and Central_obesity_flag_atp3 == 1))"
+    missing_policy: na_false
+    severity: low
+    action_type: inform
+    action_code: INFORM_CENTRAL_OBESITY_RISK
+    tags: ["waist", "central_obesity", "risk_marker"]
+    suppresses: []
+    conflict_group: ADIPOSITY_DISTRIBUTION
+    conflict_policy: keep_strongest
+    explanation_template: "A sua medida de cintura sugere adiposidade central, que é um marcador de maior risco cardiometabólico. Isto reforça a importância de hábitos de alimentação e atividade física."
+    citations:
+      - "https://www.ahajournals.org/doi/10.1161/circulationaha.109.192644"
+    provenance: "Metabolic syndrome waist thresholds (ATP III-level cut-offs referenced in harmonized criteria)"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: DIET-0601
+    rule_version: "1.0.0"
+    name: "Sódio muito elevado (dia 1)"
+    group: DIET
+    priority: 680
+    condition: "Adult18plus_flag == 1 and notna(DietDay1_reliable_flag) and DietDay1_reliable_flag == 1 and notna(DR1TSODI) and DR1TSODI >= 5000"
+    missing_policy: na_false
+    severity: high
+    action_type: inform
+    action_code: INFORM_VERY_HIGH_SODIUM
+    tags: ["diet", "sodium", "extreme"]
+    suppresses: ["RECOMMEND_SODIUM_REDUCTION_2300", "RECOMMEND_SODIUM_REDUCTION_1500_IDEAL"]
+    conflict_group: DIET_SODIUM
+    conflict_policy: keep_strongest
+    explanation_template: "O consumo estimado de sódio no dia avaliado foi muito elevado. Reduzir alimentos muito salgados/ultraprocessados e refeições de restauração pode ajudar a controlar a pressão arterial."
+    citations:
+      - "https://www.who.int/news-room/fact-sheets/detail/sodium-reduction"
+      - "https://www.heart.org/en/healthy-living/healthy-eating/eat-smart/sodium/how-much-sodium-should-i-eat-per-day"
+    provenance: "WHO sodium <2000 mg/day; AHA 2300 mg limit and 1500 ideal; extreme day triggers focused message"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: DIET-0602
+    rule_version: "1.0.0"
+    name: "Sódio acima de 2300 mg (dia 1)"
+    group: DIET
+    priority: 520
+    condition: "Adult18plus_flag == 1 and notna(DietDay1_reliable_flag) and DietDay1_reliable_flag == 1 and ((notna(Sodium_over_2300_flag) and Sodium_over_2300_flag == 1) or (notna(DR1TSODI) and DR1TSODI > 2300))"
+    missing_policy: na_false
+    severity: moderate
+    action_type: recommend
+    action_code: RECOMMEND_SODIUM_REDUCTION_2300
+    tags: ["diet", "sodium"]
+    suppresses: []
+    conflict_group: DIET_SODIUM
+    conflict_policy: keep_strongest
+    explanation_template: "O seu consumo de sódio excede um limite frequentemente recomendado. Tente reduzir sal e alimentos processados; ler rótulos ajuda. Objetivo prático: aproximar-se de valores mais baixos ao longo do tempo."
+    citations:
+      - "https://www.who.int/news-room/fact-sheets/detail/sodium-reduction"
+      - "https://www.dietaryguidelines.gov/sites/default/files/2020-12/Dietary_Guidelines_for_Americans_2020-2025.pdf"
+    provenance: "WHO sodium target + common 2300 mg reference limit used in dietary guidelines"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: DIET-0603
+    rule_version: "1.0.0"
+    name: "Meta mais estrita de sódio (alto risco: HTA/DM)"
+    group: DIET
+    priority: 620
+    condition: "Adult18plus_flag == 1 and notna(DietDay1_reliable_flag) and DietDay1_reliable_flag == 1 and ((notna(Sodium_over_1500_flag) and Sodium_over_1500_flag == 1) or (notna(DR1TSODI) and DR1TSODI > 1500)) and ((notna(Hypertension) and Hypertension == 1) or (notna(Diabetes) and Diabetes == 1))"
+    missing_policy: na_false
+    severity: high
+    action_type: recommend
+    action_code: RECOMMEND_SODIUM_REDUCTION_1500_IDEAL
+    tags: ["diet", "sodium", "hypertension", "diabetes"]
+    suppresses: ["RECOMMEND_SODIUM_REDUCTION_2300"]
+    conflict_group: DIET_SODIUM
+    conflict_policy: keep_strongest
+    explanation_template: "Como existe hipertensão e/ou diabetes, pode ser útil aproximar-se de um objetivo mais baixo de sódio (por exemplo, perto de 1500 mg/dia), conforme tolerância e orientação clínica."
+    citations:
+      - "https://www.heart.org/en/healthy-living/healthy-eating/eat-smart/sodium/how-much-sodium-should-i-eat-per-day"
+      - "https://www.heart.org/-/media/files/health-topics/high-blood-pressure/hypertension-guideline-highlights-flyer.pdf"
+    provenance: "AHA ideal sodium goal (1500 mg) and HTN lifestyle emphasis; personalized by HTN/DM flags"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: DIET-0604
+    rule_version: "1.0.0"
+    name: "Relação potássio/sódio baixa (com nota de segurança)"
+    group: DIET
+    priority: 420
+    condition: "Adult18plus_flag == 1 and notna(DietDay1_reliable_flag) and DietDay1_reliable_flag == 1 and notna(Potassium_to_Sodium_ratio) and Potassium_to_Sodium_ratio < 1"
+    missing_policy: na_false
+    severity: low
+    action_type: inform
+    action_code: INFORM_LOW_POTASSIUM_SODIUM_RATIO_CAUTIOUS
+    tags: ["diet", "potassium", "sodium", "hypertension", "safety_note"]
+    suppresses: []
+    conflict_group: DIET_POTASSIUM
+    conflict_policy: keep_strongest
+    explanation_template: "A sua relação potássio/sódio está baixa, o que pode refletir pouca fruta/vegetais e muito alimento processado. Em geral, aumentar alimentos ricos em potássio e reduzir os muito salgados ajuda a controlar a pressão arterial—mas confirme com um profissional se tiver doença renal ou outras restrições."
+    citations:
+      - "https://www.heart.org/-/media/files/health-topics/high-blood-pressure/hypertension-guideline-highlights-flyer.pdf"
+      - "https://www.sciencedirect.com/science/article/pii/S073510971741518X"
+    provenance: "ACC/AHA: increase dietary potassium unless contraindicated; ratio used as diet-quality heuristic (inform-only)"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: DIET-0605
+    rule_version: "1.0.0"
+    name: "Baixa densidade de fibra (<14 g/1000 kcal)"
+    group: DIET
+    priority: 520
+    condition: "Adult18plus_flag == 1 and notna(DietDay1_reliable_flag) and DietDay1_reliable_flag == 1 and notna(Fiber_g_per_1000kcal) and Fiber_g_per_1000kcal < 14"
+    missing_policy: na_false
+    severity: moderate
+    action_type: recommend
+    action_code: RECOMMEND_INCREASE_DIETARY_FIBER_DENSITY
+    tags: ["diet", "fiber", "whole_grains", "legumes"]
+    suppresses: []
+    conflict_group: DIET_FIBER
+    conflict_policy: keep_strongest
+    explanation_template: "A densidade de fibra na alimentação parece baixa. Tente aumentar fibra com leguminosas (feijão/grão/lentilhas), cereais integrais, fruta e vegetais — de forma gradual e com água suficiente."
+    citations:
+      - "https://www.nationalacademies.org/read/10490"
+      - "https://www.mayoclinic.org/healthy-lifestyle/nutrition-and-healthy-eating/in-depth/high-fiber-foods/art-20050948"
+    provenance: "DRI: ~14 g/1000 kcal as guideline reference; safe lifestyle recommendation"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: DIET-0606
+    rule_version: "1.0.0"
+    name: "Gordura saturada acima de 10% energia"
+    group: DIET
+    priority: 520
+    condition: "Adult18plus_flag == 1 and notna(DietDay1_reliable_flag) and DietDay1_reliable_flag == 1 and ((notna(SatFat_over_10pct_flag) and SatFat_over_10pct_flag == 1) or (notna(SatFat_energy_pct) and SatFat_energy_pct > 10))"
+    missing_policy: na_false
+    severity: moderate
+    action_type: recommend
+    action_code: RECOMMEND_REDUCE_SATURATED_FAT
+    tags: ["diet", "saturated_fat", "WHO"]
+    suppresses: []
+    conflict_group: DIET_FAT_QUALITY
+    conflict_policy: keep_strongest
+    explanation_template: "A percentagem de gordura saturada parece elevada. Tente reduzir manteiga/enchidos/queijos gordos e optar por gorduras insaturadas (azeite, frutos secos, peixe), mantendo porções adequadas."
+    citations:
+      - "https://www.who.int/news/item/17-07-2023-who-updates-guidelines-on-fats-and-carbohydrates"
+      - "https://www.dietaryguidelines.gov/sites/default/files/2020-12/Dietary_Guidelines_for_Americans_2020-2025.pdf"
+    provenance: "WHO and dietary guidelines: saturated fat <=10% energy"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: DIET-0607
+    rule_version: "1.0.0"
+    name: "Padrão alimentar cardioprotetor (múltiplos riscos dietéticos)"
+    group: DIET
+    priority: 580
+    condition: "Adult18plus_flag == 1 and notna(DietDay1_reliable_flag) and DietDay1_reliable_flag == 1 and ((notna(Sodium_over_2300_flag) and Sodium_over_2300_flag == 1) or (notna(SatFat_over_10pct_flag) and SatFat_over_10pct_flag == 1) or (notna(Fiber_g_per_1000kcal) and Fiber_g_per_1000kcal < 14)) and ( ( (notna(Sodium_over_2300_flag) and Sodium_over_2300_flag == 1) and (notna(SatFat_over_10pct_flag) and SatFat_over_10pct_flag == 1) ) or ( (notna(Sodium_over_2300_flag) and Sodium_over_2300_flag == 1) and (notna(Fiber_g_per_1000kcal) and Fiber_g_per_1000kcal < 14) ) or ( (notna(SatFat_over_10pct_flag) and SatFat_over_10pct_flag == 1) and (notna(Fiber_g_per_1000kcal) and Fiber_g_per_1000kcal < 14) ) )"
+    missing_policy: na_false
+    severity: moderate
+    action_type: recommend
+    action_code: RECOMMEND_DASH_OR_MEDITERRANEAN_PATTERN
+    tags: ["diet_pattern", "DASH", "bundle", "reduce_overload"]
+    suppresses: []
+    conflict_group: DIET_PATTERN
+    conflict_policy: keep_strongest
+    explanation_template: "Como existem vários sinais dietéticos a melhorar, foque-se num padrão alimentar cardioprotetor (ex.: DASH/mediterrânico): mais fruta/vegetais/leguminosas/integrais, menos ultraprocessados e menos sal."
+    citations:
+      - "https://www.heart.org/-/media/files/health-topics/high-blood-pressure/hypertension-guideline-highlights-flyer.pdf"
+      - "https://medlineplus.gov/ency/patientinstructions/000770.htm"
+    provenance: "ACC/AHA lifestyle: DASH pattern; bundling to prevent fragmented advice"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: PA-0701
+    rule_version: "1.0.0"
+    name: "Baixa atividade física (sem MVPA)"
+    group: PHYSICAL_ACTIVITY
+    priority: 520
+    condition: "Adult18plus_flag == 1 and notna(Any_MVPA_flag) and Any_MVPA_flag == 0 and (isna(SBP_mean) or SBP_mean < 180) and (isna(DBP_mean) or DBP_mean < 120) and (isna(LBXGH) or LBXGH < 10)"
+    missing_policy: na_false
+    severity: moderate
+    action_type: recommend
+    action_code: RECOMMEND_MVPA_START_GRADUAL
+    tags: ["physical_activity", "WHO", "lifestyle"]
+    suppresses: []
+    conflict_group: PHYSICAL_ACTIVITY_LEVEL
+    conflict_policy: keep_strongest
+    explanation_template: "A atividade física parece baixa. Comece de forma gradual (ex.: caminhadas) e tente atingir pelo menos 150–300 min/sem de atividade moderada (ou 75–150 vigorosa), mais força 2 dias/sem, conforme tolerância."
+    citations:
+      - "https://pmc.ncbi.nlm.nih.gov/articles/PMC7719906/"
+      - "https://www.who.int/initiatives/behealthy/physical-activity"
+    provenance: "WHO 2020 physical activity guidelines; gated to avoid acute HTN/very high A1c contexts"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: PA-0702
+    rule_version: "1.0.0"
+    name: "Sedentarismo elevado"
+    group: PHYSICAL_ACTIVITY
+    priority: 400
+    condition: "Adult18plus_flag == 1 and ((notna(Sedentary_high_flag) and Sedentary_high_flag == 1) or (notna(PAD680) and PAD680 >= 480)) and (isna(SBP_mean) or SBP_mean < 180) and (isna(DBP_mean) or DBP_mean < 120)"
+    missing_policy: na_false
+    severity: low
+    action_type: recommend
+    action_code: RECOMMEND_REDUCE_SEDENTARY_TIME
+    tags: ["sedentary", "microhabits"]
+    suppresses: []
+    conflict_group: SEDENTARY_BEHAVIOR
+    conflict_policy: keep_strongest
+    explanation_template: "O tempo sentado parece alto. Faça pausas curtas (por exemplo, levantar e caminhar 2–3 minutos) a cada 30–60 minutos sempre que possível."
+    citations:
+      - "https://www.who.int/initiatives/behealthy/physical-activity"
+    provenance: "WHO guidance: reduce sedentary time; low-risk behavioral intervention"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: PA-0703
+    rule_version: "1.0.0"
+    name: "Idade >= 65: reforço de equilíbrio/força"
+    group: PHYSICAL_ACTIVITY
+    priority: 260
+    condition: "Adult18plus_flag == 1 and notna(RIDAGEYR) and RIDAGEYR >= 65 and ((notna(Any_MVPA_flag) and Any_MVPA_flag == 0) or (notna(Sedentary_high_flag) and Sedentary_high_flag == 1))"
+    missing_policy: na_false
+    severity: low
+    action_type: inform
+    action_code: INFORM_OLDER_ADULTS_BALANCE_STRENGTH
+    tags: ["older_adults", "falls_prevention", "WHO"]
+    suppresses: []
+    conflict_group: PHYSICAL_ACTIVITY_SAFETY
+    conflict_policy: keep_strongest
+    explanation_template: "Com a idade, é útil incluir exercícios de força e, se aplicável, de equilíbrio (além de caminhar), progredindo de forma segura."
+    citations:
+      - "https://www.who.int/initiatives/behealthy/physical-activity"
+    provenance: "WHO older-adult guidance includes balance/strength"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: SMK-0801
+    rule_version: "1.0.0"
+    name: "Fumador atual — cessação"
+    group: SMOKING
+    priority: 700
+    condition: "Adult18plus_flag == 1 and ((notna(Current_smoker_flag) and Current_smoker_flag == 1) or (notna(Smoking_status) and Smoking_status in ['Current', 'Current smoker', 'Smoker']))"
+    missing_policy: na_false
+    severity: high
+    action_type: recommend
+    action_code: RECOMMEND_SMOKING_CESSATION
+    tags: ["smoking", "cessation", "cardiovascular"]
+    suppresses: ["INFORM_FORMER_SMOKER_REINFORCE"]
+    conflict_group: TOBACCO_STATUS
+    conflict_policy: keep_strongest
+    explanation_template: "Fumar aumenta risco cardiovascular e metabólico. Peça apoio para cessação (consulta, linha de apoio, plano com metas) — parar traz benefícios rápidos."
+    citations:
+      - "https://www.who.int/news-room/questions-and-answers/item/tobacco-health-benefits-of-smoking-cessation"
+      - "https://www.cdc.gov/tobacco/about/benefits-of-quitting.html"
+    provenance: "WHO/CDC: benefits of cessation; strong recommendation"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: SMK-0802
+    rule_version: "1.0.0"
+    name: "Ex-fumador — reforço"
+    group: SMOKING
+    priority: 220
+    condition: "Adult18plus_flag == 1 and notna(Smoking_status) and Smoking_status in ['Former', 'Former smoker', 'Ex-smoker']"
+    missing_policy: na_false
+    severity: low
+    action_type: inform
+    action_code: INFORM_FORMER_SMOKER_REINFORCE
+    tags: ["smoking", "reinforcement"]
+    suppresses: []
+    conflict_group: TOBACCO_STATUS
+    conflict_policy: keep_strongest
+    explanation_template: "Parabéns por ter deixado de fumar. A manutenção da cessação reduz progressivamente o risco cardiovascular. Continue a evitar recaídas."
+    citations:
+      - "https://www.who.int/news-room/questions-and-answers/item/tobacco-health-benefits-of-smoking-cessation"
+    provenance: "WHO: long-term benefits of cessation"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: ALC-0901
+    rule_version: "1.0.0"
+    name: "Álcool acima de orientação — reduzir"
+    group: ALCOHOL
+    priority: 520
+    condition: "Adult18plus_flag == 1 and notna(Alcohol_over_guideline_flag) and Alcohol_over_guideline_flag == 1"
+    missing_policy: na_false
+    severity: moderate
+    action_type: recommend
+    action_code: RECOMMEND_REDUCE_ALCOHOL
+    tags: ["alcohol", "hypertension", "cardiometabolic"]
+    suppresses: []
+    conflict_group: ALCOHOL_LEVEL
+    conflict_policy: keep_strongest
+    explanation_template: "O consumo de álcool está acima das orientações usuais. Reduzir (ou evitar) pode melhorar a pressão arterial e reduzir risco cardiometabólico. Se precisar, peça apoio estruturado."
+    citations:
+      - "https://www.dietaryguidelines.gov/sites/default/files/2020-12/Dietary_Guidelines_for_Americans_2020-2025.pdf"
+      - "https://www.who.int/europe/news/item/04-01-2023-no-level-of-alcohol-consumption-is-safe-for-our-health"
+    provenance: "Dietary guidelines define moderation; WHO notes no safe level for health (informing conservative advice)"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: LIP-1001
+    rule_version: "1.0.0"
+    name: "Colesterol total alto (>= 240 mg/dL)"
+    group: LIPIDS
+    priority: 520
+    condition: "Adult18plus_flag == 1 and notna(TotalChol_mg_dL) and TotalChol_mg_dL >= 240"
+    missing_policy: na_false
+    severity: moderate
+    action_type: recommend
+    action_code: RECOMMEND_LIPIDS_HIGH_TC_LIFESTYLE
+    tags: ["lipids", "total_cholesterol", "ATP_III"]
+    suppresses: ["INFORM_LIPIDS_BORDERLINE_TC"]
+    conflict_group: LIPIDS_TC_LEVEL
+    conflict_policy: keep_strongest
+    explanation_template: "O colesterol total está elevado. Foque-se em padrões alimentares cardioprotetores (menos gordura saturada/trans, mais fibra) e atividade física; discuta com o seu clínico avaliação e estratégia global de risco."
+    citations:
+      - "https://www.nhlbi.nih.gov/files/docs/guidelines/atglance.pdf"
+      - "https://www.who.int/news/item/17-07-2023-who-updates-guidelines-on-fats-and-carbohydrates"
+    provenance: "NHLBI/NCEP ATP III total cholesterol threshold; WHO fat-quality guidance"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: LIP-1002
+    rule_version: "1.0.0"
+    name: "Colesterol total limítrofe (200–239 mg/dL)"
+    group: LIPIDS
+    priority: 340
+    condition: "Adult18plus_flag == 1 and notna(TotalChol_mg_dL) and between(TotalChol_mg_dL, 200, 239)"
+    missing_policy: na_false
+    severity: low
+    action_type: inform
+    action_code: INFORM_LIPIDS_BORDERLINE_TC
+    tags: ["lipids", "prevention", "ATP_III"]
+    suppresses: []
+    conflict_group: LIPIDS_TC_LEVEL
+    conflict_policy: keep_strongest
+    explanation_template: "O colesterol total está em gama limítrofe. Um padrão alimentar com menos gordura saturada e mais fibra, e atividade física regular, pode ajudar a melhorar o perfil lipídico."
+    citations:
+      - "https://www.nhlbi.nih.gov/files/docs/guidelines/atglance.pdf"
+    provenance: "NHLBI/NCEP ATP III borderline total cholesterol range"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: LIP-1003
+    rule_version: "1.0.0"
+    name: "HDL baixo (critério por sexo)"
+    group: LIPIDS
+    priority: 460
+    condition: "Adult18plus_flag == 1 and notna(HDL_mg_dL) and ((notna(RIAGENDR) and RIAGENDR == 1 and HDL_mg_dL < 40) or (notna(RIAGENDR) and RIAGENDR == 2 and HDL_mg_dL < 50) or (notna(HDL_low_flag) and HDL_low_flag == 1))"
+    missing_policy: na_false
+    severity: moderate
+    action_type: recommend
+    action_code: RECOMMEND_LIPIDS_LOW_HDL_LIFESTYLE
+    tags: ["lipids", "HDL", "metabolic_syndrome"]
+    suppresses: []
+    conflict_group: LIPIDS_HDL
+    conflict_policy: keep_strongest
+    explanation_template: "O HDL (‘colesterol bom’) está baixo. Atividade física regular, manutenção de peso e não fumar são estratégias importantes para melhorar o risco cardiovascular global."
+    citations:
+      - "https://www.nhlbi.nih.gov/files/docs/guidelines/atglance.pdf"
+      - "https://www.ahajournals.org/doi/10.1161/circulationaha.109.192644"
+      - "https://www.cdc.gov/tobacco/about/benefits-of-quitting.html"
+    provenance: "ATP III + harmonized metabolic syndrome criteria for HDL; lifestyle link via guideline consensus"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: CM-1101
+    rule_version: "1.0.0"
+    name: "Multimorbilidade: HTA + diabetes (plano integrado)"
+    group: CARDIOMETABOLIC_COMORBIDITY
+    priority: 780
+    condition: "Adult18plus_flag == 1 and notna(Hypertension) and Hypertension == 1 and notna(Diabetes) and Diabetes == 1"
+    missing_policy: na_false
+    severity: high
+    action_type: recommend
+    action_code: RECOMMEND_INTEGRATED_CARDIOMETABOLIC_PLAN
+    tags: ["multimorbidity", "hypertension", "diabetes", "integrated_care"]
+    suppresses: []
+    conflict_group: CARDIOMETABOLIC_BUNDLE
+    conflict_policy: keep_strongest
+    explanation_template: "Como existem hipertensão e diabetes, é útil um plano integrado: alimentação cardiometabólica (sal, gordura saturada, fibra), atividade física adaptada, gestão de peso e seguimento clínico regular."
+    citations:
+      - "https://www.heart.org/-/media/files/health-topics/high-blood-pressure/hypertension-guideline-highlights-flyer.pdf"
+      - "https://diabetesjournals.org/care/article/48/Supplement_1/S14/157560/1-Improving-Care-and-Promoting-Health-in"
+    provenance: "Guideline-aligned integrated risk management; conflict-aware bundling"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: CM-1102
+    rule_version: "1.0.0"
+    name: "Triagem: HTA + diabetes + obesidade"
+    group: CARDIOMETABOLIC_COMORBIDITY
+    priority: 880
+    condition: "Adult18plus_flag == 1 and notna(Hypertension) and Hypertension == 1 and notna(Diabetes) and Diabetes == 1 and notna(BMXBMI) and BMXBMI >= 30"
+    missing_policy: na_false
+    severity: high
+    action_type: escalate
+    action_code: ESCALATE_MULTI_MORBIDITY_HIGH_SEVERITY
+    tags: ["multimorbidity", "triage", "obesity"]
+    suppresses: []
+    conflict_group: CARDIOMETABOLIC_ESCALATION
+    conflict_policy: keep_strongest
+    explanation_template: "Existe uma combinação de fatores (hipertensão, diabetes e obesidade) que aumenta o risco cardiometabólico. Recomenda-se revisão clínica para priorizar mudanças e definir metas realistas e seguras."
+    citations:
+      - "https://diabetesjournals.org/care/article/49/Supplement_1/S166/163915/8-Obesity-and-Weight-Management-for-the-Prevention"
+      - "https://www.heart.org/-/media/files/health-topics/high-blood-pressure/hypertension-guideline-highlights-flyer.pdf"
+    provenance: "Combined-risk triage; ADA obesity management benefits + HTN lifestyle pathways"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: CM-1103
+    rule_version: "1.0.0"
+    name: "Triagem por banda de gravidade cardiometabólica (se disponível)"
+    group: CARDIOMETABOLIC_COMORBIDITY
+    priority: 820
+    condition: "Adult18plus_flag == 1 and notna(Severity_band) and Severity_band in ['High', 'Critical']"
+    missing_policy: na_false
+    severity: high
+    action_type: escalate
+    action_code: ESCALATE_MULTI_MORBIDITY_HIGH_SEVERITY
+    tags: ["severity_band", "triage", "audit"]
+    suppresses: []
+    conflict_group: CARDIOMETABOLIC_ESCALATION
+    conflict_policy: keep_strongest
+    explanation_template: "Os indicadores globais sugerem gravidade cardiometabólica elevada. Recomenda-se avaliação clínica para definir prioridades e monitorização."
+    citations:
+      - "Internal: Severity_band definition must be validated locally"
+    provenance: "Uses dataset-derived severity band; requires local validation and calibration"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true
+
+  - rule_id: CM-1104
+    rule_version: "1.0.0"
+    name: "Bundle: múltiplos riscos de estilo de vida"
+    group: CARDIOMETABOLIC_COMORBIDITY
+    priority: 540
+    condition: "Adult18plus_flag == 1 and notna(Lifestyle_risk_score) and Lifestyle_risk_score >= 3 and (isna(SBP_mean) or SBP_mean < 180) and (isna(DBP_mean) or DBP_mean < 120) and (isna(LBXGH) or LBXGH < 10)"
+    missing_policy: na_false
+    severity: moderate
+    action_type: recommend
+    action_code: RECOMMEND_LIFESTYLE_RISK_BUNDLE
+    tags: ["bundle", "adherence", "reduce_overload"]
+    suppresses: []
+    conflict_group: LIFESTYLE_BUNDLE
+    conflict_policy: keep_strongest
+    explanation_template: "Há vários fatores de estilo de vida a melhorar. Em vez de tentar tudo ao mesmo tempo, escolha 1–2 mudanças com maior impacto (ex.: reduzir sal + caminhar mais) e mantenha-as por 2–4 semanas antes de adicionar novas metas."
+    citations:
+      - "https://www.heart.org/-/media/files/health-topics/high-blood-pressure/hypertension-guideline-highlights-flyer.pdf"
+      - "https://pmc.ncbi.nlm.nih.gov/articles/PMC7719906/"
+    provenance: "Behavioral feasibility + guideline-consistent lifestyle priorities; reduces recommendation overload"
+    created_by: "thesis_ruleset_generator"
+    created_at: "2026-03-16T00:00:00Z"
+    enabled: true

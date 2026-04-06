@@ -1,0 +1,47 @@
+{
+  "ranking_version": "ranking_1.0.0",
+  "participants": 22282,
+  "input_candidates": 169009,
+  "output_ranked_candidates": 94973,
+  "triage_count": 471,
+  "feature_tier_counts": {
+    "minimal": 4153,
+    "core": 2053,
+    "full": 16076
+  },
+  "avg_ranked_per_participant": 4.2623,
+  "confidence_counts": {
+    "high": 37909,
+    "medium": 32266,
+    "low": 24798
+  },
+  "action_type_counts": {
+    "recommend": 61078,
+    "inform": 26079,
+    "escalate": 7816
+  },
+  "bundle_family_counts": {
+    "DietPattern": 25892,
+    "Monitoring": 22718,
+    "IntegratedCardiometabolic": 21976,
+    "Movement": 11314,
+    "Lipids": 4963,
+    "Weight": 3614,
+    "Smoking": 3069,
+    "Alcohol": 1427
+  },
+  "score_summary": {
+    "min_total_score": -14.0,
+    "max_total_score": 241.0,
+    "mean_total_score": 120.9297
+  },
+  "timestamp_utc": "2026-03-29T23:19:12.163516+00:00",
+  "status": "success",
+  "input_files": {
+    "safety_context": "apps/recs_csl/output/safety_context.jsonl",
+    "gated_candidates": "apps/recs_csl/output/gated_candidates.jsonl"
+  },
+  "output_files": {
+    "ranked_recommendations": "apps/ranking_layer/output/ranked_recommendations.jsonl"
+  }
+}

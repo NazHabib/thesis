@@ -1,0 +1,84 @@
+import pandas as pd
+
+from .config import BUNDLING_VERSION
+from .contracts import validate_safety_context_columns, validate_ranked_columns
+from .bundler import build_bundles
+
+
+FINAL_BUNDLE_COLUMNS = [
+    "ParticipantKey",
+    "bundle_title",
+    "bundle_family",
+    "category",
+    "action_codes",
+    "action_type",
+    "priority",
+    "tags",
+    "source_rule_ids",
+    "evidence",
+    "coldstart_note_codes",
+    "bundle_score",
+    "confidence_score",
+    "confidence_label",
+    "rationale",
+    "explanation",
+    "triage_mode",
+    "triage_reason",
+]
+
+
+def run_bundling_layer(
+    safety_context_df: pd.DataFrame,
+    ranked_df: pd.DataFrame,
+) -> dict:
+    validate_safety_context_columns(safety_context_df)
+    validate_ranked_columns(ranked_df)
+
+    merged_df = ranked_df.merge(
+        safety_context_df,
+        on="ParticipantKey",
+        how="left",
+        validate="m:1",
+    )
+
+    # If ML reranking output is present, prefer final_score as the active
+    # total_score used by bundling, while preserving traceability.
+    if "final_score" in merged_df.columns:
+        merged_df["rule_total_score"] = merged_df["total_score"]
+        merged_df["effective_score"] = merged_df["final_score"]
+        merged_df["total_score"] = merged_df["final_score"]
+    else:
+        merged_df["effective_score"] = merged_df["total_score"]
+
+    bundles_df = build_bundles(merged_df)
+    bundles_df = bundles_df[FINAL_BUNDLE_COLUMNS].copy()
+
+    n_participants = int(safety_context_df["ParticipantKey"].nunique())
+
+    manifest = {
+        "bundling_version": BUNDLING_VERSION,
+        "participants": n_participants,
+        "input_ranked_candidates": int(len(ranked_df)),
+        "output_final_recommendations": int(len(bundles_df)),
+        "triage_count": int(safety_context_df["triage_mode"].fillna(False).sum()),
+        "avg_bundles_per_participant": round(len(bundles_df) / max(1, n_participants), 4),
+        "bundle_family_counts": {
+            str(k): int(v)
+            for k, v in bundles_df["bundle_family"].value_counts(dropna=False).to_dict().items()
+        },
+        "confidence_counts": {
+            "high": int((bundles_df["confidence_label"] == "high").sum()),
+            "medium": int((bundles_df["confidence_label"] == "medium").sum()),
+            "low": int((bundles_df["confidence_label"] == "low").sum()),
+        },
+        "score_summary": {
+            "min_bundle_score": float(bundles_df["bundle_score"].min()) if not bundles_df.empty else 0.0,
+            "max_bundle_score": float(bundles_df["bundle_score"].max()) if not bundles_df.empty else 0.0,
+            "mean_bundle_score": round(float(bundles_df["bundle_score"].mean()), 4) if not bundles_df.empty else 0.0,
+        },
+    }
+
+    return {
+        "final_recommendations": bundles_df,
+        "manifest": manifest,
+    }

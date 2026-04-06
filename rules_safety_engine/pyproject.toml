@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rules-safety-engine"
+version = "0.1.0"
+description = "Clinical DM+HTN rules and safety engine"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "pandas>=2.0",
+  "pyyaml>=6.0",
+  "click>=8.0",
+  "jsonschema>=4.0"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0"
+]
+
+[project.scripts]
+rules-engine = "rules_safety_engine.rules_engine.cli:main"

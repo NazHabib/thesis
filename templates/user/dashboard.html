@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}User Dashboard{% endblock %}
+{% block content %}
+<h2>User Dashboard</h2>
+<p class="text-muted">PGHD overview, recent recommendations, alerts.</p>
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5>Recommendations</h5>
+        <p>Generate new recommendations or review history.</p>
+        <a class="btn btn-outline-primary" href="{% url 'recs:generate' %}">Generate</a>
+        <a class="btn btn-outline-secondary" href="{% url 'recs:history' %}">History</a>
+        <a class="btn btn-outline-secondary" href="{% url 'user:profile' %}">My Profile</a>
+	<a class="btn btn-outline-warning" href="{% url 'user:alerts' %}">Alerts</a>
+        <p class="text-muted">Recommendation runs: <strong>{{ runs_count }}</strong></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5>Data Engineering</h5>
+        <p>Upload/inspect datasets and pipeline runs (admin only).</p>
+        {% if user.role == "ADMIN" %}
+          <a class="btn btn-outline-dark" href="{% url 'de:datasets' %}">Open</a>
+        {% else %}
+          <span class="text-muted">Not available for your role.</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

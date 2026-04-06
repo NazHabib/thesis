@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Patient {{ patient.username }} Run {{ run.id }}{% endblock %}
+{% block content %}
+<h2>{{ patient.username }} — Run #{{ run.id }}</h2>
+<p class="text-muted">Generated at {{ run.created_at }} | Engine {{ run.engine_version }}</p>
+
+{% for item in run.items.all %}
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <div class="d-flex justify-content-between">
+        <h5 class="mb-1">{{ item.title }}</h5>
+        <span class="badge text-bg-secondary">Priority {{ item.priority }}</span>
+      </div>
+
+      <p class="mb-1"><strong>Category:</strong> {{ item.category }}</p>
+      <p class="mb-1"><strong>Rationale:</strong> {{ item.rationale }}</p>
+      <p class="mb-1"><strong>Explanation (XAI):</strong> {{ item.explanation }}</p>
+      <p class="mb-0 text-muted"><small>Source: {{ item.source }} | Confidence: {{ item.confidence }}</small></p>
+    </div>
+  </div>
+{% endfor %}
+
+<a class="btn btn-outline-secondary" href="{% url 'clinician:patient_detail' patient.id %}">Back to patient</a>
+{% endblock %}

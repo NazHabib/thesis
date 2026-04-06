@@ -1,0 +1,546 @@
+recommendation_catalog:
+  - action_code: INFORM_SYSTEM_SCOPE
+    domain: SAFETY
+    action_type: inform
+    severity: low
+    typical_priority_range: [10, 20]
+    conflict_group: GLOBAL_SAFETY_MESSAGING
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [safety, disclaimer, audit]
+    short_patient_explanation_intent: "Reforçar que o sistema apoia decisões, não substitui clínicos."
+    clinician_facing_rationale: "Mitigar risco de automedicação/overtrust; estabelecer limites do sistema."
+    why_it_exists_in_engine: "Obrigatório para segurança, literacia e conformidade (assistente, não substituto)."
+
+  - action_code: ESCALATE_OUT_OF_SCOPE_NONADULT
+    domain: SAFETY
+    action_type: escalate
+    severity: high
+    typical_priority_range: [900, 980]
+    conflict_group: OUT_OF_SCOPE
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [safety, scope, pediatrics]
+    short_patient_explanation_intent: "Indicar que as regras foram desenhadas para adultos."
+    clinician_facing_rationale: "Limiar/risco e diretrizes são diferentes em pediatria; evitar aconselhamento inadequado."
+    why_it_exists_in_engine: "Evita recomendações fora do âmbito (pediatria) quando só existem regras para adultos."
+
+  - action_code: INFORM_BP_MEASUREMENT_LIMITED
+    domain: DATA_QUALITY
+    action_type: inform
+    severity: moderate
+    typical_priority_range: [300, 450]
+    conflict_group: DATA_QUALITY_BP
+    conflict_policy: keep_strongest
+    suppresses: [RECOMMEND_HTN_ST2_CLINIC_REVIEW_1M, RECOMMEND_HTN_ST1_LIFESTYLE_3_6M, RECOMMEND_BP_ELEVATED_LIFESTYLE_3_6M, INFORM_BP_NORMAL_MAINTAIN_ANNUAL]
+    tags: [data_quality, blood_pressure, measurement]
+    short_patient_explanation_intent: "Explicar que poucas medições reduzem confiança nas categorias de PA."
+    clinician_facing_rationale: "Diretrizes recomendam médias/medições repetidas; baixa n pode enviesar classificação."
+    why_it_exists_in_engine: "Mantém determinismo e reduz falsos positivos/negativos em classificações não urgentes."
+
+  - action_code: INFORM_DIET_RECALL_NOT_RELIABLE
+    domain: DATA_QUALITY
+    action_type: inform
+    severity: moderate
+    typical_priority_range: [250, 400]
+    conflict_group: DATA_QUALITY_DIET
+    conflict_policy: keep_strongest
+    suppresses: [RECOMMEND_SODIUM_REDUCTION_2300, RECOMMEND_SODIUM_REDUCTION_1500_IDEAL, INFORM_VERY_HIGH_SODIUM, RECOMMEND_INCREASE_DIETARY_FIBER_DENSITY, RECOMMEND_REDUCE_SATURATED_FAT, RECOMMEND_DASH_OR_MEDITERRANEAN_PATTERN, INFORM_LOW_POTASSIUM_SODIUM_RATIO_CAUTIOUS, RECOMMEND_REDUCE_ALCOHOL]
+    tags: [data_quality, diet, nhanes]
+    short_patient_explanation_intent: "Indicar que o recordatório alimentar pode não refletir o padrão habitual."
+    clinician_facing_rationale: "DR1DRSTZ capta completude/fiabilidade do recall; evitar conclusões fortes."
+    why_it_exists_in_engine: "Evita recomendações dietéticas baseadas em dados potencialmente inválidos."
+
+  - action_code: INFORM_BP_METHOD_INFERRED
+    domain: DATA_QUALITY
+    action_type: inform
+    severity: low
+    typical_priority_range: [80, 150]
+    conflict_group: DATA_QUALITY_BP
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [data_quality, provenance]
+    short_patient_explanation_intent: "Avisar que o método de PA pode ter sido inferido."
+    clinician_facing_rationale: "Transparência: origem do método influencia comparabilidade/interpretação."
+    why_it_exists_in_engine: "Apoia auditoria e explicações (proveniência)."
+
+  - action_code: INFORM_DATA_MISSING_KEY_METRICS
+    domain: DATA_QUALITY
+    action_type: inform
+    severity: moderate
+    typical_priority_range: [200, 320]
+    conflict_group: DATA_QUALITY_GENERAL
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [data_quality, missingness, safety]
+    short_patient_explanation_intent: "Explicar que faltam dados essenciais para recomendações mais específicas."
+    clinician_facing_rationale: "Quando faltam métricas críticas, reduzir assertividade e encaminhar medição/colheita."
+    why_it_exists_in_engine: "Fail-safe: o motor deve degradar graciosamente perante missingness."
+
+  - action_code: ESCALATE_EMERGENCY_HTN_DM
+    domain: SAFETY
+    action_type: escalate
+    severity: critical
+    typical_priority_range: [1000, 1100]
+    conflict_group: ACUTE_EMERGENCY
+    conflict_policy: keep_strongest
+    suppresses: [ESCALATE_HTN_CRISIS, ESCALATE_SEVERE_HYPERGLYCEMIA]
+    tags: [emergency, hypertension, diabetes, safety_first]
+    short_patient_explanation_intent: "Combinar sinais de risco agudo (PA muito elevada + HbA1c muito elevada)."
+    clinician_facing_rationale: "Dois domínios com risco aumentado; priorizar avaliação urgente coordenada."
+    why_it_exists_in_engine: "Reduz duplicação de alertas críticos e domina recomendações de estilo de vida."
+
+  - action_code: ESCALATE_HTN_CRISIS
+    domain: HTN_ACUTE
+    action_type: escalate
+    severity: critical
+    typical_priority_range: [950, 1050]
+    conflict_group: ACUTE_EMERGENCY
+    conflict_policy: keep_strongest
+    suppresses: [RECOMMEND_HTN_ST2_CLINIC_REVIEW_1M, RECOMMEND_HTN_ST1_LIFESTYLE_3_6M, RECOMMEND_BP_ELEVATED_LIFESTYLE_3_6M, RECOMMEND_MVPA_START_GRADUAL, RECOMMEND_REDUCE_SEDENTARY_TIME, RECOMMEND_SODIUM_REDUCTION_2300, RECOMMEND_SODIUM_REDUCTION_1500_IDEAL, RECOMMEND_REDUCE_ALCOHOL]
+    tags: [emergency, blood_pressure, safety_first]
+    short_patient_explanation_intent: "Encaminhar rapidamente por PA muito elevada (potencial urgência/emergência)."
+    clinician_facing_rationale: "Limiar de PA marcado (≈≥180/120) indica necessidade de avaliação urgente; sintomas não estão disponíveis."
+    why_it_exists_in_engine: "Garante que alertas potencialmente fatais pré-emptam recomendações de bem-estar."
+
+  - action_code: ESCALATE_HTN_MARKEDLY_ELEVATED
+    domain: HTN_ACUTE
+    action_type: escalate
+    severity: high
+    typical_priority_range: [800, 920]
+    conflict_group: HTN_URGENCY
+    conflict_policy: keep_strongest
+    suppresses: [RECOMMEND_BP_ELEVATED_LIFESTYLE_3_6M]
+    tags: [hypertension, follow_up, risk]
+    short_patient_explanation_intent: "Sinalizar PA muito alta (mas abaixo de crise) para avaliação célere."
+    clinician_facing_rationale: "Valores ~≥160/100 têm risco mais alto; sem sintomas, recomendar contacto clínico breve."
+    why_it_exists_in_engine: "Triage: distinguir ‘precisa de consulta breve’ vs ‘pode reavaliar mais tarde’."
+
+  - action_code: ESCALATE_SEVERE_HYPERGLYCEMIA
+    domain: DIABETES_ACUTE
+    action_type: escalate
+    severity: critical
+    typical_priority_range: [930, 1030]
+    conflict_group: ACUTE_EMERGENCY
+    conflict_policy: keep_strongest
+    suppresses: [RECOMMEND_DIABETES_SELF_MANAGEMENT_CORE, RECOMMEND_MVPA_START_GRADUAL]
+    tags: [diabetes, severe_hyperglycemia, safety_first]
+    short_patient_explanation_intent: "Encaminhar quando HbA1c está muito elevada (risco/clínica urgente)."
+    clinician_facing_rationale: "HbA1c muito elevada sugere hiperglicemia sustentada; requer avaliação e plano individualizado."
+    why_it_exists_in_engine: "Evita conselhos simplistas em controlo glicémico potencialmente perigoso."
+
+  - action_code: RECOMMEND_HTN_ST2_CLINIC_REVIEW_1M
+    domain: HTN_MANAGEMENT
+    action_type: recommend
+    severity: high
+    typical_priority_range: [650, 780]
+    conflict_group: HTN_BP_CATEGORY
+    conflict_policy: keep_strongest
+    suppresses: [RECOMMEND_HTN_ST1_LIFESTYLE_3_6M, RECOMMEND_BP_ELEVATED_LIFESTYLE_3_6M, INFORM_BP_NORMAL_MAINTAIN_ANNUAL]
+    tags: [hypertension, stage2, follow_up]
+    short_patient_explanation_intent: "Consulta/seguimento próximo por PA na gama de HTA estádio 2."
+    clinician_facing_rationale: "Guias indicam reavaliação rápida; sem variáveis de fármacos, centrar em follow-up e estilo de vida."
+    why_it_exists_in_engine: "Orquestra o ‘caminho HTA’ e evita duplicação com estádio 1/elevada."
+
+  - action_code: RECOMMEND_HTN_ST1_LIFESTYLE_3_6M
+    domain: HTN_MANAGEMENT
+    action_type: recommend
+    severity: moderate
+    typical_priority_range: [450, 640]
+    conflict_group: HTN_BP_CATEGORY
+    conflict_policy: keep_strongest
+    suppresses: [RECOMMEND_BP_ELEVATED_LIFESTYLE_3_6M, INFORM_BP_NORMAL_MAINTAIN_ANNUAL]
+    tags: [hypertension, stage1, lifestyle]
+    short_patient_explanation_intent: "Mudanças de estilo de vida e reavaliação programada para PA estádio 1."
+    clinician_facing_rationale: "Sem risco ASCVD/CKD/CVD, focar em lifestyle; com diabetes, follow-up pode ser mais precoce."
+    why_it_exists_in_engine: "Intervenção precoce e determinística sem prescrever medicação."
+
+  - action_code: RECOMMEND_BP_ELEVATED_LIFESTYLE_3_6M
+    domain: HTN_MANAGEMENT
+    action_type: recommend
+    severity: low
+    typical_priority_range: [200, 420]
+    conflict_group: HTN_BP_CATEGORY
+    conflict_policy: keep_strongest
+    suppresses: [INFORM_BP_NORMAL_MAINTAIN_ANNUAL]
+    tags: [blood_pressure, elevated, prevention]
+    short_patient_explanation_intent: "Prevenção e hábitos: PA ‘elevada’ (não HTA) beneficia de lifestyle."
+    clinician_facing_rationale: "Estratégia preventiva; reavaliação 3–6 meses citada em resumos do guideline."
+    why_it_exists_in_engine: "Reduz progressão e reforça prevenção sem medicalização indevida."
+
+  - action_code: INFORM_BP_NORMAL_MAINTAIN_ANNUAL
+    domain: HTN_MANAGEMENT
+    action_type: inform
+    severity: low
+    typical_priority_range: [50, 140]
+    conflict_group: HTN_BP_CATEGORY
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [blood_pressure, prevention]
+    short_patient_explanation_intent: "Reforçar manutenção de hábitos e monitorização anual se PA normal."
+    clinician_facing_rationale: "Evitar alert fatigue quando PA está em valores normais."
+    why_it_exists_in_engine: "Feedback positivo e ‘guardrails’ de prevenção."
+
+  - action_code: RECOMMEND_BP_SELF_MONITORING
+    domain: HTN_MANAGEMENT
+    action_type: recommend
+    severity: low
+    typical_priority_range: [180, 320]
+    conflict_group: HTN_SELF_MONITORING
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [blood_pressure, self_monitoring, education]
+    short_patient_explanation_intent: "Sugerir auto-medição/monitorização para melhor controlo e seguimento."
+    clinician_facing_rationale: "Guias enfatizam medições corretas e auto-monitorização para diagnóstico/gestão."
+    why_it_exists_in_engine: "Melhora qualidade futura de dados e reduz incerteza do motor."
+
+  - action_code: RECOMMEND_DIABETES_SELF_MANAGEMENT_CORE
+    domain: DIABETES_MANAGEMENT
+    action_type: recommend
+    severity: moderate
+    typical_priority_range: [420, 600]
+    conflict_group: DIABETES_CORE
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [diabetes, self_management, education]
+    short_patient_explanation_intent: "Plano base: alimentação, atividade, peso e seguimento regular na diabetes."
+    clinician_facing_rationale: "Standards ADA reforçam objetivos individualizados e seguimento; motor não prescreve."
+    why_it_exists_in_engine: "Base consistente para qualquer perfil com diabetes na ausência de fármacos/labs adicionais."
+
+  - action_code: RECOMMEND_DIABETES_POOR_CONTROL_REVIEW
+    domain: DIABETES_MANAGEMENT
+    action_type: recommend
+    severity: high
+    typical_priority_range: [650, 820]
+    conflict_group: DIABETES_GLYCEMIC_SEVERITY
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [diabetes, a1c, follow_up]
+    short_patient_explanation_intent: "Sugerir revisão clínica breve por HbA1c elevada (controlo subótimo)."
+    clinician_facing_rationale: "HbA1c persistentemente elevada implica revisão de plano; sem medicação, orientar para follow-up."
+    why_it_exists_in_engine: "Estratifica risco/urgência dentro de diabetes sem criar recomendação farmacológica."
+
+  - action_code: RECOMMEND_PREDIABETES_LIFESTYLE
+    domain: DIABETES_MANAGEMENT
+    action_type: recommend
+    severity: moderate
+    typical_priority_range: [380, 560]
+    conflict_group: DIABETES_GLYCEMIC_SEVERITY
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [prediabetes, prevention, lifestyle]
+    short_patient_explanation_intent: "Prevenir progressão: atividade física, peso e padrão alimentar."
+    clinician_facing_rationale: "ADA define pré-diabetes (HbA1c 5,7–6,4%) e recomenda intervenções de estilo de vida."
+    why_it_exists_in_engine: "Atua upstream (prevenção), com baixo risco iatrogénico."
+
+  - action_code: INFORM_NORMAL_GLYCEMIA_PREVENTION
+    domain: DIABETES_MANAGEMENT
+    action_type: inform
+    severity: low
+    typical_priority_range: [80, 180]
+    conflict_group: DIABETES_GLYCEMIC_SEVERITY
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [prevention]
+    short_patient_explanation_intent: "Reforçar hábitos preventivos quando HbA1c está em gama normal."
+    clinician_facing_rationale: "Evitar excesso de recomendações quando biomarcador está normal."
+    why_it_exists_in_engine: "Feedback positivo e prevenção primária."
+
+  - action_code: RECOMMEND_WEIGHT_MANAGEMENT_OVERWEIGHT
+    domain: OBESITY
+    action_type: recommend
+    severity: low
+    typical_priority_range: [220, 420]
+    conflict_group: WEIGHT_MANAGEMENT_LEVEL
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [overweight, weight_management]
+    short_patient_explanation_intent: "Sugerir estratégias graduais de peso na pré-obesidade/ excesso de peso."
+    clinician_facing_rationale: "Excesso de peso aumenta risco cardiometabólico; abordagem comportamental é segura."
+    why_it_exists_in_engine: "Ação precoce antes de progressão para obesidade."
+
+  - action_code: RECOMMEND_WEIGHT_MANAGEMENT_OBESITY
+    domain: OBESITY
+    action_type: recommend
+    severity: moderate
+    typical_priority_range: [420, 620]
+    conflict_group: WEIGHT_MANAGEMENT_LEVEL
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [obesity, weight_management]
+    short_patient_explanation_intent: "Reforçar programa estruturado de perda de peso e hábitos."
+    clinician_facing_rationale: "Em diabetes/obesidade, perda de peso modesta melhora métricas metabólicas."
+    why_it_exists_in_engine: "Move o doente para intervenção estruturada sem farmacologia."
+
+  - action_code: ESCALATE_SEVERE_OBESITY_INTENSIVE_REFERRAL
+    domain: OBESITY
+    action_type: escalate
+    severity: high
+    typical_priority_range: [700, 880]
+    conflict_group: WEIGHT_MANAGEMENT_LEVEL
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [severe_obesity, referral, multidisciplinary]
+    short_patient_explanation_intent: "Sugerir avaliação multidisciplinar intensiva na obesidade grave."
+    clinician_facing_rationale: "IMC ≥40 associa-se a maior risco e pode requerer abordagem especializada."
+    why_it_exists_in_engine: "Triage para nível de recursos apropriado (multidisciplinar)."
+
+  - action_code: INFORM_CENTRAL_OBESITY_RISK
+    domain: OBESITY
+    action_type: inform
+    severity: low
+    typical_priority_range: [180, 320]
+    conflict_group: ADIPOSITY_DISTRIBUTION
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [waist, cardiometabolic_risk]
+    short_patient_explanation_intent: "Explicar que cintura elevada é marcador de risco cardiometabólico."
+    clinician_facing_rationale: "Critérios metabólicos (ATP III/IDF) usam cintura como marcador de adiposidade central."
+    why_it_exists_in_engine: "Complementa IMC (melhor fenotipagem sem novos exames)."
+
+  - action_code: INFORM_VERY_HIGH_SODIUM
+    domain: DIET
+    action_type: inform
+    severity: high
+    typical_priority_range: [520, 700]
+    conflict_group: DIET_SODIUM
+    conflict_policy: keep_strongest
+    suppresses: [RECOMMEND_SODIUM_REDUCTION_2300, RECOMMEND_SODIUM_REDUCTION_1500_IDEAL]
+    tags: [diet, sodium, high_risk]
+    short_patient_explanation_intent: "Sinalizar consumo de sódio muito alto (dia 1)."
+    clinician_facing_rationale: "Valores muito elevados justificam aconselhamento focal (processados/restauração)."
+    why_it_exists_in_engine: "Torna o motor sensível a extremos sem ‘medicalizar’ casos moderados."
+
+  - action_code: RECOMMEND_SODIUM_REDUCTION_2300
+    domain: DIET
+    action_type: recommend
+    severity: moderate
+    typical_priority_range: [380, 560]
+    conflict_group: DIET_SODIUM
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [diet, sodium]
+    short_patient_explanation_intent: "Recomendar reduzir sódio para limites gerais."
+    clinician_facing_rationale: "OMS recomenda <2000 mg/d; muitas diretrizes usam 2300 mg como limite de referência e ‘caminhar para’ 1500 mg."
+    why_it_exists_in_engine: "Intervenção dietética com bom perfil risco/benefício para PA."
+
+  - action_code: RECOMMEND_SODIUM_REDUCTION_1500_IDEAL
+    domain: DIET
+    action_type: recommend
+    severity: high
+    typical_priority_range: [560, 720]
+    conflict_group: DIET_SODIUM
+    conflict_policy: keep_strongest
+    suppresses: [RECOMMEND_SODIUM_REDUCTION_2300]
+    tags: [diet, sodium, hypertension]
+    short_patient_explanation_intent: "Para HTA/alto risco, sugerir meta mais estrita (aproximar 1500 mg)."
+    clinician_facing_rationale: "AHA aponta 1500 mg/d como objetivo ideal, sobretudo em HTA."
+    why_it_exists_in_engine: "Personaliza pela presença de HTA/DM sem exigir ASCVD."
+
+  - action_code: INFORM_LOW_POTASSIUM_SODIUM_RATIO_CAUTIOUS
+    domain: DIET
+    action_type: inform
+    severity: low
+    typical_priority_range: [220, 420]
+    conflict_group: DIET_POTASSIUM
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [diet, potassium, hypertension, safety_note]
+    short_patient_explanation_intent: "Sugerir mais alimentos ricos em potássio e menos processados—com cautela clínica."
+    clinician_facing_rationale: "Guidelines recomendam aumentar potássio via dieta para PA, exceto em situações como doença renal/hipercaliemia."
+    why_it_exists_in_engine: "Aproveita marcador derivado (ratio K/Na) mantendo linguagem prudente."
+
+  - action_code: RECOMMEND_INCREASE_DIETARY_FIBER_DENSITY
+    domain: DIET
+    action_type: recommend
+    severity: moderate
+    typical_priority_range: [360, 540]
+    conflict_group: DIET_FIBER
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [diet, fiber]
+    short_patient_explanation_intent: "Aumentar fibra (cereais integrais, leguminosas, fruta/vegetais)."
+    clinician_facing_rationale: "Referências dietéticas usam ~14 g/1000 kcal como valor-guia para fibra."
+    why_it_exists_in_engine: "Intervenção transversal (PA, glicemia, saciedade) com baixo risco."
+
+  - action_code: RECOMMEND_REDUCE_SATURATED_FAT
+    domain: DIET
+    action_type: recommend
+    severity: moderate
+    typical_priority_range: [360, 540]
+    conflict_group: DIET_FAT_QUALITY
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [diet, saturated_fat, lipids]
+    short_patient_explanation_intent: "Reduzir gordura saturada e trocar por insaturadas."
+    clinician_facing_rationale: "OMS reafirma limite ≤10% energia para saturadas; diretrizes alimentares concordam."
+    why_it_exists_in_engine: "Redução de risco lipídico/cardiovascular sem fármacos."
+
+  - action_code: RECOMMEND_DASH_OR_MEDITERRANEAN_PATTERN
+    domain: DIET
+    action_type: recommend
+    severity: moderate
+    typical_priority_range: [420, 620]
+    conflict_group: DIET_PATTERN
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [diet_pattern, DASH, cardiometabolic]
+    short_patient_explanation_intent: "Sugerir padrão alimentar cardioprotetor (DASH/mediterrânico) quando existem múltiplos riscos."
+    clinician_facing_rationale: "Diretrizes HTA destacam DASH; padrões semelhantes apoiam controlo de PA e risco."
+    why_it_exists_in_engine: "Evita conselhos fragmentados; consolida recomendações dietéticas."
+
+  - action_code: RECOMMEND_MVPA_START_GRADUAL
+    domain: PHYSICAL_ACTIVITY
+    action_type: recommend
+    severity: moderate
+    typical_priority_range: [360, 560]
+    conflict_group: PHYSICAL_ACTIVITY_LEVEL
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [physical_activity, WHO]
+    short_patient_explanation_intent: "Incentivar começar atividade física e progredir gradualmente."
+    clinician_facing_rationale: "OMS: ≥150–300 min/sem moderada ou 75–150 vigorosa + força 2 dias/sem."
+    why_it_exists_in_engine: "Pilar transversal (HTA, DM, peso), seguro quando não há sinais de emergência."
+
+  - action_code: RECOMMEND_REDUCE_SEDENTARY_TIME
+    domain: PHYSICAL_ACTIVITY
+    action_type: recommend
+    severity: low
+    typical_priority_range: [260, 420]
+    conflict_group: SEDENTARY_BEHAVIOR
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [sedentary, breaks]
+    short_patient_explanation_intent: "Reduzir tempo sentado e fazer pausas regulares."
+    clinician_facing_rationale: "Guidelines OMS encorajam reduzir sedentarismo; pequenas pausas são de baixo risco."
+    why_it_exists_in_engine: "Intervenção mínima, muitas vezes exequível (micro-hábitos)."
+
+  - action_code: INFORM_OLDER_ADULTS_BALANCE_STRENGTH
+    domain: PHYSICAL_ACTIVITY
+    action_type: inform
+    severity: low
+    typical_priority_range: [160, 320]
+    conflict_group: PHYSICAL_ACTIVITY_SAFETY
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [older_adults, falls_prevention]
+    short_patient_explanation_intent: "Em idades mais avançadas, reforçar força/equilíbrio e progressão segura."
+    clinician_facing_rationale: "OMS recomenda equilíbrio/força em idosos, especialmente com mobilidade reduzida."
+    why_it_exists_in_engine: "Segurança e personalização simples com base na idade."
+
+  - action_code: RECOMMEND_SMOKING_CESSATION
+    domain: SMOKING
+    action_type: recommend
+    severity: high
+    typical_priority_range: [520, 720]
+    conflict_group: TOBACCO_STATUS
+    conflict_policy: keep_strongest
+    suppresses: [INFORM_FORMER_SMOKER_REINFORCE]
+    tags: [smoking, cessation, cardiovascular]
+    short_patient_explanation_intent: "Aconselhar cessação e apoio estruturado."
+    clinician_facing_rationale: "OMS/CDC descrevem benefícios rápidos e redução de risco CV após cessação."
+    why_it_exists_in_engine: "Maior impacto modificável; regra forte e transversal."
+
+  - action_code: INFORM_FORMER_SMOKER_REINFORCE
+    domain: SMOKING
+    action_type: inform
+    severity: low
+    typical_priority_range: [120, 240]
+    conflict_group: TOBACCO_STATUS
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [smoking, reinforcement]
+    short_patient_explanation_intent: "Reforçar ganhos de saúde por ter deixado de fumar."
+    clinician_facing_rationale: "Reforço positivo aumenta manutenção da cessação."
+    why_it_exists_in_engine: "Evita ‘silêncio’ quando há histórico relevante e promove adesão."
+
+  - action_code: RECOMMEND_REDUCE_ALCOHOL
+    domain: ALCOHOL
+    action_type: recommend
+    severity: moderate
+    typical_priority_range: [360, 560]
+    conflict_group: ALCOHOL_LEVEL
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [alcohol, hypertension, cardiometabolic]
+    short_patient_explanation_intent: "Reduzir álcool quando ultrapassa orientações."
+    clinician_facing_rationale: "Guidelines de PA e diretrizes alimentares sugerem limites; OMS enfatiza risco do álcool."
+    why_it_exists_in_engine: "Redução de risco para PA e cardiometabólico sem farmacologia."
+
+  - action_code: RECOMMEND_LIPIDS_HIGH_TC_LIFESTYLE
+    domain: LIPIDS
+    action_type: recommend
+    severity: moderate
+    typical_priority_range: [360, 560]
+    conflict_group: LIPIDS_TC_LEVEL
+    conflict_policy: keep_strongest
+    suppresses: [INFORM_LIPIDS_BORDERLINE_TC]
+    tags: [lipids, total_cholesterol]
+    short_patient_explanation_intent: "Melhorar alimentação/atividade para colesterol total alto e discutir com clínico."
+    clinician_facing_rationale: "ATP III: TC ≥240 mg/dL é ‘alto’; sem LDL/ASCVD, focar lifestyle e avaliação clínica."
+    why_it_exists_in_engine: "Cobertura lipídica sem prescrição de estatinas."
+
+  - action_code: INFORM_LIPIDS_BORDERLINE_TC
+    domain: LIPIDS
+    action_type: inform
+    severity: low
+    typical_priority_range: [220, 360]
+    conflict_group: LIPIDS_TC_LEVEL
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [lipids, prevention]
+    short_patient_explanation_intent: "Informar colesterol total ‘limítrofe’ e reforçar padrões alimentares saudáveis."
+    clinician_facing_rationale: "ATP III: 200–239 mg/dL é limítrofe."
+    why_it_exists_in_engine: "Intervenção preventiva sem alarmismo."
+
+  - action_code: RECOMMEND_LIPIDS_LOW_HDL_LIFESTYLE
+    domain: LIPIDS
+    action_type: recommend
+    severity: moderate
+    typical_priority_range: [320, 520]
+    conflict_group: LIPIDS_HDL
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [lipids, HDL, activity, smoking]
+    short_patient_explanation_intent: "Apoiar hábitos que podem melhorar HDL (atividade, cessação tabágica, peso)."
+    clinician_facing_rationale: "ATP III e critérios metabólicos usam HDL baixo (<40 homens, <50 mulheres) como marcador."
+    why_it_exists_in_engine: "Integra lipídios com lifestyle e tabaco."
+
+  - action_code: RECOMMEND_INTEGRATED_CARDIOMETABOLIC_PLAN
+    domain: CARDIOMETABOLIC_COMORBIDITY
+    action_type: recommend
+    severity: high
+    typical_priority_range: [600, 780]
+    conflict_group: CARDIOMETABOLIC_BUNDLE
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [multimorbidity, integrated_care]
+    short_patient_explanation_intent: "Consolidar plano quando há múltiplas condições (HTA+DM)."
+    clinician_facing_rationale: "Multimorbilidade aumenta carga terapêutica; recomendações devem ser harmonizadas."
+    why_it_exists_in_engine: "Resolve ‘silos’ e reduz recomendações duplicadas."
+
+  - action_code: ESCALATE_MULTI_MORBIDITY_HIGH_SEVERITY
+    domain: CARDIOMETABOLIC_COMORBIDITY
+    action_type: escalate
+    severity: high
+    typical_priority_range: [780, 920]
+    conflict_group: CARDIOMETABOLIC_ESCALATION
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [severity_score, triage]
+    short_patient_explanation_intent: "Encaminhar para revisão quando a gravidade global é elevada."
+    clinician_facing_rationale: "Scores/bandas podem apoiar triagem; exige validação local."
+    why_it_exists_in_engine: "Triage operacional quando múltiplas dimensões pioram simultaneamente."
+
+  - action_code: RECOMMEND_LIFESTYLE_RISK_BUNDLE
+    domain: CARDIOMETABOLIC_COMORBIDITY
+    action_type: recommend
+    severity: moderate
+    typical_priority_range: [420, 620]
+    conflict_group: LIFESTYLE_BUNDLE
+    conflict_policy: keep_strongest
+    suppresses: []
+    tags: [bundle, adherence, reduce_overload]
+    short_patient_explanation_intent: "Propor foco em 1–2 mudanças com maior impacto (em vez de muitas)."
+    clinician_facing_rationale: "Reduz sobrecarga cognitiva e aumenta probabilidade de adesão."
+    why_it_exists_in_engine: "Gestão de ‘alert fatigue’ no utilizador/paciente."

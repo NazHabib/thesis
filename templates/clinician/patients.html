@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Assigned Patients{% endblock %}
+{% block content %}
+<h2>Assigned Patients</h2>
+
+{% if links %}
+  <div class="list-group">
+    {% for link in links %}
+      <a class="list-group-item list-group-item-action"
+   	href="{% url 'clinician:patient_detail' link.patient.id %}">
+  	<strong>{{ link.patient.username }}</strong>
+  	<div class="text-muted"><small>Assigned on {{ link.created_at }}</small></div>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="text-muted">No assigned patients yet. Ask an admin to create assignments in Django Admin.</p>
+{% endif %}
+{% endblock %}

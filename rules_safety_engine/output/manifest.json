@@ -1,0 +1,14 @@
+{
+  "engine_version": "0.1.0",
+  "ruleset_version": "1.0.1",
+  "input_path": "nhanes_step1_out/NHANES_Master_engineered.parquet",
+  "rows_processed": 22282,
+  "rules_loaded": 45,
+  "rules_enabled": 45,
+  "generated_at_utc": "2026-03-17T16:16:03.563334+00:00",
+  "extra": {
+    "fired_rules_count": 207529,
+    "recommendations_count": 169009,
+    "conflicts_count": 46153
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "cold_start_version": "csl_1.0.0",
+  "cfm_path": "nhanes_step1_out/NHANES_Master_engineered.parquet",
+  "participants_path": "rules_safety_engine/output/recommendations.jsonl",
+  "safety_context_rows": 22282,
+  "gated_candidate_rows": 169009,
+  "timestamp_utc": "2026-03-29T11:49:21.480365+00:00",
+  "status": "success",
+  "output_files": {
+    "safety_context": "apps/recs_csl/output/safety_context.jsonl",
+    "gated_candidates": "apps/recs_csl/output/gated_candidates.jsonl"
+  }
+}

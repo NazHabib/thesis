@@ -1,0 +1,38 @@
+{
+  "bundling_version": "bundling_1.0.0",
+  "participants": 22282,
+  "input_ranked_candidates": 94973,
+  "output_final_recommendations": 71674,
+  "triage_count": 471,
+  "avg_bundles_per_participant": 3.2167,
+  "bundle_family_counts": {
+    "Monitoring": 19364,
+    "DietPattern": 14655,
+    "Weight": 14569,
+    "Movement": 9997,
+    "Lipids": 5378,
+    "Smoking": 3069,
+    "DataQuality": 1940,
+    "Alcohol": 1427,
+    "DiabetesSelfManagement": 1275
+  },
+  "confidence_counts": {
+    "high": 24768,
+    "medium": 29624,
+    "low": 17282
+  },
+  "score_summary": {
+    "min_bundle_score": 31.0,
+    "max_bundle_score": 241.0,
+    "mean_bundle_score": 131.4594
+  },
+  "timestamp_utc": "2026-04-02T14:44:07.128861+00:00",
+  "status": "success",
+  "input_files": {
+    "safety_context": "apps/recs_csl/output/safety_context.jsonl",
+    "ranked_recommendations": "apps/ranking_layer/output/ranked_recommendations.jsonl"
+  },
+  "output_files": {
+    "final_recommendations": "apps/bundling_layer/output/final_recommendations.jsonl"
+  }
+}

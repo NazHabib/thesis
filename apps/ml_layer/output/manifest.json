@@ -1,0 +1,31 @@
+{
+  "ml_reranking_version": "0.1.0",
+  "participants": 22282,
+  "input_ranked_candidates": 94973,
+  "output_reranked_candidates": 94973,
+  "triage_count": 471,
+  "feature_tier_counts": {
+    "minimal": 4153,
+    "core": 2053,
+    "full": 16076
+  },
+  "rerank_mode": "mixed",
+  "rerank_status_counts": {
+    "ml_reranked": 94456,
+    "rules_only_fallback": 517
+  },
+  "fallback_reason_counts": {
+    "none": 94456,
+    "triage_mode": 494,
+    "insufficient_candidates": 14,
+    "low_ml_score_dispersion": 9
+  },
+  "score_summary": {
+    "min_total_score": -14.0,
+    "max_total_score": 241.0,
+    "mean_total_score": 120.9297,
+    "min_final_score": -14.0,
+    "max_final_score": 241.0,
+    "mean_final_score": 121.0763
+  }
+}
