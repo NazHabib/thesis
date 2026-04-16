@@ -1,0 +1,57 @@
+{
+  "cfm": [
+    {
+      "ParticipantKey": "demo_001",
+      "Cycle": "2021-2023",
+      "SBP_mean": 152.0,
+      "DBP_mean": 96.0,
+      "BP_n_used": 3,
+      "LBXGH": 8.4,
+      "BMXBMI": 32.1,
+      "DietDay1_reliable_flag": 1,
+      "DR1TSODI": 3200.0,
+      "Current_smoker_flag": 1,
+      "Any_MVPA_flag": 0,
+      "Hypertensive_crisis_flag": 0,
+      "Severe_hyperglycemia_flag": 0
+    }
+  ],
+  "participants": [
+    {
+      "ParticipantKey": "demo_001",
+      "Cycle": "2021-2023",
+      "Candidates": [
+        {
+          "action_code": "RECOMMEND_DASH_OR_MEDITERRANEAN_PATTERN",
+          "action_type": "recommend",
+          "severity": "moderate",
+          "priority": 2,
+          "tags": ["diet", "hypertension", "diabetes"],
+          "evidence": ["guideline_based"],
+          "source_rule_ids": ["DIET-0607"],
+          "bundle_family": "DietPattern"
+        },
+        {
+          "action_code": "RECOMMEND_MODERATE_PHYSICAL_ACTIVITY",
+          "action_type": "recommend",
+          "severity": "moderate",
+          "priority": 2,
+          "tags": ["movement", "cardiometabolic"],
+          "evidence": ["guideline_based"],
+          "source_rule_ids": ["MOVE-0101"],
+          "bundle_family": "Movement"
+        },
+        {
+          "action_code": "RECOMMEND_WEIGHT_LOSS_IF_OVERWEIGHT",
+          "action_type": "recommend",
+          "severity": "moderate",
+          "priority": 2,
+          "tags": ["weight", "bmi"],
+          "evidence": ["guideline_based"],
+          "source_rule_ids": ["WT-0201"],
+          "bundle_family": "Weight"
+        }
+      ]
+    }
+  ]
+}

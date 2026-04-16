@@ -8,6 +8,21 @@ from .config import (
 )
 
 
+SEVERITY_NORMALIZATION_MAP = {
+    "info": "informational",
+    "informational": "informational",
+    "low": "low",
+    "medium": "moderate",
+    "moderate": "moderate",
+    "high": "high",
+    "critical": "critical",
+}
+
+
+def normalize_severity(value) -> str:
+    return SEVERITY_NORMALIZATION_MAP.get(str(value).strip().lower(), str(value).strip().lower())
+
+
 def count_passed_evidence(evidence_list) -> int:
     """
     Count unique passed evidence items to avoid inflated scores from duplicated
@@ -51,12 +66,11 @@ def compute_domain_alignment(row) -> int:
     if {"diet", "pattern", "sodium"} & tags_set:
         if row.get("ceiling_DietPattern") == "high":
             score += 8
-        elif row.get("ceiling_DietPattern") == "medium":
+        elif row.get("ceiling_DietPattern") in ["medium", "moderate"]:
             score += 4
 
     if {"physical_activity", "mvpa"} & tags_set:
-        # stronger alignment when movement data exists and person is inactive
-        if row.get("ceiling_Movement") in ["high", "medium"]:
+        if row.get("ceiling_Movement") in ["high", "medium", "moderate"]:
             score += 6
 
     if {"weight", "obesity", "bmi"} & tags_set and bool(row.get("bmi_core", False)):
@@ -65,7 +79,7 @@ def compute_domain_alignment(row) -> int:
     if {"smoking", "tobacco"} & tags_set and row.get("ceiling_Smoking") == "high":
         score += 5
 
-    if {"monitoring", "followup"} & tags_set and row.get("ceiling_Monitoring") in ["high", "medium"]:
+    if {"monitoring", "followup"} & tags_set and row.get("ceiling_Monitoring") in ["high", "medium", "moderate"]:
         score += 4
 
     return score
@@ -89,7 +103,9 @@ def compute_missing_penalty(row) -> int:
 def score_candidates(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
 
-    out["base_severity_score"] = out["severity"].map(SEVERITY_SCORE_MAP).fillna(0).astype(float)
+    out["severity_normalized"] = out["severity"].apply(normalize_severity)
+    out["base_severity_score"] = out["severity_normalized"].map(SEVERITY_SCORE_MAP).fillna(0).astype(float)
+
     out["priority_num"] = pd.to_numeric(out["priority"], errors="coerce").fillna(0.0)
     out["base_action_score"] = out["base_severity_score"] + out["priority_num"].clip(lower=0, upper=500) / 10.0
 

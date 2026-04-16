@@ -217,7 +217,19 @@ def _rerank_single_participant(
         lower=0.0,
         upper=artifacts["max_ml_contrib"],
     )
-    out["final_score"] = out["total_score"] + out["ml_contrib"]
+
+    # Experiment E: normalize rule score within participant before fusion
+    total_min = float(out["total_score"].min())
+    total_max = float(out["total_score"].max())
+    score_range = total_max - total_min
+
+    if score_range <= 1e-8:
+        out["final_score"] = out["ml_contrib"]
+    else:
+        out["final_score"] = (
+            (out["total_score"] - total_min) / score_range
+        ) + out["ml_contrib"]
+
     out["rerank_status"] = "ml_reranked"
     out["fallback_reason"] = None
     out["ml_model_version"] = artifacts["model_version"]
@@ -346,6 +358,7 @@ def _build_manifest(
 
     return {
         "ml_reranking_version": ML_RERANKING_VERSION,
+        "fusion_strategy": "participant_minmax_total_score_plus_ml_contrib",
         "participants": n_participants,
         "input_ranked_candidates": int(len(input_ranked_df)),
         "output_reranked_candidates": int(len(output_df)),

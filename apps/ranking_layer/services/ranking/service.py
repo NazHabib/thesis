@@ -74,6 +74,10 @@ def run_ranking_layer(
             "medium": int((ranked_df["confidence_label"] == "medium").sum()),
             "low": int((ranked_df["confidence_label"] == "low").sum()),
         },
+        "severity_counts": {
+            str(k): int(v)
+            for k, v in ranked_df["severity"].value_counts(dropna=False).to_dict().items()
+        },
         "action_type_counts": {
             str(k): int(v)
             for k, v in ranked_df["action_type"].value_counts(dropna=False).to_dict().items()

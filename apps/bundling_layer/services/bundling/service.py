@@ -24,6 +24,9 @@ FINAL_BUNDLE_COLUMNS = [
     "explanation",
     "triage_mode",
     "triage_reason",
+    "n_actions_in_bundle",
+    "dominant_action_code",
+    "bundle_rank",
 ]
 
 
@@ -51,6 +54,25 @@ def run_bundling_layer(
         merged_df["effective_score"] = merged_df["total_score"]
 
     bundles_df = build_bundles(merged_df)
+
+    # Add bundle metadata
+    if "action_codes" in bundles_df.columns:
+        bundles_df["n_actions_in_bundle"] = bundles_df["action_codes"].apply(
+            lambda x: len(x) if isinstance(x, list) else 0
+        )
+        bundles_df["dominant_action_code"] = bundles_df["action_codes"].apply(
+            lambda x: x[0] if isinstance(x, list) and x else None
+        )
+    else:
+        bundles_df["n_actions_in_bundle"] = 0
+        bundles_df["dominant_action_code"] = None
+
+    sort_cols = [c for c in ["ParticipantKey", "bundle_score", "confidence_score", "priority", "bundle_title"] if c in bundles_df.columns]
+    ascending = [True, False, False, False, True][:len(sort_cols)]
+    bundles_df = bundles_df.sort_values(by=sort_cols, ascending=ascending, kind="stable").reset_index(drop=True)
+
+    bundles_df["bundle_rank"] = bundles_df.groupby("ParticipantKey").cumcount() + 1
+
     bundles_df = bundles_df[FINAL_BUNDLE_COLUMNS].copy()
 
     n_participants = int(safety_context_df["ParticipantKey"].nunique())
@@ -62,6 +84,7 @@ def run_bundling_layer(
         "output_final_recommendations": int(len(bundles_df)),
         "triage_count": int(safety_context_df["triage_mode"].fillna(False).sum()),
         "avg_bundles_per_participant": round(len(bundles_df) / max(1, n_participants), 4),
+        "avg_actions_per_bundle": round(float(bundles_df["n_actions_in_bundle"].mean()), 4) if not bundles_df.empty else 0.0,
         "bundle_family_counts": {
             str(k): int(v)
             for k, v in bundles_df["bundle_family"].value_counts(dropna=False).to_dict().items()

@@ -28,6 +28,18 @@ class Command(BaseCommand):
             default="rules_safety_engine/output/recommendations.jsonl",
         )
         parser.add_argument(
+            "--participant-key",
+            type=str,
+            default=None,
+            help="Run the full pipeline for a single participant only.",
+        )
+        parser.add_argument(
+            "--limit",
+            type=int,
+            default=None,
+            help="Run the full pipeline for the first N participants only.",
+        )
+        parser.add_argument(
             "--save-intermediate",
             action="store_true",
         )
@@ -43,6 +55,44 @@ class Command(BaseCommand):
 
         self.stdout.write("Loading safe recommendation candidates...")
         rules_df = pd.read_json(rules_path, lines=True)
+
+        participant_key = options.get("participant_key")
+        limit = options.get("limit")
+
+        if participant_key:
+            self.stdout.write(f"Filtering to participant: {participant_key}")
+            cfm_df = cfm_df.loc[
+                cfm_df["ParticipantKey"].astype(str) == str(participant_key)
+            ].copy()
+
+            rules_key_col = "ParticipantKey" if "ParticipantKey" in rules_df.columns else "participant_key"
+            rules_df = rules_df.loc[
+                rules_df[rules_key_col].astype(str) == str(participant_key)
+            ].copy()
+
+        elif limit is not None:
+            self.stdout.write(f"Filtering to first {limit} participants")
+            selected_keys = (
+                cfm_df["ParticipantKey"]
+                .astype(str)
+                .drop_duplicates()
+                .head(int(limit))
+                .tolist()
+            )
+
+            cfm_df = cfm_df.loc[
+                cfm_df["ParticipantKey"].astype(str).isin(selected_keys)
+            ].copy()
+
+            rules_key_col = "ParticipantKey" if "ParticipantKey" in rules_df.columns else "participant_key"
+            rules_df = rules_df.loc[
+                rules_df[rules_key_col].astype(str).isin(selected_keys)
+            ].copy()
+
+        if cfm_df.empty:
+            raise ValueError("No participant rows remained after filtering cfm_df.")
+        if rules_df.empty:
+            raise ValueError("No recommendation rows remained after filtering rules_df.")
 
         self.stdout.write("Adapting flat rules output to cold-start participant format...")
         participants_df = self._build_participants_candidates_df(rules_df)
@@ -127,6 +177,10 @@ class Command(BaseCommand):
             )
 
             manifest = {
+                "run_scope": {
+                    "participant_key": options.get("participant_key"),
+                    "limit": options.get("limit"),
+                },
                 "cold_start": cs_out.get("manifest", {}),
                 "ranking": ranking_out.get("manifest", {}),
                 "ml_reranking": ml_out.get("manifest", {}),
@@ -137,6 +191,11 @@ class Command(BaseCommand):
                 json.dump(manifest, f, indent=2, ensure_ascii=False)
 
         self.stdout.write(self.style.SUCCESS("Full hybrid pipeline complete."))
+        if options.get("participant_key"):
+            self.stdout.write(f"Run scope: single participant = {options['participant_key']}")
+        elif options.get("limit") is not None:
+            self.stdout.write(f"Run scope: first {options['limit']} participants")
+
         self.stdout.write(f"Participants input rows: {len(participants_df)}")
         self.stdout.write(f"Safety context rows: {len(safety_context_df)}")
         self.stdout.write(f"Gated candidates rows: {len(gated_candidates_df)}")

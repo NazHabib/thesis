@@ -76,7 +76,6 @@ def _compute_per_participant_metrics(
 ) -> pd.DataFrame:
     metric_rows: list[dict[str, Any]] = []
 
-    # Avoid annoying pandas arrow/string edge cases in repeated grouping
     working = df.copy()
     working[participant_col] = working[participant_col].astype(str)
 
@@ -95,28 +94,28 @@ def _compute_per_participant_metrics(
 
         # rules-only ranking
         g_rule = g.sort_values(
-            by=[rule_score_col, "confidence_score", "priority"],
-            ascending=[False, False, False],
+            by=[rule_score_col, "confidence_score", "priority", "action_code"],
+            ascending=[False, False, False, True],
             kind="stable",
-        )
+        ).reset_index(drop=True)
         labels_rule = g_rule[label_col].fillna(0).astype(int).to_numpy()
         row.update(_ranking_metrics_dict(labels_rule, prefix="rule", ks=ks))
 
         # ml-only ranking
         g_ml = g.sort_values(
-            by=[ml_score_col, rule_score_col, "confidence_score"],
-            ascending=[False, False, False],
+            by=[ml_score_col, rule_score_col, "confidence_score", "priority", "action_code"],
+            ascending=[False, False, False, False, True],
             kind="stable",
-        )
+        ).reset_index(drop=True)
         labels_ml = g_ml[label_col].fillna(0).astype(int).to_numpy()
         row.update(_ranking_metrics_dict(labels_ml, prefix="ml", ks=ks))
 
         # hybrid ranking
         g_hybrid = g.sort_values(
-            by=[final_score_col, rule_score_col, "confidence_score"],
-            ascending=[False, False, False],
+            by=[final_score_col, rule_score_col, "confidence_score", "priority", "action_code"],
+            ascending=[False, False, False, False, True],
             kind="stable",
-        )
+        ).reset_index(drop=True)
         labels_hybrid = g_hybrid[label_col].fillna(0).astype(int).to_numpy()
         row.update(_ranking_metrics_dict(labels_hybrid, prefix="hybrid", ks=ks))
 
@@ -131,6 +130,15 @@ def _compute_per_participant_metrics(
         except Exception:
             row["brier_ml"] = None
 
+        # ranking-impact metrics: rule vs hybrid
+        row.update(
+            _ranking_impact_metrics(
+                g_rule=g_rule,
+                g_hybrid=g_hybrid,
+                action_col="action_code",
+            )
+        )
+
         metric_rows.append(row)
 
     return pd.DataFrame(metric_rows)
@@ -143,6 +151,51 @@ def _ranking_metrics_dict(labels_ranked: np.ndarray, prefix: str, ks: tuple[int,
         out[f"{prefix}_recall@{k}"] = _recall_at_k(labels_ranked, k)
         out[f"{prefix}_ndcg@{k}"] = _ndcg_at_k(labels_ranked, k)
     return out
+
+
+def _ranking_impact_metrics(
+    g_rule: pd.DataFrame,
+    g_hybrid: pd.DataFrame,
+    action_col: str = "action_code",
+) -> dict[str, float]:
+    """
+    Compare rules-only ranking with hybrid ranking for one participant.
+    Negative signed shift means a recommendation moved up.
+    Positive signed shift means a recommendation moved down.
+    """
+    rule_rank_df = g_rule[[action_col]].reset_index(drop=True).copy()
+    rule_rank_df["rule_rank"] = rule_rank_df.index + 1
+
+    hybrid_rank_df = g_hybrid[[action_col]].reset_index(drop=True).copy()
+    hybrid_rank_df["hybrid_rank"] = hybrid_rank_df.index + 1
+
+    merged = rule_rank_df.merge(hybrid_rank_df, on=action_col, how="outer", validate="1:1")
+
+    merged["signed_rank_shift"] = merged["hybrid_rank"] - merged["rule_rank"]
+    merged["absolute_rank_shift"] = merged["signed_rank_shift"].abs()
+
+    top1_rule = g_rule[action_col].head(1).astype(str).tolist()
+    top1_hybrid = g_hybrid[action_col].head(1).astype(str).tolist()
+
+    top3_rule = set(g_rule[action_col].head(3).astype(str).tolist())
+    top3_hybrid = set(g_hybrid[action_col].head(3).astype(str).tolist())
+
+    promoted = int((merged["signed_rank_shift"] < 0).sum())
+    demoted = int((merged["signed_rank_shift"] > 0).sum())
+    unchanged = int((merged["signed_rank_shift"] == 0).sum())
+
+    return {
+        "top1_changed": float(top1_rule != top1_hybrid),
+        "top3_changed": float(top3_rule != top3_hybrid),
+        "any_rank_changed": float((merged["absolute_rank_shift"] > 0).any()),
+        "mean_absolute_rank_shift": float(merged["absolute_rank_shift"].mean()) if not merged.empty else 0.0,
+        "median_absolute_rank_shift": float(merged["absolute_rank_shift"].median()) if not merged.empty else 0.0,
+        "max_absolute_rank_shift": float(merged["absolute_rank_shift"].max()) if not merged.empty else 0.0,
+        "mean_signed_rank_shift": float(merged["signed_rank_shift"].mean()) if not merged.empty else 0.0,
+        "promoted_count": float(promoted),
+        "demoted_count": float(demoted),
+        "unchanged_count": float(unchanged),
+    }
 
 
 def _precision_at_k(labels_ranked: np.ndarray, k: int) -> float:

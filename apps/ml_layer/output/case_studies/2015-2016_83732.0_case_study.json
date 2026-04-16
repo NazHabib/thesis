@@ -1,0 +1,2791 @@
+{
+  "participant_key": "2015-2016_83732.0",
+  "reranked_rows": [
+    {
+      "ParticipantKey": "2015-2016_83732.0",
+      "action_code": "RECOMMEND_DIABETES_REVIEW_ABOVE_TARGET",
+      "action_type": "recommend",
+      "severity": "moderate",
+      "priority": 650,
+      "tags": [
+        "diabetes",
+        "a1c",
+        "followup"
+      ],
+      "evidence": [
+        {
+          "feature": "Adult18plus_flag",
+          "value": 1.0,
+          "operator": "==",
+          "threshold": 1,
+          "passed": true
+        },
+        {
+          "feature": "Severe_hyperglycemia_flag",
+          "value": 0.0,
+          "operator": "==",
+          "threshold": 0,
+          "passed": true
+        },
+        {
+          "feature": "Diabetes",
+          "value": 1.0,
+          "operator": "==",
+          "threshold": 1,
+          "passed": true
+        },
+        {
+          "feature": "LBXGH",
+          "value": 7.0,
+          "operator": ">=",
+          "threshold": 6.5,
+          "passed": true
+        },
+        {
+          "feature": "LBXGH",
+          "value": 7.0,
+          "operator": ">=",
+          "threshold": 7,
+          "passed": true
+        },
+        {
+          "feature": "LBXGH",
+          "value": 7.0,
+          "operator": "<",
+          "threshold": 9,
+          "passed": true
+        }
+      ],
+      "source_rule_ids": [
+        "DM-0403"
+      ],
+      "bundle_family": "Monitoring",
+      "coldstart_note_codes": [],
+      "coldstart_confidence_ceiling": "high",
+      "base_severity_score": 40,
+      "base_action_score": 90,
+      "evidence_strength": 60,
+      "domain_alignment": 12,
+      "missing_penalty": 0,
+      "contraindication_penalty": 0,
+      "total_score": 162,
+      "score_norm": 1.0,
+      "confidence_score": 1.0,
+      "confidence_label": "high",
+      "ml_score": 1.0,
+      "lambda_u": 0.4,
+      "ml_contrib": 0.4,
+      "final_score": 162.4,
+      "rerank_status": "ml_reranked",
+      "fallback_reason": null,
+      "ml_model_version": "v1.2.0",
+      "ml_schema_version": "v1",
+      "ml_calibration_version": "v1"
+    },
+    {
+      "ParticipantKey": "2015-2016_83732.0",
+      "action_code": "INFORM_VERY_HIGH_SODIUM_DAY1",
+      "action_type": "inform",
+      "severity": "high",
+      "priority": 680,
+      "tags": [
+        "diet",
+        "sodium",
+        "nhanes_day1"
+      ],
+      "evidence": [
+        {
+          "feature": "Adult18plus_flag",
+          "value": 1.0,
+          "operator": "==",
+          "threshold": 1,
+          "passed": true
+        },
+        {
+          "feature": "DR1DRSTZ",
+          "value": 1.0,
+          "operator": "==",
+          "threshold": 1,
+          "passed": true
+        },
+        {
+          "feature": "DR1TSODI",
+          "value": 5298.0,
+          "operator": ">=",
+          "threshold": 5000,
+          "passed": true
+        }
+      ],
+      "source_rule_ids": [
+        "DIET-0601"
+      ],
+      "bundle_family": "DietPattern",
+      "coldstart_note_codes": [],
+      "coldstart_confidence_ceiling": "high",
+      "base_severity_score": 70,
+      "base_action_score": 120,
+      "evidence_strength": 30,
+      "domain_alignment": 8,
+      "missing_penalty": 0,
+      "contraindication_penalty": 0,
+      "total_score": 158,
+      "score_norm": 0.9735099338000001,
+      "confidence_score": 0.9735,
+      "confidence_label": "high",
+      "ml_score": 1.0,
+      "lambda_u": 0.4,
+      "ml_contrib": 0.4,
+      "final_score": 158.4,
+      "rerank_status": "ml_reranked",
+      "fallback_reason": null,
+      "ml_model_version": "v1.2.0",
+      "ml_schema_version": "v1",
+      "ml_calibration_version": "v1"
+    },
+    {
+      "ParticipantKey": "2015-2016_83732.0",
+      "action_code": "RECOMMEND_DASH_OR_MEDITERRANEAN_PATTERN",
+      "action_type": "recommend",
+      "severity": "moderate",
+      "priority": 580,
+      "tags": [
+        "diet",
+        "pattern",
+        "bundle"
+      ],
+      "evidence": [
+        {
+          "feature": "Adult18plus_flag",
+          "value": 1.0,
+          "operator": "==",
+          "threshold": 1,
+          "passed": true
+        },
+        {
+          "feature": "DR1DRSTZ",
+          "value": 1.0,
+          "operator": "==",
+          "threshold": 1,
+          "passed": true
+        },
+        {
+          "feature": "DR1TSODI",
+          "value": 5298.0,
+          "operator": ">",
+          "threshold": 2000,
+          "passed": true
+        },
+        {
+          "feature": "SatFat_over_10pct_flag",
+          "value": 1.0,
+          "operator": "==",
+          "threshold": 1,
+          "passed": true
+        },
+        {
+          "feature": "SatFat_energy_pct",
+          "value": 11.8399775407,
+          "operator": ">",
+          "threshold": 10,
+          "passed": true
+        },
+        {
+          "feature": "DR1TSODI",
+          "value": 5298.0,
+          "operator": ">",
+          "threshold": 2000,
+          "passed": true
+        },
+        {
+          "feature": "DR1TFIBE",
+          "value": 23.6,
+          "operator": "<",
+          "threshold": 25,
+          "passed": true
+        },
+        {
+          "feature": "SatFat_over_10pct_flag",
+          "value": 1.0,
+          "operator": "==",
+          "threshold": 1,
+          "passed": true
+        },
+        {
+          "feature": "SatFat_energy_pct",
+          "value": 11.8399775407,
+          "operator": ">",
+          "threshold": 10,
+          "passed": true
+        },
+        {
+          "feature": "DR1TFIBE",
+          "value": 23.6,
+          "operator": "<",
+          "threshold": 25,
+          "passed": true
+        }
+      ],
+      "source_rule_ids": [
+        "DIET-0607"
+      ],
+      "bundle_family": "DietPattern",
+      "coldstart_note_codes": [],
+      "coldstart_confidence_ceiling": "high",
+      "base_severity_score": 40,
+      "base_action_score": 90,
+      "evidence_strength": 60,
+      "domain_alignment": 8,
+      "missing_penalty": 0,
+      "contraindication_penalty": 0,
+      "total_score": 158,
+      "score_norm": 0.9735099338000001,
+      "confidence_score": 0.9735,
+      "confidence_label": "high",
+      "ml_score": 1.0,
+      "lambda_u": 0.4,
+      "ml_contrib": 0.4,
+      "final_score": 158.4,
+      "rerank_status": "ml_reranked",
+      "fallback_reason": null,
+      "ml_model_version": "v1.2.0",
+      "ml_schema_version": "v1",
+      "ml_calibration_version": "v1"
+    },
+    {
+      "ParticipantKey": "2015-2016_83732.0",
+      "action_code": "RECOMMEND_MVPA_START_GRADUAL",
+      "action_type": "recommend",
+      "severity": "moderate",
+      "priority": 520,
+      "tags": [
+        "physical_activity",
+        "mvpa"
+      ],
+      "evidence": [
+        {
+          "feature": "Adult18plus_flag",
+          "value": 1.0,
+          "operator": "==",
+          "threshold": 1,
+          "passed": true
+        },
+        {
+          "feature": "Hypertensive_crisis_flag",
+          "value": 0.0,
+          "operator": "==",
+          "threshold": 0,
+          "passed": true
+        },
+        {
+          "feature": "Severe_hyperglycemia_flag",
+          "value": 0.0,
+          "operator": "==",
+          "threshold": 0,
+          "passed": true
+        },
+        {
+          "feature": "Any_MVPA_flag",
+          "value": 0.0,
+          "operator": "==",
+          "threshold": 0,
+          "passed": true
+        }
+      ],
+      "source_rule_ids": [
+        "PA-0701"
+      ],
+      "bundle_family": "Movement",
+      "coldstart_note_codes": [],
+      "coldstart_confidence_ceiling": "high",
+      "base_severity_score": 40,
+      "base_action_score": 90,
+      "evidence_strength": 40,
+      "domain_alignment": 6,
+      "missing_penalty": 0,
+      "contraindication_penalty": 0,
+      "total_score": 136,
+      "score_norm": 0.8278145695,
+      "confidence_score": 0.8278000000000001,
+      "confidence_label": "high",
+      "ml_score": 0.0,
+      "lambda_u": 0.4,
+      "ml_contrib": 0.0,
+      "final_score": 136.0,
+      "rerank_status": "ml_reranked",
+      "fallback_reason": null,
+      "ml_model_version": "v1.2.0",
+      "ml_schema_version": "v1",
+      "ml_calibration_version": "v1"
+    },
+    {
+      "ParticipantKey": "2015-2016_83732.0",
+      "action_code": "RECOMMEND_BP_ELEVATED_LIFESTYLE_3_6M",
+      "action_type": "recommend",
+      "severity": "low",
+      "priority": 420,
+      "tags": [
+        "bp",
+        "lifestyle"
+      ],
+      "evidence": [
+        {
+          "feature": "Adult18plus_flag",
+          "value": 1.0,
+          "operator": "==",
+          "threshold": 1,
+          "passed": true
+        },
+        {
+          "feature": "BP_n_used",
+          "value": 2.0,
+          "operator": ">=",
+          "threshold": 2,
+          "passed": true
+        },
+        {
+          "feature": "Hypertensive_crisis_flag",
+          "value": 0.0,
+          "operator": "==",
+          "threshold": 0,
+          "passed": true
+        },
+        {
+          "feature": "SBP_mean",
+          "value": 120.0,
+          "operator": ">=",
+          "threshold": 120,
+          "passed": true
+        },
+        {
+          "feature": "SBP_mean",
+          "value": 120.0,
+          "operator": "<",
+          "threshold": 130,
+          "passed": true
+        },
+        {
+          "feature": "DBP_mean",
+          "value": 63.0,
+          "operator": "<",
+          "threshold": 80,
+          "passed": true
+        }
+      ],
+      "source_rule_ids": [
+        "HTN-0304"
+      ],
+      "bundle_family": "Monitoring",
+      "coldstart_note_codes": [],
+      "coldstart_confidence_ceiling": "high",
+      "base_severity_score": 10,
+      "base_action_score": 52,
+      "evidence_strength": 60,
+      "domain_alignment": 8,
+      "missing_penalty": 0,
+      "contraindication_penalty": 0,
+      "total_score": 120,
+      "score_norm": 0.7218543046,
+      "confidence_score": 0.7219,
+      "confidence_label": "medium",
+      "ml_score": 0.0,
+      "lambda_u": 0.4,
+      "ml_contrib": 0.0,
+      "final_score": 120.0,
+      "rerank_status": "ml_reranked",
+      "fallback_reason": null,
+      "ml_model_version": "v1.2.0",
+      "ml_schema_version": "v1",
+      "ml_calibration_version": "v1"
+    }
+  ],
+  "bundle_rows": [
+    {
+      "ParticipantKey": "2015-2016_83732.0",
+      "bundle_title": "Glycaemic follow-up and review",
+      "bundle_family": "Monitoring",
+      "category": "monitoring",
+      "action_codes": [
+        "RECOMMEND_DIABETES_REVIEW_ABOVE_TARGET",
+        "RECOMMEND_BP_ELEVATED_LIFESTYLE_3_6M"
+      ],
+      "action_type": "recommend",
+      "priority": 420,
+      "tags": [
+        "diabetes",
+        "a1c",
+        "followup",
+        "bp",
+        "lifestyle"
+      ],
+      "source_rule_ids": [
+        "DM-0403",
+        "HTN-0304"
+      ],
+      "evidence": [
+        {
+          "feature": "Adult18plus_flag",
+          "value": 1.0,
+          "operator": "==",
+          "threshold": 1,
+          "passed": true
+        },
+        {
+          "feature": "Severe_hyperglycemia_flag",
+          "value": 0.0,
+          "operator": "==",
+          "threshold": 0,
+          "passed": true
+        },
+        {
+          "feature": "Diabetes",
+          "value": 1.0,
+          "operator": "==",
+          "threshold": 1,
+          "passed": true
+        },
+        {
+          "feature": "LBXGH",
+          "value": 7.0,
+          "operator": ">=",
+          "threshold": 6.5,
+          "passed": true
+        },
+        {
+          "feature": "LBXGH",
+          "value": 7.0,
+          "operator": ">=",
+          "threshold": 7,
+          "passed": true
+        },
+        {
+          "feature": "LBXGH",
+          "value": 7.0,
+          "operator": "<",
+          "threshold": 9,
+          "passed": true
+        },
+        {
+          "feature": "BP_n_used",
+          "value": 2.0,
+          "operator": ">=",
+          "threshold": 2,
+          "passed": true
+        },
+        {
+          "feature": "Hypertensive_crisis_flag",
+          "value": 0.0,
+          "operator": "==",
+          "threshold": 0,
+          "passed": true
+        },
+        {
+          "feature": "SBP_mean",
+          "value": 120.0,
+          "operator": ">=",
+          "threshold": 120,
+          "passed": true
+        },
+        {
+          "feature": "SBP_mean",
+          "value": 120.0,
+          "operator": "<",
+          "threshold": 130,
+          "passed": true
+        },
+        {
+          "feature": "DBP_mean",
+          "value": 63.0,
+          "operator": "<",
+          "threshold": 80,
+          "passed": true
+        }
+      ],
+      "coldstart_note_codes": [],
+      "bundle_score": 162,
+      "confidence_score": 0.8609,
+      "confidence_label": "medium",
+      "rationale": "This bundle consolidates follow-up and monitoring actions to support safer self-management.",
+      "explanation": "This bundle merges 2 related recommendation(s) focused on follow-up and clinical monitoring. Final confidence is medium.",
+      "triage_mode": false,
+      "triage_reason": "none"
+    },
+    {
+      "ParticipantKey": "2015-2016_83732.0",
+      "bundle_title": "Reduce sodium and improve dietary pattern",
+      "bundle_family": "DietPattern",
+      "category": "lifestyle",
+      "action_codes": [
+        "INFORM_VERY_HIGH_SODIUM_DAY1",
+        "RECOMMEND_DASH_OR_MEDITERRANEAN_PATTERN"
+      ],
+      "action_type": "inform",
+      "priority": 580,
+      "tags": [
+        "diet",
+        "sodium",
+        "nhanes_day1",
+        "pattern",
+        "bundle"
+      ],
+      "source_rule_ids": [
+        "DIET-0601",
+        "DIET-0607"
+      ],
+      "evidence": [
+        {
+          "feature": "Adult18plus_flag",
+          "value": 1.0,
+          "operator": "==",
+          "threshold": 1,
+          "passed": true
+        },
+        {
+          "feature": "DR1DRSTZ",
+          "value": 1.0,
+          "operator": "==",
+          "threshold": 1,
+          "passed": true
+        },
+        {
+          "feature": "DR1TSODI",
+          "value": 5298.0,
+          "operator": ">=",
+          "threshold": 5000,
+          "passed": true
+        },
+        {
+          "feature": "DR1TSODI",
+          "value": 5298.0,
+          "operator": ">",
+          "threshold": 2000,
+          "passed": true
+        },
+        {
+          "feature": "SatFat_over_10pct_flag",
+          "value": 1.0,
+          "operator": "==",
+          "threshold": 1,
+          "passed": true
+        },
+        {
+          "feature": "SatFat_energy_pct",
+          "value": 11.8399775407,
+          "operator": ">",
+          "threshold": 10,
+          "passed": true
+        },
+        {
+          "feature": "DR1TFIBE",
+          "value": 23.6,
+          "operator": "<",
+          "threshold": 25,
+          "passed": true
+        }
+      ],
+      "coldstart_note_codes": [],
+      "bundle_score": 158,
+      "confidence_score": 0.9735,
+      "confidence_label": "high",
+      "rationale": "This bundle consolidates dietary recommendations to reduce cardiometabolic risk and avoid message overload.",
+      "explanation": "This bundle merges 2 related recommendation(s) focused on diet quality and sodium intake. Final confidence is high.",
+      "triage_mode": false,
+      "triage_reason": "none"
+    },
+    {
+      "ParticipantKey": "2015-2016_83732.0",
+      "bundle_title": "Increase physical activity",
+      "bundle_family": "Movement",
+      "category": "lifestyle",
+      "action_codes": [
+        "RECOMMEND_MVPA_START_GRADUAL"
+      ],
+      "action_type": "recommend",
+      "priority": 520,
+      "tags": [
+        "physical_activity",
+        "mvpa"
+      ],
+      "source_rule_ids": [
+        "PA-0701"
+      ],
+      "evidence": [
+        {
+          "feature": "Adult18plus_flag",
+          "value": 1.0,
+          "operator": "==",
+          "threshold": 1,
+          "passed": true
+        },
+        {
+          "feature": "Hypertensive_crisis_flag",
+          "value": 0.0,
+          "operator": "==",
+          "threshold": 0,
+          "passed": true
+        },
+        {
+          "feature": "Severe_hyperglycemia_flag",
+          "value": 0.0,
+          "operator": "==",
+          "threshold": 0,
+          "passed": true
+        },
+        {
+          "feature": "Any_MVPA_flag",
+          "value": 0.0,
+          "operator": "==",
+          "threshold": 0,
+          "passed": true
+        }
+      ],
+      "coldstart_note_codes": [],
+      "bundle_score": 136,
+      "confidence_score": 0.8278000000000001,
+      "confidence_label": "medium",
+      "rationale": "This bundle consolidates movement recommendations to support gradual and sustainable activity changes.",
+      "explanation": "This bundle merges 1 related recommendation(s) focused on physical activity. Final confidence is medium.",
+      "triage_mode": false,
+      "triage_reason": "none"
+    }
+  ],
+  "explained_rows": [
+    {
+      "ParticipantKey": "2015-2016_83732.0",
+      "bundle_title": "Glycaemic follow-up and review",
+      "bundle_family": "Monitoring",
+      "category": "monitoring",
+      "action_codes": [
+        "RECOMMEND_DIABETES_REVIEW_ABOVE_TARGET",
+        "RECOMMEND_BP_ELEVATED_LIFESTYLE_3_6M"
+      ],
+      "action_type": "recommend",
+      "priority": 420,
+      "tags": [
+        "diabetes",
+        "a1c",
+        "followup",
+        "bp",
+        "lifestyle"
+      ],
+      "source_rule_ids": [
+        "DM-0403",
+        "HTN-0304"
+      ],
+      "evidence": [
+        {
+          "feature": "Adult18plus_flag",
+          "value": 1.0,
+          "operator": "==",
+          "threshold": 1,
+          "passed": true
+        },
+        {
+          "feature": "Severe_hyperglycemia_flag",
+          "value": 0.0,
+          "operator": "==",
+          "threshold": 0,
+          "passed": true
+        },
+        {
+          "feature": "Diabetes",
+          "value": 1.0,
+          "operator": "==",
+          "threshold": 1,
+          "passed": true
+        },
+        {
+          "feature": "LBXGH",
+          "value": 7.0,
+          "operator": ">=",
+          "threshold": 6.5,
+          "passed": true
+        },
+        {
+          "feature": "LBXGH",
+          "value": 7.0,
+          "operator": ">=",
+          "threshold": 7,
+          "passed": true
+        },
+        {
+          "feature": "LBXGH",
+          "value": 7.0,
+          "operator": "<",
+          "threshold": 9,
+          "passed": true
+        },
+        {
+          "feature": "BP_n_used",
+          "value": 2.0,
+          "operator": ">=",
+          "threshold": 2,
+          "passed": true
+        },
+        {
+          "feature": "Hypertensive_crisis_flag",
+          "value": 0.0,
+          "operator": "==",
+          "threshold": 0,
+          "passed": true
+        },
+        {
+          "feature": "SBP_mean",
+          "value": 120.0,
+          "operator": ">=",
+          "threshold": 120,
+          "passed": true
+        },
+        {
+          "feature": "SBP_mean",
+          "value": 120.0,
+          "operator": "<",
+          "threshold": 130,
+          "passed": true
+        },
+        {
+          "feature": "DBP_mean",
+          "value": 63.0,
+          "operator": "<",
+          "threshold": 80,
+          "passed": true
+        }
+      ],
+      "coldstart_note_codes": [],
+      "bundle_score": 162,
+      "confidence_score": 0.8609,
+      "confidence_label": "medium",
+      "rationale": "This bundle consolidates follow-up and monitoring actions to support safer self-management.",
+      "explanation": "This bundle merges 2 related recommendation(s) focused on follow-up and clinical monitoring. Final confidence is medium.",
+      "triage_mode": false,
+      "triage_reason": "none",
+      "patient_facing_explanation": "Glycaemic follow-up and review was selected to support safer self-management. This bundle consolidates follow-up and monitoring actions to support safer self-management. This recommendation is supported by moderate available evidence.",
+      "clinician_facing_explanation": "Bundle family: Monitoring. Action count: 2. Confidence label: medium. Bundle score: 162.0. Primary rule provenance: DM-0403, HTN-0304.",
+      "patient_confidence_explanation": "The system has moderate supporting evidence for this recommendation.",
+      "clinician_confidence_explanation": "Moderate confidence; recommendation is supported but subject to data limitations or weaker supporting evidence.",
+      "safety_context_note": "No triage override detected; standard safety-constrained recommendation communication applied.",
+      "ml_rerank_note": "Final bundle order may reflect bounded post-ranking refinement from the ML reranking layer, without overriding upstream clinical safety rules.",
+      "traceability_payload": {
+        "bundle_family": "Monitoring",
+        "action_codes": [
+          "RECOMMEND_DIABETES_REVIEW_ABOVE_TARGET",
+          "RECOMMEND_BP_ELEVATED_LIFESTYLE_3_6M"
+        ],
+        "source_rule_ids": [
+          "DM-0403",
+          "HTN-0304"
+        ],
+        "confidence_label": "medium",
+        "confidence_score": 0.8609,
+        "bundle_score": 162.0,
+        "triage_mode": false,
+        "triage_reason": "none",
+        "coldstart_note_codes": []
+      }
+    },
+    {
+      "ParticipantKey": "2015-2016_83732.0",
+      "bundle_title": "Reduce sodium and improve dietary pattern",
+      "bundle_family": "DietPattern",
+      "category": "lifestyle",
+      "action_codes": [
+        "INFORM_VERY_HIGH_SODIUM_DAY1",
+        "RECOMMEND_DASH_OR_MEDITERRANEAN_PATTERN"
+      ],
+      "action_type": "inform",
+      "priority": 580,
+      "tags": [
+        "diet",
+        "sodium",
+        "nhanes_day1",
+        "pattern",
+        "bundle"
+      ],
+      "source_rule_ids": [
+        "DIET-0601",
+        "DIET-0607"
+      ],
+      "evidence": [
+        {
+          "feature": "Adult18plus_flag",
+          "value": 1.0,
+          "operator": "==",
+          "threshold": 1,
+          "passed": true
+        },
+        {
+          "feature": "DR1DRSTZ",
+          "value": 1.0,
+          "operator": "==",
+          "threshold": 1,
+          "passed": true
+        },
+        {
+          "feature": "DR1TSODI",
+          "value": 5298.0,
+          "operator": ">=",
+          "threshold": 5000,
+          "passed": true
+        },
+        {
+          "feature": "DR1TSODI",
+          "value": 5298.0,
+          "operator": ">",
+          "threshold": 2000,
+          "passed": true
+        },
+        {
+          "feature": "SatFat_over_10pct_flag",
+          "value": 1.0,
+          "operator": "==",
+          "threshold": 1,
+          "passed": true
+        },
+        {
+          "feature": "SatFat_energy_pct",
+          "value": 11.8399775407,
+          "operator": ">",
+          "threshold": 10,
+          "passed": true
+        },
+        {
+          "feature": "DR1TFIBE",
+          "value": 23.6,
+          "operator": "<",
+          "threshold": 25,
+          "passed": true
+        }
+      ],
+      "coldstart_note_codes": [],
+      "bundle_score": 158,
+      "confidence_score": 0.9735,
+      "confidence_label": "high",
+      "rationale": "This bundle consolidates dietary recommendations to reduce cardiometabolic risk and avoid message overload.",
+      "explanation": "This bundle merges 2 related recommendation(s) focused on diet quality and sodium intake. Final confidence is high.",
+      "triage_mode": false,
+      "triage_reason": "none",
+      "patient_facing_explanation": "Reduce sodium and improve dietary pattern was selected to support safer self-management. This bundle consolidates dietary recommendations to reduce cardiometabolic risk and avoid message overload. This recommendation is supported by strong available evidence.",
+      "clinician_facing_explanation": "Bundle family: DietPattern. Action count: 2. Confidence label: high. Bundle score: 158.0. Primary rule provenance: DIET-0601, DIET-0607.",
+      "patient_confidence_explanation": "The system has strong supporting evidence for this recommendation.",
+      "clinician_confidence_explanation": "High confidence based on upstream rule strength, retained evidence, and available participant features.",
+      "safety_context_note": "No triage override detected; standard safety-constrained recommendation communication applied.",
+      "ml_rerank_note": "Final bundle order may reflect bounded post-ranking refinement from the ML reranking layer, without overriding upstream clinical safety rules.",
+      "traceability_payload": {
+        "bundle_family": "DietPattern",
+        "action_codes": [
+          "INFORM_VERY_HIGH_SODIUM_DAY1",
+          "RECOMMEND_DASH_OR_MEDITERRANEAN_PATTERN"
+        ],
+        "source_rule_ids": [
+          "DIET-0601",
+          "DIET-0607"
+        ],
+        "confidence_label": "high",
+        "confidence_score": 0.9735,
+        "bundle_score": 158.0,
+        "triage_mode": false,
+        "triage_reason": "none",
+        "coldstart_note_codes": []
+      }
+    },
+    {
+      "ParticipantKey": "2015-2016_83732.0",
+      "bundle_title": "Increase physical activity",
+      "bundle_family": "Movement",
+      "category": "lifestyle",
+      "action_codes": [
+        "RECOMMEND_MVPA_START_GRADUAL"
+      ],
+      "action_type": "recommend",
+      "priority": 520,
+      "tags": [
+        "physical_activity",
+        "mvpa"
+      ],
+      "source_rule_ids": [
+        "PA-0701"
+      ],
+      "evidence": [
+        {
+          "feature": "Adult18plus_flag",
+          "value": 1.0,
+          "operator": "==",
+          "threshold": 1,
+          "passed": true
+        },
+        {
+          "feature": "Hypertensive_crisis_flag",
+          "value": 0.0,
+          "operator": "==",
+          "threshold": 0,
+          "passed": true
+        },
+        {
+          "feature": "Severe_hyperglycemia_flag",
+          "value": 0.0,
+          "operator": "==",
+          "threshold": 0,
+          "passed": true
+        },
+        {
+          "feature": "Any_MVPA_flag",
+          "value": 0.0,
+          "operator": "==",
+          "threshold": 0,
+          "passed": true
+        }
+      ],
+      "coldstart_note_codes": [],
+      "bundle_score": 136,
+      "confidence_score": 0.8278000000000001,
+      "confidence_label": "medium",
+      "rationale": "This bundle consolidates movement recommendations to support gradual and sustainable activity changes.",
+      "explanation": "This bundle merges 1 related recommendation(s) focused on physical activity. Final confidence is medium.",
+      "triage_mode": false,
+      "triage_reason": "none",
+      "patient_facing_explanation": "Increase physical activity was selected to support safer self-management. This bundle consolidates movement recommendations to support gradual and sustainable activity changes. This recommendation is supported by moderate available evidence.",
+      "clinician_facing_explanation": "Bundle family: Movement. Action count: 1. Confidence label: medium. Bundle score: 136.0. Primary rule provenance: PA-0701.",
+      "patient_confidence_explanation": "The system has moderate supporting evidence for this recommendation.",
+      "clinician_confidence_explanation": "Moderate confidence; recommendation is supported but subject to data limitations or weaker supporting evidence.",
+      "safety_context_note": "No triage override detected; standard safety-constrained recommendation communication applied.",
+      "ml_rerank_note": "Final bundle order may reflect bounded post-ranking refinement from the ML reranking layer, without overriding upstream clinical safety rules.",
+      "traceability_payload": {
+        "bundle_family": "Movement",
+        "action_codes": [
+          "RECOMMEND_MVPA_START_GRADUAL"
+        ],
+        "source_rule_ids": [
+          "PA-0701"
+        ],
+        "confidence_label": "medium",
+        "confidence_score": 0.8278000000000001,
+        "bundle_score": 136.0,
+        "triage_mode": false,
+        "triage_reason": "none",
+        "coldstart_note_codes": []
+      }
+    }
+  ],
+  "shap_report": {
+    "participant_key": "2015-2016_83732.0",
+    "model_version": "v1.2.0",
+    "feature_schema_version": "v1",
+    "calibration_version": "v1",
+    "candidate_summary": [
+      {
+        "action_code": "RECOMMEND_DIABETES_REVIEW_ABOVE_TARGET",
+        "bundle_family": "Monitoring",
+        "total_score": 162,
+        "final_score": 162.4,
+        "ml_score": 1.0,
+        "lambda_u": 0.4,
+        "ml_contrib": 0.4
+      },
+      {
+        "action_code": "INFORM_VERY_HIGH_SODIUM_DAY1",
+        "bundle_family": "DietPattern",
+        "total_score": 158,
+        "final_score": 158.4,
+        "ml_score": 1.0,
+        "lambda_u": 0.4,
+        "ml_contrib": 0.4
+      },
+      {
+        "action_code": "RECOMMEND_DASH_OR_MEDITERRANEAN_PATTERN",
+        "bundle_family": "DietPattern",
+        "total_score": 158,
+        "final_score": 158.4,
+        "ml_score": 1.0,
+        "lambda_u": 0.4,
+        "ml_contrib": 0.4
+      },
+      {
+        "action_code": "RECOMMEND_MVPA_START_GRADUAL",
+        "bundle_family": "Movement",
+        "total_score": 136,
+        "final_score": 136.0,
+        "ml_score": 0.0,
+        "lambda_u": 0.4,
+        "ml_contrib": 0.0
+      },
+      {
+        "action_code": "RECOMMEND_BP_ELEVATED_LIFESTYLE_3_6M",
+        "bundle_family": "Monitoring",
+        "total_score": 120,
+        "final_score": 120.0,
+        "ml_score": 0.0,
+        "lambda_u": 0.4,
+        "ml_contrib": 0.0
+      }
+    ],
+    "feature_snapshot": [
+      {
+        "ParticipantKey": "2015-2016_83732.0",
+        "action_code": "RECOMMEND_DIABETES_REVIEW_ABOVE_TARGET",
+        "action_type": "recommend",
+        "severity": "moderate",
+        "bundle_family": "Monitoring",
+        "confidence_label": "high",
+        "feature_tier": "full",
+        "confidence_ceiling_global": "high",
+        "coldstart_confidence_ceiling": "high",
+        "Severity_band": "Moderate",
+        "priority": 650,
+        "base_severity_score": 40,
+        "base_action_score": 90,
+        "evidence_strength": 60,
+        "domain_alignment": 12,
+        "missing_penalty": 0,
+        "contraindication_penalty": 0,
+        "total_score": 162,
+        "score_norm": 1.0,
+        "confidence_score": 1.0,
+        "data_completeness_score": 1.0,
+        "RIDAGEYR": 62.0,
+        "RIAGENDR": 1.0,
+        "BMXBMI": 27.8,
+        "BMXWAIST": 101.1,
+        "LBXGH": 7.0,
+        "SBP_mean": 120.0,
+        "DBP_mean": 63.0,
+        "Any_MVPA_flag": 0.0,
+        "Current_smoker_flag": 0.0,
+        "DietDay1_reliable_flag": 1.0,
+        "DR1TSODI": 5298.0,
+        "DR1TSUGR": 42.31,
+        "DR1TFIBE": 23.6,
+        "Alcohol_over_guideline_flag": 0.0,
+        "Hypertension": 0.0,
+        "Hypertensive_crisis_flag": 0.0,
+        "Diabetes": 1.0,
+        "Prediabetes": 0.0,
+        "Severe_hyperglycemia_flag": 0.0,
+        "Severe_obesity_flag": 0.0,
+        "Sedentary_high_flag": 0.0,
+        "Sodium_over_2300_flag": 1.0,
+        "Sodium_over_1500_flag": 1.0,
+        "SatFat_over_10pct_flag": 1.0,
+        "HDL_low_flag": 0.0,
+        "TC_high_flag": 0.0,
+        "Comorbidity": 0.0,
+        "HTN_severity_score": 0.5,
+        "DM_severity_score": 2.0,
+        "Obesity_severity_score": 1.0,
+        "Lifestyle_risk_score": 2.0,
+        "Cardiometabolic_severity_score": 5.5,
+        "is_diet_bundle": 0,
+        "is_movement_bundle": 0,
+        "is_weight_bundle": 0,
+        "is_smoking_bundle": 0,
+        "is_monitoring_bundle": 1,
+        "hba1c_high_flag": 1,
+        "hba1c_high_x_diet_bundle": 0,
+        "hba1c_high_x_monitoring_bundle": 1,
+        "sbp_high_flag": 0,
+        "sbp_high_x_movement_bundle": 0,
+        "sbp_high_x_monitoring_bundle": 0,
+        "obesity_flag_proxy": 0,
+        "bmi_x_weight_bundle": 0.0,
+        "smoker_x_smoking_bundle": 0.0,
+        "inactive_flag_proxy": 1,
+        "inactive_x_movement_bundle": 0,
+        "high_sodium_x_diet_bundle": 0.0,
+        "triage_mode": false
+      }
+    ],
+    "global_feature_importance": [
+      {
+        "feature": "num__score_norm",
+        "mean_abs_shap": 6.31407687113924,
+        "feature_label": "Normalized rule score",
+        "feature_group": "meta_ranking"
+      },
+      {
+        "feature": "num__confidence_score",
+        "mean_abs_shap": 1.2723193490099627,
+        "feature_label": "Upstream confidence score",
+        "feature_group": "meta_ranking"
+      },
+      {
+        "feature": "num__total_score",
+        "mean_abs_shap": 0.3676430790180242,
+        "feature_label": "Rule-based total score",
+        "feature_group": "meta_ranking"
+      },
+      {
+        "feature": "num__priority",
+        "mean_abs_shap": 0.24111489205611222,
+        "feature_label": "Recommendation priority",
+        "feature_group": "meta_ranking"
+      },
+      {
+        "feature": "num__DR1TSODI",
+        "mean_abs_shap": 0.17793447610255436,
+        "feature_label": "Day-1 sodium intake",
+        "feature_group": "lifestyle"
+      },
+      {
+        "feature": "num__LBXGH",
+        "mean_abs_shap": 0.17016711535600754,
+        "feature_label": "HbA1c",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__domain_alignment",
+        "mean_abs_shap": 0.07526752481718182,
+        "feature_label": "Domain alignment score",
+        "feature_group": "meta_ranking"
+      },
+      {
+        "feature": "num__Current_smoker_flag",
+        "mean_abs_shap": 0.055489547464975544,
+        "feature_label": "Current smoker flag",
+        "feature_group": "lifestyle"
+      },
+      {
+        "feature": "cat__confidence_label_high",
+        "mean_abs_shap": 0.052335127467379214,
+        "feature_label": "High upstream confidence",
+        "feature_group": "meta_ranking"
+      },
+      {
+        "feature": "cat__Severity_band_Low",
+        "mean_abs_shap": 0.044533784179386623,
+        "feature_label": "Low severity band",
+        "feature_group": "safety_context"
+      },
+      {
+        "feature": "num__DM_severity_score",
+        "mean_abs_shap": 0.04180916122871751,
+        "feature_label": "Diabetes severity score",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__data_completeness_score",
+        "mean_abs_shap": 0.03481373681676065,
+        "feature_label": "Data completeness score",
+        "feature_group": "meta_ranking"
+      },
+      {
+        "feature": "num__Any_MVPA_flag",
+        "mean_abs_shap": 0.031235269430347455,
+        "feature_label": "Any moderate/vigorous activity flag",
+        "feature_group": "lifestyle"
+      },
+      {
+        "feature": "num__HDL_low_flag",
+        "mean_abs_shap": 0.030408040111309466,
+        "feature_label": "Low HDL flag",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__bundle_rank_within_participant",
+        "mean_abs_shap": 0.024364935830451684,
+        "feature_label": "num__bundle_rank_within_participant",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__base_action_score",
+        "mean_abs_shap": 0.019680467822668152,
+        "feature_label": "Base action score",
+        "feature_group": "meta_ranking"
+      },
+      {
+        "feature": "num__Lifestyle_risk_score",
+        "mean_abs_shap": 0.01641723285553496,
+        "feature_label": "Lifestyle risk score",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__is_diet_bundle",
+        "mean_abs_shap": 0.016009186505480368,
+        "feature_label": "num__is_diet_bundle",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__SatFat_over_10pct_flag",
+        "mean_abs_shap": 0.015998197232490102,
+        "feature_label": "Saturated fat above 10% energy flag",
+        "feature_group": "lifestyle"
+      },
+      {
+        "feature": "num__BMXWAIST",
+        "mean_abs_shap": 0.013525436454475528,
+        "feature_label": "Waist circumference",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__Alcohol_over_guideline_flag",
+        "mean_abs_shap": 0.011144910554260038,
+        "feature_label": "Alcohol above guideline flag",
+        "feature_group": "lifestyle"
+      },
+      {
+        "feature": "cat__action_code_RECOMMEND_PREDIABETES_LIFESTYLE",
+        "mean_abs_shap": 0.010856717288897689,
+        "feature_label": "cat__action_code_RECOMMEND_PREDIABETES_LIFESTYLE",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__inactive_flag_proxy",
+        "mean_abs_shap": 0.010775502945676845,
+        "feature_label": "num__inactive_flag_proxy",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__DR1TFIBE",
+        "mean_abs_shap": 0.010149712036238713,
+        "feature_label": "Day-1 fibre intake",
+        "feature_group": "lifestyle"
+      },
+      {
+        "feature": "cat__action_code_RECOMMEND_LIPIDS_LOW_HDL_LIFESTYLE",
+        "mean_abs_shap": 0.009899928551925627,
+        "feature_label": "cat__action_code_RECOMMEND_LIPIDS_LOW_HDL_LIFESTYLE",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__confidence_label_medium",
+        "mean_abs_shap": 0.00976991333996145,
+        "feature_label": "Medium upstream confidence",
+        "feature_group": "meta_ranking"
+      },
+      {
+        "feature": "num__Cardiometabolic_severity_score",
+        "mean_abs_shap": 0.009466601801498064,
+        "feature_label": "Cardiometabolic severity score",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "cat__feature_tier_core",
+        "mean_abs_shap": 0.008409552105113325,
+        "feature_label": "cat__feature_tier_core",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_ESCALATE_MULTI_MORBIDITY_HIGH_SEVERITY",
+        "mean_abs_shap": 0.008150853988020772,
+        "feature_label": "cat__action_code_ESCALATE_MULTI_MORBIDITY_HIGH_SEVERITY",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__Severe_obesity_flag",
+        "mean_abs_shap": 0.005987102120947239,
+        "feature_label": "Severe obesity flag",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__is_monitoring_bundle",
+        "mean_abs_shap": 0.004895696487574403,
+        "feature_label": "num__is_monitoring_bundle",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__HTN_severity_score",
+        "mean_abs_shap": 0.00481980917597959,
+        "feature_label": "Hypertension severity score",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "cat__bundle_family_DietPattern",
+        "mean_abs_shap": 0.004631194590770769,
+        "feature_label": "Diet pattern bundle family",
+        "feature_group": "candidate_context"
+      },
+      {
+        "feature": "num__is_weight_bundle",
+        "mean_abs_shap": 0.004206961466469263,
+        "feature_label": "num__is_weight_bundle",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__Hypertension",
+        "mean_abs_shap": 0.0037984670041878435,
+        "feature_label": "Hypertension flag",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__BMXBMI",
+        "mean_abs_shap": 0.0036977521886091312,
+        "feature_label": "Body mass index",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "cat__feature_tier_full",
+        "mean_abs_shap": 0.0036796291624704965,
+        "feature_label": "cat__feature_tier_full",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_RECOMMEND_INTEGRATED_CARDIOMETABOLIC_PLAN",
+        "mean_abs_shap": 0.003540616849953931,
+        "feature_label": "cat__action_code_RECOMMEND_INTEGRATED_CARDIOMETABOLIC_PLAN",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_RECOMMEND_MVPA_START_GRADUAL",
+        "mean_abs_shap": 0.0034080414559427737,
+        "feature_label": "cat__action_code_RECOMMEND_MVPA_START_GRADUAL",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__base_severity_score",
+        "mean_abs_shap": 0.003040866604850166,
+        "feature_label": "Base severity score",
+        "feature_group": "meta_ranking"
+      },
+      {
+        "feature": "num__evidence_strength",
+        "mean_abs_shap": 0.0025157720657221177,
+        "feature_label": "Evidence strength score",
+        "feature_group": "meta_ranking"
+      },
+      {
+        "feature": "num__Obesity_severity_score",
+        "mean_abs_shap": 0.002392185431554963,
+        "feature_label": "Obesity severity score",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__Prediabetes",
+        "mean_abs_shap": 0.0022969010727236115,
+        "feature_label": "Prediabetes flag",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__RIDAGEYR",
+        "mean_abs_shap": 0.0019721958658783984,
+        "feature_label": "num__RIDAGEYR",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__DBP_mean",
+        "mean_abs_shap": 0.0018443627726004168,
+        "feature_label": "Mean diastolic blood pressure",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "cat__severity_moderate",
+        "mean_abs_shap": 0.001826464377860396,
+        "feature_label": "Moderate candidate severity",
+        "feature_group": "candidate_context"
+      },
+      {
+        "feature": "cat__bundle_family_Lipids",
+        "mean_abs_shap": 0.0017364523896348262,
+        "feature_label": "Lipids bundle family",
+        "feature_group": "candidate_context"
+      },
+      {
+        "feature": "cat__action_code_RECOMMEND_LIFESTYLE_RISK_BUNDLE",
+        "mean_abs_shap": 0.001720229412570389,
+        "feature_label": "cat__action_code_RECOMMEND_LIFESTYLE_RISK_BUNDLE",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_type_recommend",
+        "mean_abs_shap": 0.0015624977532284728,
+        "feature_label": "Recommendation action type",
+        "feature_group": "candidate_context"
+      },
+      {
+        "feature": "num__missing_penalty",
+        "mean_abs_shap": 0.0012904812965436013,
+        "feature_label": "Missing-data penalty",
+        "feature_group": "meta_ranking"
+      },
+      {
+        "feature": "cat__action_code_RECOMMEND_BP_ELEVATED_LIFESTYLE_3_6M",
+        "mean_abs_shap": 0.0012840042629207933,
+        "feature_label": "cat__action_code_RECOMMEND_BP_ELEVATED_LIFESTYLE_3_6M",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_RECOMMEND_REDUCE_ALCOHOL",
+        "mean_abs_shap": 0.0012790572721808734,
+        "feature_label": "cat__action_code_RECOMMEND_REDUCE_ALCOHOL",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__DR1TSUGR",
+        "mean_abs_shap": 0.0012289664847347178,
+        "feature_label": "Day-1 total sugar intake",
+        "feature_group": "lifestyle"
+      },
+      {
+        "feature": "num__inactive_x_movement_bundle",
+        "mean_abs_shap": 0.0012286690734203197,
+        "feature_label": "num__inactive_x_movement_bundle",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__Comorbidity",
+        "mean_abs_shap": 0.001095691315677012,
+        "feature_label": "num__Comorbidity",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__coldstart_confidence_ceiling_medium",
+        "mean_abs_shap": 0.0009883887638078466,
+        "feature_label": "cat__coldstart_confidence_ceiling_medium",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__severity_low",
+        "mean_abs_shap": 0.000795323149268777,
+        "feature_label": "Low candidate severity",
+        "feature_group": "candidate_context"
+      },
+      {
+        "feature": "num__smoker_x_smoking_bundle",
+        "mean_abs_shap": 0.0007756767545329406,
+        "feature_label": "num__smoker_x_smoking_bundle",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__SBP_mean",
+        "mean_abs_shap": 0.0006473207122677908,
+        "feature_label": "Mean systolic blood pressure",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "cat__action_code_INFORM_VERY_HIGH_SODIUM_DAY1",
+        "mean_abs_shap": 0.0004661442014790281,
+        "feature_label": "cat__action_code_INFORM_VERY_HIGH_SODIUM_DAY1",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__Sedentary_high_flag",
+        "mean_abs_shap": 0.00043036879809235114,
+        "feature_label": "High sedentary time flag",
+        "feature_group": "lifestyle"
+      },
+      {
+        "feature": "cat__bundle_family_Alcohol",
+        "mean_abs_shap": 0.00037497701278055295,
+        "feature_label": "Alcohol bundle family",
+        "feature_group": "candidate_context"
+      },
+      {
+        "feature": "num__hba1c_high_flag",
+        "mean_abs_shap": 0.00028792597643553173,
+        "feature_label": "num__hba1c_high_flag",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__coldstart_confidence_ceiling_high",
+        "mean_abs_shap": 0.0002640345686870233,
+        "feature_label": "cat__coldstart_confidence_ceiling_high",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__is_movement_bundle",
+        "mean_abs_shap": 0.00010643135193678708,
+        "feature_label": "num__is_movement_bundle",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__is_smoking_bundle",
+        "mean_abs_shap": 8.512089293648061e-05,
+        "feature_label": "num__is_smoking_bundle",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__bundle_family_IntegratedCardiometabolic",
+        "mean_abs_shap": 3.532121458443827e-05,
+        "feature_label": "Integrated cardiometabolic bundle family",
+        "feature_group": "candidate_context"
+      },
+      {
+        "feature": "cat__action_type_inform",
+        "mean_abs_shap": 2.645067766127386e-05,
+        "feature_label": "Informational action type",
+        "feature_group": "candidate_context"
+      },
+      {
+        "feature": "cat__action_code_INFORM_DIET_DATA_MISSING",
+        "mean_abs_shap": 2.421177602226777e-05,
+        "feature_label": "cat__action_code_INFORM_DIET_DATA_MISSING",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__contraindication_penalty",
+        "mean_abs_shap": 0.0,
+        "feature_label": "Contraindication penalty",
+        "feature_group": "meta_ranking"
+      },
+      {
+        "feature": "num__RIAGENDR",
+        "mean_abs_shap": 0.0,
+        "feature_label": "num__RIAGENDR",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__DietDay1_reliable_flag",
+        "mean_abs_shap": 0.0,
+        "feature_label": "num__DietDay1_reliable_flag",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__Hypertensive_crisis_flag",
+        "mean_abs_shap": 0.0,
+        "feature_label": "Hypertensive crisis flag",
+        "feature_group": "safety_context"
+      },
+      {
+        "feature": "num__Diabetes",
+        "mean_abs_shap": 0.0,
+        "feature_label": "Diabetes flag",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__Severe_hyperglycemia_flag",
+        "mean_abs_shap": 0.0,
+        "feature_label": "Severe hyperglycaemia flag",
+        "feature_group": "safety_context"
+      },
+      {
+        "feature": "num__Sodium_over_2300_flag",
+        "mean_abs_shap": 0.0,
+        "feature_label": "Sodium above 2300 mg flag",
+        "feature_group": "lifestyle"
+      },
+      {
+        "feature": "num__Sodium_over_1500_flag",
+        "mean_abs_shap": 0.0,
+        "feature_label": "Sodium above 1500 mg flag",
+        "feature_group": "lifestyle"
+      },
+      {
+        "feature": "num__TC_high_flag",
+        "mean_abs_shap": 0.0,
+        "feature_label": "High total cholesterol flag",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__hba1c_high_x_diet_bundle",
+        "mean_abs_shap": 0.0,
+        "feature_label": "num__hba1c_high_x_diet_bundle",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__hba1c_high_x_monitoring_bundle",
+        "mean_abs_shap": 0.0,
+        "feature_label": "num__hba1c_high_x_monitoring_bundle",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__sbp_high_flag",
+        "mean_abs_shap": 0.0,
+        "feature_label": "num__sbp_high_flag",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__sbp_high_x_movement_bundle",
+        "mean_abs_shap": 0.0,
+        "feature_label": "num__sbp_high_x_movement_bundle",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__sbp_high_x_monitoring_bundle",
+        "mean_abs_shap": 0.0,
+        "feature_label": "num__sbp_high_x_monitoring_bundle",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__obesity_flag_proxy",
+        "mean_abs_shap": 0.0,
+        "feature_label": "num__obesity_flag_proxy",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__bmi_x_weight_bundle",
+        "mean_abs_shap": 0.0,
+        "feature_label": "num__bmi_x_weight_bundle",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__high_sodium_x_diet_bundle",
+        "mean_abs_shap": 0.0,
+        "feature_label": "num__high_sodium_x_diet_bundle",
+        "feature_group": "other"
+      },
+      {
+        "feature": "num__triage_mode",
+        "mean_abs_shap": 0.0,
+        "feature_label": "num__triage_mode",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_ESCALATE_HTN_MARKEDLY_ELEVATED",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_ESCALATE_HTN_MARKEDLY_ELEVATED",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_ESCALATE_OUT_OF_SCOPE_NONADULT",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_ESCALATE_OUT_OF_SCOPE_NONADULT",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_ESCALATE_SEVERE_HYPERGLYCEMIA",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_ESCALATE_SEVERE_HYPERGLYCEMIA",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_ESCALATE_SEVERE_OBESITY_INTENSIVE_REFERRAL",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_ESCALATE_SEVERE_OBESITY_INTENSIVE_REFERRAL",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_INFORM_BP_MEASUREMENT_LIMITED",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_INFORM_BP_MEASUREMENT_LIMITED",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_INFORM_BP_NORMAL_MAINTAIN_ANNUAL",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_INFORM_BP_NORMAL_MAINTAIN_ANNUAL",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_INFORM_CENTRAL_OBESITY_RISK",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_INFORM_CENTRAL_OBESITY_RISK",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_INFORM_DATA_MISSING_KEY_METRICS",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_INFORM_DATA_MISSING_KEY_METRICS",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_INFORM_DIET_RECALL_NOT_RELIABLE",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_INFORM_DIET_RECALL_NOT_RELIABLE",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_INFORM_FORMER_SMOKER_REINFORCE",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_INFORM_FORMER_SMOKER_REINFORCE",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_INFORM_LIPIDS_BORDERLINE_TC",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_INFORM_LIPIDS_BORDERLINE_TC",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_INFORM_LOW_POTASSIUM_SODIUM_RATIO_CAUTIOUS",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_INFORM_LOW_POTASSIUM_SODIUM_RATIO_CAUTIOUS",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_INFORM_NORMAL_GLYCEMIA_PREVENTION",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_INFORM_NORMAL_GLYCEMIA_PREVENTION",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_INFORM_OLDER_ADULTS_BALANCE_STRENGTH",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_INFORM_OLDER_ADULTS_BALANCE_STRENGTH",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_INFORM_SYSTEM_SCOPE",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_INFORM_SYSTEM_SCOPE",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_RECOMMEND_BP_SELF_MONITORING",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_RECOMMEND_BP_SELF_MONITORING",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_RECOMMEND_DASH_OR_MEDITERRANEAN_PATTERN",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_RECOMMEND_DASH_OR_MEDITERRANEAN_PATTERN",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_RECOMMEND_DIABETES_REVIEW_ABOVE_TARGET",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_RECOMMEND_DIABETES_REVIEW_ABOVE_TARGET",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_RECOMMEND_DIABETES_REVIEW_POOR_CONTROL",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_RECOMMEND_DIABETES_REVIEW_POOR_CONTROL",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_RECOMMEND_DIABETES_SELF_MANAGEMENT_CORE",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_RECOMMEND_DIABETES_SELF_MANAGEMENT_CORE",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_RECOMMEND_HTN_ST1_DIABETES_REVIEW_1M",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_RECOMMEND_HTN_ST1_DIABETES_REVIEW_1M",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_RECOMMEND_HTN_ST1_LIFESTYLE_3_6M",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_RECOMMEND_HTN_ST1_LIFESTYLE_3_6M",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_RECOMMEND_HTN_ST2_CLINIC_REVIEW_1M",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_RECOMMEND_HTN_ST2_CLINIC_REVIEW_1M",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_RECOMMEND_INCREASE_DIETARY_FIBER_DENSITY",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_RECOMMEND_INCREASE_DIETARY_FIBER_DENSITY",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_RECOMMEND_LIPIDS_HIGH_TC_LIFESTYLE",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_RECOMMEND_LIPIDS_HIGH_TC_LIFESTYLE",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_RECOMMEND_REDUCE_SATURATED_FAT",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_RECOMMEND_REDUCE_SATURATED_FAT",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_RECOMMEND_REDUCE_SEDENTARY_TIME",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_RECOMMEND_REDUCE_SEDENTARY_TIME",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_RECOMMEND_SMOKING_CESSATION",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_RECOMMEND_SMOKING_CESSATION",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_RECOMMEND_SODIUM_REDUCTION_1500_IDEAL_HIGH_RISK_DAY1",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_RECOMMEND_SODIUM_REDUCTION_1500_IDEAL_HIGH_RISK_DAY1",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_RECOMMEND_SODIUM_REDUCTION_WHO_2000_DAY1",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_RECOMMEND_SODIUM_REDUCTION_WHO_2000_DAY1",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_RECOMMEND_WEIGHT_MANAGEMENT_OBESITY",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_RECOMMEND_WEIGHT_MANAGEMENT_OBESITY",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_code_RECOMMEND_WEIGHT_MANAGEMENT_OVERWEIGHT",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__action_code_RECOMMEND_WEIGHT_MANAGEMENT_OVERWEIGHT",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__action_type_escalate",
+        "mean_abs_shap": 0.0,
+        "feature_label": "Escalation action type",
+        "feature_group": "candidate_context"
+      },
+      {
+        "feature": "cat__severity_critical",
+        "mean_abs_shap": 0.0,
+        "feature_label": "Critical candidate severity",
+        "feature_group": "candidate_context"
+      },
+      {
+        "feature": "cat__severity_high",
+        "mean_abs_shap": 0.0,
+        "feature_label": "High candidate severity",
+        "feature_group": "candidate_context"
+      },
+      {
+        "feature": "cat__bundle_family_Monitoring",
+        "mean_abs_shap": 0.0,
+        "feature_label": "Monitoring bundle family",
+        "feature_group": "candidate_context"
+      },
+      {
+        "feature": "cat__bundle_family_Movement",
+        "mean_abs_shap": 0.0,
+        "feature_label": "Movement bundle family",
+        "feature_group": "candidate_context"
+      },
+      {
+        "feature": "cat__bundle_family_Smoking",
+        "mean_abs_shap": 0.0,
+        "feature_label": "Smoking bundle family",
+        "feature_group": "candidate_context"
+      },
+      {
+        "feature": "cat__bundle_family_Weight",
+        "mean_abs_shap": 0.0,
+        "feature_label": "Weight bundle family",
+        "feature_group": "candidate_context"
+      },
+      {
+        "feature": "cat__confidence_label_low",
+        "mean_abs_shap": 0.0,
+        "feature_label": "Low upstream confidence",
+        "feature_group": "meta_ranking"
+      },
+      {
+        "feature": "cat__feature_tier_minimal",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__feature_tier_minimal",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__confidence_ceiling_global_high",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__confidence_ceiling_global_high",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__confidence_ceiling_global_medium",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__confidence_ceiling_global_medium",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__coldstart_confidence_ceiling_low",
+        "mean_abs_shap": 0.0,
+        "feature_label": "cat__coldstart_confidence_ceiling_low",
+        "feature_group": "other"
+      },
+      {
+        "feature": "cat__Severity_band_High",
+        "mean_abs_shap": 0.0,
+        "feature_label": "High severity band",
+        "feature_group": "safety_context"
+      },
+      {
+        "feature": "cat__Severity_band_Moderate",
+        "mean_abs_shap": 0.0,
+        "feature_label": "Moderate severity band",
+        "feature_group": "safety_context"
+      }
+    ],
+    "global_feature_importance_clinical_only": [
+      {
+        "feature": "num__DR1TSODI",
+        "mean_abs_shap": 0.17793447610255436,
+        "feature_label": "Day-1 sodium intake",
+        "feature_group": "lifestyle"
+      },
+      {
+        "feature": "num__LBXGH",
+        "mean_abs_shap": 0.17016711535600754,
+        "feature_label": "HbA1c",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__Current_smoker_flag",
+        "mean_abs_shap": 0.055489547464975544,
+        "feature_label": "Current smoker flag",
+        "feature_group": "lifestyle"
+      },
+      {
+        "feature": "cat__Severity_band_Low",
+        "mean_abs_shap": 0.044533784179386623,
+        "feature_label": "Low severity band",
+        "feature_group": "safety_context"
+      },
+      {
+        "feature": "num__DM_severity_score",
+        "mean_abs_shap": 0.04180916122871751,
+        "feature_label": "Diabetes severity score",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__Any_MVPA_flag",
+        "mean_abs_shap": 0.031235269430347455,
+        "feature_label": "Any moderate/vigorous activity flag",
+        "feature_group": "lifestyle"
+      },
+      {
+        "feature": "num__HDL_low_flag",
+        "mean_abs_shap": 0.030408040111309466,
+        "feature_label": "Low HDL flag",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__Lifestyle_risk_score",
+        "mean_abs_shap": 0.01641723285553496,
+        "feature_label": "Lifestyle risk score",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__SatFat_over_10pct_flag",
+        "mean_abs_shap": 0.015998197232490102,
+        "feature_label": "Saturated fat above 10% energy flag",
+        "feature_group": "lifestyle"
+      },
+      {
+        "feature": "num__BMXWAIST",
+        "mean_abs_shap": 0.013525436454475528,
+        "feature_label": "Waist circumference",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__Alcohol_over_guideline_flag",
+        "mean_abs_shap": 0.011144910554260038,
+        "feature_label": "Alcohol above guideline flag",
+        "feature_group": "lifestyle"
+      },
+      {
+        "feature": "num__DR1TFIBE",
+        "mean_abs_shap": 0.010149712036238713,
+        "feature_label": "Day-1 fibre intake",
+        "feature_group": "lifestyle"
+      },
+      {
+        "feature": "num__Cardiometabolic_severity_score",
+        "mean_abs_shap": 0.009466601801498064,
+        "feature_label": "Cardiometabolic severity score",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__Severe_obesity_flag",
+        "mean_abs_shap": 0.005987102120947239,
+        "feature_label": "Severe obesity flag",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__HTN_severity_score",
+        "mean_abs_shap": 0.00481980917597959,
+        "feature_label": "Hypertension severity score",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__Hypertension",
+        "mean_abs_shap": 0.0037984670041878435,
+        "feature_label": "Hypertension flag",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__BMXBMI",
+        "mean_abs_shap": 0.0036977521886091312,
+        "feature_label": "Body mass index",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__Obesity_severity_score",
+        "mean_abs_shap": 0.002392185431554963,
+        "feature_label": "Obesity severity score",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__Prediabetes",
+        "mean_abs_shap": 0.0022969010727236115,
+        "feature_label": "Prediabetes flag",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__DBP_mean",
+        "mean_abs_shap": 0.0018443627726004168,
+        "feature_label": "Mean diastolic blood pressure",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__DR1TSUGR",
+        "mean_abs_shap": 0.0012289664847347178,
+        "feature_label": "Day-1 total sugar intake",
+        "feature_group": "lifestyle"
+      },
+      {
+        "feature": "num__SBP_mean",
+        "mean_abs_shap": 0.0006473207122677908,
+        "feature_label": "Mean systolic blood pressure",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__Sedentary_high_flag",
+        "mean_abs_shap": 0.00043036879809235114,
+        "feature_label": "High sedentary time flag",
+        "feature_group": "lifestyle"
+      },
+      {
+        "feature": "num__Hypertensive_crisis_flag",
+        "mean_abs_shap": 0.0,
+        "feature_label": "Hypertensive crisis flag",
+        "feature_group": "safety_context"
+      },
+      {
+        "feature": "num__Diabetes",
+        "mean_abs_shap": 0.0,
+        "feature_label": "Diabetes flag",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "num__Severe_hyperglycemia_flag",
+        "mean_abs_shap": 0.0,
+        "feature_label": "Severe hyperglycaemia flag",
+        "feature_group": "safety_context"
+      },
+      {
+        "feature": "num__Sodium_over_2300_flag",
+        "mean_abs_shap": 0.0,
+        "feature_label": "Sodium above 2300 mg flag",
+        "feature_group": "lifestyle"
+      },
+      {
+        "feature": "num__Sodium_over_1500_flag",
+        "mean_abs_shap": 0.0,
+        "feature_label": "Sodium above 1500 mg flag",
+        "feature_group": "lifestyle"
+      },
+      {
+        "feature": "num__TC_high_flag",
+        "mean_abs_shap": 0.0,
+        "feature_label": "High total cholesterol flag",
+        "feature_group": "clinical"
+      },
+      {
+        "feature": "cat__Severity_band_High",
+        "mean_abs_shap": 0.0,
+        "feature_label": "High severity band",
+        "feature_group": "safety_context"
+      },
+      {
+        "feature": "cat__Severity_band_Moderate",
+        "mean_abs_shap": 0.0,
+        "feature_label": "Moderate severity band",
+        "feature_group": "safety_context"
+      }
+    ],
+    "per_action_explanations": [
+      {
+        "ParticipantKey": "2015-2016_83732.0",
+        "action_code": "RECOMMEND_DIABETES_REVIEW_ABOVE_TARGET",
+        "bundle_family": "Monitoring",
+        "total_score": 162.0,
+        "final_score": 162.4,
+        "ml_score": 1.0,
+        "lambda_u": 0.4,
+        "ml_contrib": 0.4,
+        "rerank_status": "ml_reranked",
+        "top_positive_factors": [
+          {
+            "feature": "num__score_norm",
+            "feature_label": "Normalized rule score",
+            "feature_group": "meta_ranking",
+            "shap_value": 7.384842311697377
+          },
+          {
+            "feature": "num__confidence_score",
+            "feature_label": "Upstream confidence score",
+            "feature_group": "meta_ranking",
+            "shap_value": 1.5045098614824295
+          },
+          {
+            "feature": "num__total_score",
+            "feature_label": "Rule-based total score",
+            "feature_group": "meta_ranking",
+            "shap_value": 0.42790262527360845
+          },
+          {
+            "feature": "num__priority",
+            "feature_label": "Recommendation priority",
+            "feature_group": "meta_ranking",
+            "shap_value": 0.246728620795414
+          },
+          {
+            "feature": "num__domain_alignment",
+            "feature_label": "Domain alignment score",
+            "feature_group": "meta_ranking",
+            "shap_value": 0.15856830618477438
+          }
+        ],
+        "top_negative_factors": [
+          {
+            "feature": "num__LBXGH",
+            "feature_label": "HbA1c",
+            "feature_group": "clinical",
+            "shap_value": -0.1678042202409358
+          },
+          {
+            "feature": "num__DR1TSODI",
+            "feature_label": "Day-1 sodium intake",
+            "feature_group": "lifestyle",
+            "shap_value": -0.08981484905442778
+          },
+          {
+            "feature": "num__DM_severity_score",
+            "feature_label": "Diabetes severity score",
+            "feature_group": "clinical",
+            "shap_value": -0.04726971006171056
+          },
+          {
+            "feature": "cat__Severity_band_Low",
+            "feature_label": "Low severity band",
+            "feature_group": "safety_context",
+            "shap_value": -0.04108274508908116
+          },
+          {
+            "feature": "num__data_completeness_score",
+            "feature_label": "Data completeness score",
+            "feature_group": "meta_ranking",
+            "shap_value": -0.026275959161472733
+          }
+        ],
+        "top_positive_factors_clinical_only": [
+          {
+            "feature": "num__Current_smoker_flag",
+            "feature_label": "Current smoker flag",
+            "feature_group": "lifestyle",
+            "shap_value": 0.04809217148996605
+          },
+          {
+            "feature": "num__HDL_low_flag",
+            "feature_label": "Low HDL flag",
+            "feature_group": "clinical",
+            "shap_value": 0.025762133193932408
+          },
+          {
+            "feature": "num__Lifestyle_risk_score",
+            "feature_label": "Lifestyle risk score",
+            "feature_group": "clinical",
+            "shap_value": 0.02532210195787035
+          },
+          {
+            "feature": "num__BMXWAIST",
+            "feature_label": "Waist circumference",
+            "feature_group": "clinical",
+            "shap_value": 0.010621094138384019
+          },
+          {
+            "feature": "num__Alcohol_over_guideline_flag",
+            "feature_label": "Alcohol above guideline flag",
+            "feature_group": "lifestyle",
+            "shap_value": 0.008502600392007264
+          }
+        ],
+        "top_negative_factors_clinical_only": [
+          {
+            "feature": "num__LBXGH",
+            "feature_label": "HbA1c",
+            "feature_group": "clinical",
+            "shap_value": -0.1678042202409358
+          },
+          {
+            "feature": "num__DR1TSODI",
+            "feature_label": "Day-1 sodium intake",
+            "feature_group": "lifestyle",
+            "shap_value": -0.08981484905442778
+          },
+          {
+            "feature": "num__DM_severity_score",
+            "feature_label": "Diabetes severity score",
+            "feature_group": "clinical",
+            "shap_value": -0.04726971006171056
+          },
+          {
+            "feature": "cat__Severity_band_Low",
+            "feature_label": "Low severity band",
+            "feature_group": "safety_context",
+            "shap_value": -0.04108274508908116
+          },
+          {
+            "feature": "num__Any_MVPA_flag",
+            "feature_label": "Any moderate/vigorous activity flag",
+            "feature_group": "lifestyle",
+            "shap_value": -0.02234146791040041
+          }
+        ],
+        "clinician_ml_xai_summary": "Features increasing relative ML emphasis included: Current smoker flag, Low HDL flag, and Lifestyle risk score. Features decreasing relative ML emphasis included: HbA1c, Day-1 sodium intake, and Diabetes severity score.",
+        "patient_ml_xai_summary": "The model gave relatively more emphasis because of: Current smoker flag and Low HDL flag. Factors reducing relative emphasis included: HbA1c and Day-1 sodium intake."
+      },
+      {
+        "ParticipantKey": "2015-2016_83732.0",
+        "action_code": "INFORM_VERY_HIGH_SODIUM_DAY1",
+        "bundle_family": "DietPattern",
+        "total_score": 158.0,
+        "final_score": 158.4,
+        "ml_score": 1.0,
+        "lambda_u": 0.4,
+        "ml_contrib": 0.4,
+        "rerank_status": "ml_reranked",
+        "top_positive_factors": [
+          {
+            "feature": "num__score_norm",
+            "feature_label": "Normalized rule score",
+            "feature_group": "meta_ranking",
+            "shap_value": 7.36280862022165
+          },
+          {
+            "feature": "num__confidence_score",
+            "feature_label": "Upstream confidence score",
+            "feature_group": "meta_ranking",
+            "shap_value": 1.4983368533374766
+          },
+          {
+            "feature": "num__total_score",
+            "feature_label": "Rule-based total score",
+            "feature_group": "meta_ranking",
+            "shap_value": 0.4305202143513689
+          },
+          {
+            "feature": "num__priority",
+            "feature_label": "Recommendation priority",
+            "feature_group": "meta_ranking",
+            "shap_value": 0.2545378968398066
+          },
+          {
+            "feature": "num__domain_alignment",
+            "feature_label": "Domain alignment score",
+            "feature_group": "meta_ranking",
+            "shap_value": 0.06889861939129072
+          }
+        ],
+        "top_negative_factors": [
+          {
+            "feature": "num__LBXGH",
+            "feature_label": "HbA1c",
+            "feature_group": "clinical",
+            "shap_value": -0.1642440639506123
+          },
+          {
+            "feature": "num__DR1TSODI",
+            "feature_label": "Day-1 sodium intake",
+            "feature_group": "lifestyle",
+            "shap_value": -0.08261987435443845
+          },
+          {
+            "feature": "num__DM_severity_score",
+            "feature_label": "Diabetes severity score",
+            "feature_group": "clinical",
+            "shap_value": -0.04726971006171056
+          },
+          {
+            "feature": "cat__Severity_band_Low",
+            "feature_label": "Low severity band",
+            "feature_group": "safety_context",
+            "shap_value": -0.04108274508908116
+          },
+          {
+            "feature": "num__data_completeness_score",
+            "feature_label": "Data completeness score",
+            "feature_group": "meta_ranking",
+            "shap_value": -0.028177985632801668
+          }
+        ],
+        "top_positive_factors_clinical_only": [
+          {
+            "feature": "num__Current_smoker_flag",
+            "feature_label": "Current smoker flag",
+            "feature_group": "lifestyle",
+            "shap_value": 0.043749684753374964
+          },
+          {
+            "feature": "num__HDL_low_flag",
+            "feature_label": "Low HDL flag",
+            "feature_group": "clinical",
+            "shap_value": 0.025829267228326073
+          },
+          {
+            "feature": "num__Lifestyle_risk_score",
+            "feature_label": "Lifestyle risk score",
+            "feature_group": "clinical",
+            "shap_value": 0.02182365277909063
+          },
+          {
+            "feature": "num__BMXWAIST",
+            "feature_label": "Waist circumference",
+            "feature_group": "clinical",
+            "shap_value": 0.01036722711464598
+          },
+          {
+            "feature": "num__Alcohol_over_guideline_flag",
+            "feature_label": "Alcohol above guideline flag",
+            "feature_group": "lifestyle",
+            "shap_value": 0.008418208897998613
+          }
+        ],
+        "top_negative_factors_clinical_only": [
+          {
+            "feature": "num__LBXGH",
+            "feature_label": "HbA1c",
+            "feature_group": "clinical",
+            "shap_value": -0.1642440639506123
+          },
+          {
+            "feature": "num__DR1TSODI",
+            "feature_label": "Day-1 sodium intake",
+            "feature_group": "lifestyle",
+            "shap_value": -0.08261987435443845
+          },
+          {
+            "feature": "num__DM_severity_score",
+            "feature_label": "Diabetes severity score",
+            "feature_group": "clinical",
+            "shap_value": -0.04726971006171056
+          },
+          {
+            "feature": "cat__Severity_band_Low",
+            "feature_label": "Low severity band",
+            "feature_group": "safety_context",
+            "shap_value": -0.04108274508908116
+          },
+          {
+            "feature": "num__Any_MVPA_flag",
+            "feature_label": "Any moderate/vigorous activity flag",
+            "feature_group": "lifestyle",
+            "shap_value": -0.023104359318545112
+          }
+        ],
+        "clinician_ml_xai_summary": "Features increasing relative ML emphasis included: Current smoker flag, Low HDL flag, and Lifestyle risk score. Features decreasing relative ML emphasis included: HbA1c, Day-1 sodium intake, and Diabetes severity score.",
+        "patient_ml_xai_summary": "The model gave relatively more emphasis because of: Current smoker flag and Low HDL flag. Factors reducing relative emphasis included: HbA1c and Day-1 sodium intake."
+      },
+      {
+        "ParticipantKey": "2015-2016_83732.0",
+        "action_code": "RECOMMEND_DASH_OR_MEDITERRANEAN_PATTERN",
+        "bundle_family": "DietPattern",
+        "total_score": 158.0,
+        "final_score": 158.4,
+        "ml_score": 1.0,
+        "lambda_u": 0.4,
+        "ml_contrib": 0.4,
+        "rerank_status": "ml_reranked",
+        "top_positive_factors": [
+          {
+            "feature": "num__score_norm",
+            "feature_label": "Normalized rule score",
+            "feature_group": "meta_ranking",
+            "shap_value": 7.3616144090676565
+          },
+          {
+            "feature": "num__confidence_score",
+            "feature_label": "Upstream confidence score",
+            "feature_group": "meta_ranking",
+            "shap_value": 1.4977158664727763
+          },
+          {
+            "feature": "num__total_score",
+            "feature_label": "Rule-based total score",
+            "feature_group": "meta_ranking",
+            "shap_value": 0.43057809406139913
+          },
+          {
+            "feature": "num__priority",
+            "feature_label": "Recommendation priority",
+            "feature_group": "meta_ranking",
+            "shap_value": 0.25440439396876646
+          },
+          {
+            "feature": "num__domain_alignment",
+            "feature_label": "Domain alignment score",
+            "feature_group": "meta_ranking",
+            "shap_value": 0.06908496544135166
+          }
+        ],
+        "top_negative_factors": [
+          {
+            "feature": "num__LBXGH",
+            "feature_label": "HbA1c",
+            "feature_group": "clinical",
+            "shap_value": -0.16538870561230537
+          },
+          {
+            "feature": "num__DR1TSODI",
+            "feature_label": "Day-1 sodium intake",
+            "feature_group": "lifestyle",
+            "shap_value": -0.08311441407368957
+          },
+          {
+            "feature": "num__DM_severity_score",
+            "feature_label": "Diabetes severity score",
+            "feature_group": "clinical",
+            "shap_value": -0.04726971006171056
+          },
+          {
+            "feature": "cat__Severity_band_Low",
+            "feature_label": "Low severity band",
+            "feature_group": "safety_context",
+            "shap_value": -0.04108274508908116
+          },
+          {
+            "feature": "num__data_completeness_score",
+            "feature_label": "Data completeness score",
+            "feature_group": "meta_ranking",
+            "shap_value": -0.028177985632801668
+          }
+        ],
+        "top_positive_factors_clinical_only": [
+          {
+            "feature": "num__Current_smoker_flag",
+            "feature_label": "Current smoker flag",
+            "feature_group": "lifestyle",
+            "shap_value": 0.046905029980503506
+          },
+          {
+            "feature": "num__HDL_low_flag",
+            "feature_label": "Low HDL flag",
+            "feature_group": "clinical",
+            "shap_value": 0.025829267228326073
+          },
+          {
+            "feature": "num__Lifestyle_risk_score",
+            "feature_label": "Lifestyle risk score",
+            "feature_group": "clinical",
+            "shap_value": 0.02182365277909063
+          },
+          {
+            "feature": "num__BMXWAIST",
+            "feature_label": "Waist circumference",
+            "feature_group": "clinical",
+            "shap_value": 0.010377173329453883
+          },
+          {
+            "feature": "num__Alcohol_over_guideline_flag",
+            "feature_label": "Alcohol above guideline flag",
+            "feature_group": "lifestyle",
+            "shap_value": 0.008418208897998613
+          }
+        ],
+        "top_negative_factors_clinical_only": [
+          {
+            "feature": "num__LBXGH",
+            "feature_label": "HbA1c",
+            "feature_group": "clinical",
+            "shap_value": -0.16538870561230537
+          },
+          {
+            "feature": "num__DR1TSODI",
+            "feature_label": "Day-1 sodium intake",
+            "feature_group": "lifestyle",
+            "shap_value": -0.08311441407368957
+          },
+          {
+            "feature": "num__DM_severity_score",
+            "feature_label": "Diabetes severity score",
+            "feature_group": "clinical",
+            "shap_value": -0.04726971006171056
+          },
+          {
+            "feature": "cat__Severity_band_Low",
+            "feature_label": "Low severity band",
+            "feature_group": "safety_context",
+            "shap_value": -0.04108274508908116
+          },
+          {
+            "feature": "num__Any_MVPA_flag",
+            "feature_label": "Any moderate/vigorous activity flag",
+            "feature_group": "lifestyle",
+            "shap_value": -0.02715156006186956
+          }
+        ],
+        "clinician_ml_xai_summary": "Features increasing relative ML emphasis included: Current smoker flag, Low HDL flag, and Lifestyle risk score. Features decreasing relative ML emphasis included: HbA1c, Day-1 sodium intake, and Diabetes severity score.",
+        "patient_ml_xai_summary": "The model gave relatively more emphasis because of: Current smoker flag and Low HDL flag. Factors reducing relative emphasis included: HbA1c and Day-1 sodium intake."
+      },
+      {
+        "ParticipantKey": "2015-2016_83732.0",
+        "action_code": "RECOMMEND_MVPA_START_GRADUAL",
+        "bundle_family": "Movement",
+        "total_score": 136.0,
+        "final_score": 136.0,
+        "ml_score": 0.0,
+        "lambda_u": 0.4,
+        "ml_contrib": 0.0,
+        "rerank_status": "ml_reranked",
+        "top_positive_factors": [
+          {
+            "feature": "num__priority",
+            "feature_label": "Recommendation priority",
+            "feature_group": "meta_ranking",
+            "shap_value": 0.11209707025433685
+          },
+          {
+            "feature": "num__Current_smoker_flag",
+            "feature_label": "Current smoker flag",
+            "feature_group": "lifestyle",
+            "shap_value": 0.07979865291358496
+          },
+          {
+            "feature": "cat__confidence_label_high",
+            "feature_label": "High upstream confidence",
+            "feature_group": "meta_ranking",
+            "shap_value": 0.05584185370168103
+          },
+          {
+            "feature": "num__HDL_low_flag",
+            "feature_label": "Low HDL flag",
+            "feature_group": "clinical",
+            "shap_value": 0.02174827015513038
+          },
+          {
+            "feature": "num__bundle_rank_within_participant",
+            "feature_label": "num__bundle_rank_within_participant",
+            "feature_group": "other",
+            "shap_value": 0.018088045368294645
+          }
+        ],
+        "top_negative_factors": [
+          {
+            "feature": "num__score_norm",
+            "feature_label": "Normalized rule score",
+            "feature_group": "meta_ranking",
+            "shap_value": -4.752244284133479
+          },
+          {
+            "feature": "num__confidence_score",
+            "feature_label": "Upstream confidence score",
+            "feature_group": "meta_ranking",
+            "shap_value": -0.938670493875303
+          },
+          {
+            "feature": "num__DR1TSODI",
+            "feature_label": "Day-1 sodium intake",
+            "feature_group": "lifestyle",
+            "shap_value": -0.36725602115080686
+          },
+          {
+            "feature": "num__LBXGH",
+            "feature_label": "HbA1c",
+            "feature_group": "clinical",
+            "shap_value": -0.23381322484040742
+          },
+          {
+            "feature": "num__total_score",
+            "feature_label": "Rule-based total score",
+            "feature_group": "meta_ranking",
+            "shap_value": -0.2273366259164076
+          }
+        ],
+        "top_positive_factors_clinical_only": [
+          {
+            "feature": "num__Current_smoker_flag",
+            "feature_label": "Current smoker flag",
+            "feature_group": "lifestyle",
+            "shap_value": 0.07979865291358496
+          },
+          {
+            "feature": "num__HDL_low_flag",
+            "feature_label": "Low HDL flag",
+            "feature_group": "clinical",
+            "shap_value": 0.02174827015513038
+          },
+          {
+            "feature": "num__BMXWAIST",
+            "feature_label": "Waist circumference",
+            "feature_group": "clinical",
+            "shap_value": 0.017110632272113683
+          },
+          {
+            "feature": "num__Severe_obesity_flag",
+            "feature_label": "Severe obesity flag",
+            "feature_group": "clinical",
+            "shap_value": 0.01198628490420373
+          },
+          {
+            "feature": "num__BMXBMI",
+            "feature_label": "Body mass index",
+            "feature_group": "clinical",
+            "shap_value": 0.011723540463607221
+          }
+        ],
+        "top_negative_factors_clinical_only": [
+          {
+            "feature": "num__DR1TSODI",
+            "feature_label": "Day-1 sodium intake",
+            "feature_group": "lifestyle",
+            "shap_value": -0.36725602115080686
+          },
+          {
+            "feature": "num__LBXGH",
+            "feature_label": "HbA1c",
+            "feature_group": "clinical",
+            "shap_value": -0.23381322484040742
+          },
+          {
+            "feature": "num__DM_severity_score",
+            "feature_label": "Diabetes severity score",
+            "feature_group": "clinical",
+            "shap_value": -0.04891965806730509
+          },
+          {
+            "feature": "num__SatFat_over_10pct_flag",
+            "feature_label": "Saturated fat above 10% energy flag",
+            "feature_group": "lifestyle",
+            "shap_value": -0.031997671925847467
+          },
+          {
+            "feature": "num__Any_MVPA_flag",
+            "feature_label": "Any moderate/vigorous activity flag",
+            "feature_group": "lifestyle",
+            "shap_value": -0.030026229550519028
+          }
+        ],
+        "clinician_ml_xai_summary": "Features increasing relative ML emphasis included: Current smoker flag, Low HDL flag, and Waist circumference. Features decreasing relative ML emphasis included: Day-1 sodium intake, HbA1c, and Diabetes severity score.",
+        "patient_ml_xai_summary": "The model gave relatively more emphasis because of: Current smoker flag and Low HDL flag. Factors reducing relative emphasis included: Day-1 sodium intake and HbA1c."
+      },
+      {
+        "ParticipantKey": "2015-2016_83732.0",
+        "action_code": "RECOMMEND_BP_ELEVATED_LIFESTYLE_3_6M",
+        "bundle_family": "Monitoring",
+        "total_score": 120.0,
+        "final_score": 120.0,
+        "ml_score": 0.0,
+        "lambda_u": 0.4,
+        "ml_contrib": 0.0,
+        "rerank_status": "ml_reranked",
+        "top_positive_factors": [
+          {
+            "feature": "num__Current_smoker_flag",
+            "feature_label": "Current smoker flag",
+            "feature_group": "lifestyle",
+            "shap_value": 0.05890219818744825
+          },
+          {
+            "feature": "num__HDL_low_flag",
+            "feature_label": "Low HDL flag",
+            "feature_group": "clinical",
+            "shap_value": 0.05287126275083238
+          },
+          {
+            "feature": "num__domain_alignment",
+            "feature_label": "Domain alignment score",
+            "feature_group": "meta_ranking",
+            "shap_value": 0.045251527946346994
+          },
+          {
+            "feature": "num__Alcohol_over_guideline_flag",
+            "feature_label": "Alcohol above guideline flag",
+            "feature_group": "lifestyle",
+            "shap_value": 0.02435635971100702
+          },
+          {
+            "feature": "num__BMXWAIST",
+            "feature_label": "Waist circumference",
+            "feature_group": "clinical",
+            "shap_value": 0.01915105541778007
+          }
+        ],
+        "top_negative_factors": [
+          {
+            "feature": "num__score_norm",
+            "feature_label": "Normalized rule score",
+            "feature_group": "meta_ranking",
+            "shap_value": -4.708874730576035
+          },
+          {
+            "feature": "num__confidence_score",
+            "feature_label": "Upstream confidence score",
+            "feature_group": "meta_ranking",
+            "shap_value": -0.9223636698818283
+          },
+          {
+            "feature": "num__priority",
+            "feature_label": "Recommendation priority",
+            "feature_group": "meta_ranking",
+            "shap_value": -0.3378064784222373
+          },
+          {
+            "feature": "num__total_score",
+            "feature_label": "Rule-based total score",
+            "feature_group": "meta_ranking",
+            "shap_value": -0.3218778354873369
+          },
+          {
+            "feature": "num__DR1TSODI",
+            "feature_label": "Day-1 sodium intake",
+            "feature_group": "lifestyle",
+            "shap_value": -0.2668672218794091
+          }
+        ],
+        "top_positive_factors_clinical_only": [
+          {
+            "feature": "num__Current_smoker_flag",
+            "feature_label": "Current smoker flag",
+            "feature_group": "lifestyle",
+            "shap_value": 0.05890219818744825
+          },
+          {
+            "feature": "num__HDL_low_flag",
+            "feature_label": "Low HDL flag",
+            "feature_group": "clinical",
+            "shap_value": 0.05287126275083238
+          },
+          {
+            "feature": "num__Alcohol_over_guideline_flag",
+            "feature_label": "Alcohol above guideline flag",
+            "feature_group": "lifestyle",
+            "shap_value": 0.02435635971100702
+          },
+          {
+            "feature": "num__BMXWAIST",
+            "feature_label": "Waist circumference",
+            "feature_group": "clinical",
+            "shap_value": 0.01915105541778007
+          },
+          {
+            "feature": "num__Severe_obesity_flag",
+            "feature_label": "Severe obesity flag",
+            "feature_group": "clinical",
+            "shap_value": 0.00725752029304109
+          }
+        ],
+        "top_negative_factors_clinical_only": [
+          {
+            "feature": "num__DR1TSODI",
+            "feature_label": "Day-1 sodium intake",
+            "feature_group": "lifestyle",
+            "shap_value": -0.2668672218794091
+          },
+          {
+            "feature": "num__LBXGH",
+            "feature_label": "HbA1c",
+            "feature_group": "clinical",
+            "shap_value": -0.11958536213577686
+          },
+          {
+            "feature": "cat__Severity_band_Low",
+            "feature_label": "Low severity band",
+            "feature_group": "safety_context",
+            "shap_value": -0.07714152569573943
+          },
+          {
+            "feature": "num__Any_MVPA_flag",
+            "feature_label": "Any moderate/vigorous activity flag",
+            "feature_group": "lifestyle",
+            "shap_value": -0.05355273031040316
+          },
+          {
+            "feature": "num__SatFat_over_10pct_flag",
+            "feature_label": "Saturated fat above 10% energy flag",
+            "feature_group": "lifestyle",
+            "shap_value": -0.028457866976952136
+          }
+        ],
+        "clinician_ml_xai_summary": "Features increasing relative ML emphasis included: Current smoker flag, Low HDL flag, and Alcohol above guideline flag. Features decreasing relative ML emphasis included: Day-1 sodium intake, HbA1c, and Low severity band.",
+        "patient_ml_xai_summary": "The model gave relatively more emphasis because of: Current smoker flag and Low HDL flag. Factors reducing relative emphasis included: Day-1 sodium intake and HbA1c."
+      }
+    ]
+  }
+}

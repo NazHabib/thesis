@@ -3,6 +3,14 @@ import pandas as pd
 from .config import EXPLAINABILITY_VERSION
 from .contracts import validate_final_bundle_columns, validate_safety_context_columns
 from .explainers import explain_bundle
+from .nlg_templates import (
+    build_patient_facing_explanation,
+    build_clinician_facing_explanation,
+    build_patient_confidence_explanation,
+    build_clinician_confidence_explanation,
+    build_safety_context_note,
+    build_ml_rerank_note,
+)
 
 
 FINAL_EXPLAINED_COLUMNS = [
@@ -59,6 +67,7 @@ def run_explainability_layer(
     explained_records = []
     for _, row in merged_df.iterrows():
         base = row.to_dict()
+
         explanation_payload = explain_bundle(
             base,
             reranked_df=reranked_df,
@@ -66,6 +75,47 @@ def run_explainability_layer(
             participant_features_df=participant_features_df,
         )
         base.update(explanation_payload)
+
+        # Override with stronger standardized NLG templates
+        base["patient_facing_explanation"] = build_patient_facing_explanation(
+            bundle_title=base.get("bundle_title", "This recommendation"),
+            rationale=base.get("rationale", "It was identified as clinically appropriate."),
+            confidence_label=base.get("confidence_label", "medium"),
+            triage_mode=bool(base.get("triage_mode", False)),
+            triage_reason=base.get("triage_reason", "none"),
+        )
+
+        base["clinician_facing_explanation"] = build_clinician_facing_explanation(
+            bundle_family=base.get("bundle_family", "unknown"),
+            action_count=len(base.get("action_codes", []) or []),
+            confidence_label=base.get("confidence_label", "medium"),
+            bundle_score=base.get("bundle_score"),
+            source_rule_ids=base.get("source_rule_ids", []),
+            ml_rerank_note=None,
+        )
+
+        base["patient_confidence_explanation"] = build_patient_confidence_explanation(
+            confidence_label=base.get("confidence_label", "medium"),
+        )
+
+        base["clinician_confidence_explanation"] = build_clinician_confidence_explanation(
+            confidence_label=base.get("confidence_label", "medium"),
+            feature_tier=base.get("feature_tier"),
+            triage_mode=bool(base.get("triage_mode", False)),
+            coldstart_note_codes=base.get("coldstart_note_codes", []),
+        )
+
+        base["safety_context_note"] = build_safety_context_note(
+            triage_mode=bool(base.get("triage_mode", False)),
+            triage_reason=base.get("triage_reason", "none"),
+        )
+
+        base["ml_rerank_note"] = build_ml_rerank_note(
+            rerank_status=base.get("rerank_status"),
+            fallback_reason=base.get("fallback_reason"),
+            fusion_strategy="participant_minmax_total_score_plus_ml_contrib",
+        )
+
         explained_records.append(base)
 
     explained_df = pd.DataFrame(explained_records)
@@ -96,7 +146,9 @@ def run_explainability_layer(
         },
         "xai_status_counts": {
             str(k): int(v)
-            for k, v in explained_df["ml_xai_payload"].apply(lambda x: x.get("xai_status", "unknown")).value_counts(dropna=False).to_dict().items()
+            for k, v in explained_df["ml_xai_payload"].apply(
+                lambda x: x.get("xai_status", "unknown") if isinstance(x, dict) else "unknown"
+            ).value_counts(dropna=False).to_dict().items()
         },
     }
 

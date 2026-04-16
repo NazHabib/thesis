@@ -2,15 +2,23 @@
 ASGI config for config project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/5.2/howto/deployment/asgi/
 """
 
 import os
 
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
+
 from django.core.asgi import get_asgi_application
+from starlette.applications import Starlette
+from starlette.routing import Mount
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+from apps.api.fastapi_app import fastapi_app
 
-application = get_asgi_application()
+django_app = get_asgi_application()
+
+application = Starlette(
+    routes=[
+        Mount("/api/fast", app=fastapi_app),
+        Mount("/", app=django_app),
+    ]
+)

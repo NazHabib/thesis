@@ -79,13 +79,15 @@ def apply_triage_policy(df: pd.DataFrame) -> pd.DataFrame:
 
         if not escalates.empty:
             keep = escalates.sort_values(
-                ["bundle_score", "priority", "bundle_title"],
-                ascending=[False, True, True],
+                ["bundle_score", "confidence_score", "priority", "bundle_title"],
+                ascending=[False, False, True, True],
+                kind="stable",
             ).head(1)
         else:
             keep = grp.sort_values(
-                ["bundle_score", "priority", "bundle_title"],
-                ascending=[False, True, True],
+                ["bundle_score", "confidence_score", "priority", "bundle_title"],
+                ascending=[False, False, True, True],
+                kind="stable",
             ).head(1)
 
         triage_parts.append(keep)
@@ -101,8 +103,9 @@ def apply_triage_policy(df: pd.DataFrame) -> pd.DataFrame:
 
 def select_top_bundles(df: pd.DataFrame) -> pd.DataFrame:
     out = df.sort_values(
-        ["ParticipantKey", "bundle_score", "priority", "bundle_title"],
-        ascending=[True, False, True, True],
+        ["ParticipantKey", "bundle_score", "confidence_score", "priority", "bundle_title"],
+        ascending=[True, False, False, True, True],
+        kind="stable",
     ).copy()
 
     return out.groupby("ParticipantKey", sort=False).head(MAX_FINAL_BUNDLES_PER_PARTICIPANT).copy()

@@ -1,8 +1,10 @@
 SEVERITY_SCORE_MAP = {
-    "critical": 100,
-    "high": 70,
-    "moderate": 40,
+    "informational": 0,
     "low": 10,
+    "medium": 40,      
+    "moderate": 40,
+    "high": 70,
+    "critical": 100,
 }
 
 CONFIDENCE_TO_NUM = {

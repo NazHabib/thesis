@@ -72,3 +72,4 @@ class Command(BaseCommand):
         self.stdout.write(f"Saved JSON report to: {saved['json_path']}")
         self.stdout.write(f"Saved per-action CSV to: {saved['csv_path']}")
         self.stdout.write(f"Saved global-importance CSV to: {saved['global_csv_path']}")
+        self.stdout.write(f"Saved clinical-only global-importance CSV to: {saved['global_clinical_csv_path']}")

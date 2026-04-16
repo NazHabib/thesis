@@ -97,6 +97,19 @@ NUMERIC_FEATURES_CANDIDATES = [
     "high_sodium_x_diet_bundle",
 ]
 
+EXPERIMENT_C_EXCLUDE_FEATURES = {
+    "score_norm",
+    "total_score",
+    "confidence_score",
+    "priority",
+    "base_severity_score",
+    "base_action_score",
+    "evidence_strength",
+    "domain_alignment",
+    "missing_penalty",
+    "contraindication_penalty",
+}
+
 
 @dataclass
 class PreparedFeatures:
@@ -114,6 +127,7 @@ def prepare_lgbm_features(
     train_df: pd.DataFrame,
     val_df: pd.DataFrame,
     target_col: str = "label",
+    feature_profile: str = "default",
 ) -> PreparedFeatures:
     if target_col not in train_df.columns:
         raise ValueError(f"Missing target column in train_df: {target_col}")
@@ -136,6 +150,12 @@ def prepare_lgbm_features(
 
     numeric_columns = _unique_preserve_order(numeric_columns + inferred_numeric)
     categorical_columns = _unique_preserve_order(categorical_columns)
+
+    categorical_columns, numeric_columns = _apply_feature_profile(
+        categorical_columns=categorical_columns,
+        numeric_columns=numeric_columns,
+        feature_profile=feature_profile,
+    )
 
     selected_columns = categorical_columns + numeric_columns
 
@@ -178,6 +198,27 @@ def prepare_lgbm_features(
         feature_columns=selected_columns,
         categorical_columns=categorical_columns,
         numeric_columns=numeric_columns,
+    )
+
+
+def _apply_feature_profile(
+    categorical_columns: list[str],
+    numeric_columns: list[str],
+    feature_profile: str,
+) -> tuple[list[str], list[str]]:
+    profile = str(feature_profile).strip().lower()
+
+    if profile == "default":
+        return categorical_columns, numeric_columns
+
+    if profile == "experiment_c":
+        categorical_out = list(categorical_columns)
+        numeric_out = [c for c in numeric_columns if c not in EXPERIMENT_C_EXCLUDE_FEATURES]
+        return categorical_out, numeric_out
+
+    raise ValueError(
+        f"Unsupported feature_profile: {feature_profile}. "
+        f"Supported values: default, experiment_c"
     )
 
 

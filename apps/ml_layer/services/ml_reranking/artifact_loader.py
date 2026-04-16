@@ -45,7 +45,7 @@ class MLArtifactLoader:
             "model_version": manifest.get("model_version", "unavailable"),
             "schema_version": manifest.get("feature_schema_version", "unavailable"),
             "calibration_version": manifest.get("calibration_version", "unavailable"),
-            "max_ml_contrib": float(manifest.get("max_ml_contrib", 20.0)),
+            "max_ml_contrib": float(manifest.get("max_ml_contrib", 0.5)),
         }
 
     @staticmethod

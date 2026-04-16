@@ -18,24 +18,24 @@ ACTIVE_MANIFEST_PATH = ARTIFACT_MANIFESTS_DIR / "active_manifest.json"
 
 # Fixed system policy
 LAMBDA_BY_FEATURE_TIER = {
-    "minimal": 0.15,  # cold-start equivalent
-    "core": 0.30,
-    "full": 0.40,
+    "minimal": 0.25,
+    "core": 0.50,
+    "full": 0.75,
 }
 
 LAMBDA_MIN = 0.0
-LAMBDA_MAX = 0.50
+LAMBDA_MAX = 0.75
 
 # Conservative reduction rules
 LOW_COMPLETENESS_THRESHOLD = 0.50
 VERY_LOW_COMPLETENESS_THRESHOLD = 0.30
 LOW_CONFIDENCE_THRESHOLD = 0.50
 
-LAMBDA_PENALTY_LOW_COMPLETENESS = 0.05
-LAMBDA_PENALTY_LOW_RULE_CONFIDENCE = 0.05
+LAMBDA_PENALTY_LOW_COMPLETENESS = 0.03
+LAMBDA_PENALTY_LOW_RULE_CONFIDENCE = 0.03
 
 # ML contribution clipping: ML must not dominate rules
-DEFAULT_MAX_ML_CONTRIB = 20.0
+DEFAULT_MAX_ML_CONTRIB = 0.5
 
 # Fallback settings
 MIN_REQUIRED_CANDIDATES_FOR_ML = 2

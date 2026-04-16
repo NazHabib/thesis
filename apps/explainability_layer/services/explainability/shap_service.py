@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import warnings
 from pathlib import Path
 
 import joblib
@@ -9,6 +10,12 @@ import pandas as pd
 from django.conf import settings
 
 from apps.ml_layer.services.ml_reranking.feature_builder import build_ml_feature_table
+from .feature_labels import (
+    humanize_feature_name,
+    feature_group,
+    is_clinical_only_feature,
+)
+from .shap_text import build_shap_text_summaries
 
 try:
     import shap
@@ -88,7 +95,14 @@ def run_participant_shap_explanation(
     X_proc = preprocessor.transform(feature_input_df)
 
     explainer = _build_tree_explainer(model)
-    shap_values = explainer.shap_values(X_proc)
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message="LightGBM binary classifier with TreeExplainer shap values output has changed to a list of ndarray",
+            category=UserWarning,
+        )
+        shap_values = explainer.shap_values(X_proc)
+
     shap_matrix = _extract_positive_class_shap(shap_values)
 
     if shap_matrix.ndim == 1:
@@ -100,25 +114,28 @@ def run_participant_shap_explanation(
         transformed_feature_names = [f"f_{i}" for i in range(shap_matrix.shape[1])]
 
     joined = reranked_one.copy().reset_index(drop=True)
+    score_col = "final_score" if "final_score" in joined.columns else "total_score"
+    joined = joined.sort_values(
+        by=[score_col, "total_score", "confidence_score", "priority"],
+        ascending=[False, False, False, False],
+        kind="stable",
+    ).reset_index(drop=True)
 
     per_action_records = []
 
     for i in range(len(joined)):
         row_series = pd.Series(shap_matrix[i], index=transformed_feature_names, dtype="float64")
 
-        pos = row_series.sort_values(ascending=False).head(5)
-        neg = row_series.sort_values(ascending=True).head(5)
+        top_pos_all = _top_factor_records(row_series, positive=True, top_n=5, clinical_only=False)
+        top_neg_all = _top_factor_records(row_series, positive=False, top_n=5, clinical_only=False)
 
-        top_pos_list = [
-            {"feature": str(idx), "shap_value": float(val)}
-            for idx, val in pos.items()
-            if float(val) > 0
-        ]
-        top_neg_list = [
-            {"feature": str(idx), "shap_value": float(val)}
-            for idx, val in neg.items()
-            if float(val) < 0
-        ]
+        top_pos_clinical = _top_factor_records(row_series, positive=True, top_n=5, clinical_only=True)
+        top_neg_clinical = _top_factor_records(row_series, positive=False, top_n=5, clinical_only=True)
+
+        shap_texts = build_shap_text_summaries(
+            top_positive_factors_clinical_only=top_pos_clinical,
+            top_negative_factors_clinical_only=top_neg_clinical,
+        )
 
         per_action_records.append({
             "ParticipantKey": participant_key,
@@ -130,23 +147,48 @@ def run_participant_shap_explanation(
             "lambda_u": float(joined.iloc[i].get("lambda_u", 0.0)),
             "ml_contrib": float(joined.iloc[i].get("ml_contrib", 0.0)),
             "rerank_status": joined.iloc[i].get("rerank_status"),
-            "top_positive_factors": top_pos_list,
-            "top_negative_factors": top_neg_list,
+            "top_positive_factors": top_pos_all,
+            "top_negative_factors": top_neg_all,
+            "top_positive_factors_clinical_only": top_pos_clinical,
+            "top_negative_factors_clinical_only": top_neg_clinical,
+            "clinician_ml_xai_summary": shap_texts["clinician_ml_xai_summary"],
+            "patient_ml_xai_summary": shap_texts["patient_ml_xai_summary"],
         })
 
-    global_mean_abs = np.abs(shap_matrix).mean(axis=0)
-    global_importance_df = pd.DataFrame({
-        "feature": transformed_feature_names,
-        "mean_abs_shap": global_mean_abs,
-    }).sort_values("mean_abs_shap", ascending=False, kind="stable")
+    global_importance_df = _build_global_importance_df(
+        shap_matrix=shap_matrix,
+        transformed_feature_names=transformed_feature_names,
+        clinical_only=False,
+    )
+
+    global_importance_clinical_df = _build_global_importance_df(
+        shap_matrix=shap_matrix,
+        transformed_feature_names=transformed_feature_names,
+        clinical_only=True,
+    )
 
     representative_cols = [
         c for c in ["action_code", "bundle_family", "total_score", "final_score", "ml_score", "lambda_u", "ml_contrib"]
         if c in joined.columns
     ]
-    candidate_summary = joined[representative_cols].copy().to_dict(orient="records")
+    candidate_summary = (
+        joined[representative_cols]
+        .copy()
+        .sort_values(
+            by=[c for c in ["final_score", "total_score"] if c in representative_cols],
+            ascending=False,
+            kind="stable",
+        )
+        .to_dict(orient="records")
+    )
 
     feature_snapshot = feature_df[["ParticipantKey"] + raw_feature_snapshot_cols].head(1).to_dict(orient="records")
+
+    per_action_records = sorted(
+        per_action_records,
+        key=lambda x: (float(x.get("final_score", 0.0)), float(x.get("total_score", 0.0))),
+        reverse=True,
+    )
 
     return {
         "participant_key": participant_key,
@@ -156,6 +198,7 @@ def run_participant_shap_explanation(
         "candidate_summary": candidate_summary,
         "feature_snapshot": feature_snapshot,
         "global_feature_importance": global_importance_df.to_dict(orient="records"),
+        "global_feature_importance_clinical_only": global_importance_clinical_df.to_dict(orient="records"),
         "per_action_explanations": per_action_records,
     }
 
@@ -167,20 +210,37 @@ def save_participant_shap_outputs(result: dict, output_dir: Path) -> dict:
     json_path = output_dir / f"{participant_key}_shap_report.json"
     csv_path = output_dir / f"{participant_key}_shap_per_action.csv"
     global_csv_path = output_dir / f"{participant_key}_shap_global_importance.csv"
+    global_clinical_csv_path = output_dir / f"{participant_key}_shap_global_importance_clinical_only.csv"
 
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(result, f, indent=2, ensure_ascii=False)
 
-    per_action_df = pd.DataFrame(result["per_action_explanations"])
+    per_action_df = pd.DataFrame(result["per_action_explanations"]).sort_values(
+        by=["final_score", "total_score"],
+        ascending=[False, False],
+        kind="stable",
+    )
     per_action_df.to_csv(csv_path, index=False)
 
-    global_df = pd.DataFrame(result["global_feature_importance"])
+    global_df = pd.DataFrame(result["global_feature_importance"]).sort_values(
+        by="mean_abs_shap",
+        ascending=False,
+        kind="stable",
+    )
     global_df.to_csv(global_csv_path, index=False)
+
+    global_clinical_df = pd.DataFrame(result["global_feature_importance_clinical_only"]).sort_values(
+        by="mean_abs_shap",
+        ascending=False,
+        kind="stable",
+    )
+    global_clinical_df.to_csv(global_clinical_csv_path, index=False)
 
     return {
         "json_path": json_path,
         "csv_path": csv_path,
         "global_csv_path": global_csv_path,
+        "global_clinical_csv_path": global_clinical_csv_path,
     }
 
 
@@ -211,6 +271,55 @@ def _prepare_runtime_feature_input(
             out[col] = out[col].where(~pd.isna(out[col]), None)
 
     return out
+
+
+def _top_factor_records(
+    row_series: pd.Series,
+    positive: bool,
+    top_n: int,
+    clinical_only: bool,
+) -> list[dict]:
+    series = row_series.copy()
+
+    if clinical_only:
+        keep_index = [idx for idx in series.index if is_clinical_only_feature(idx)]
+        series = series.loc[keep_index]
+
+    if positive:
+        ranked = series.sort_values(ascending=False).head(top_n)
+        ranked = ranked[ranked > 0]
+    else:
+        ranked = series.sort_values(ascending=True).head(top_n)
+        ranked = ranked[ranked < 0]
+
+    return [
+        {
+            "feature": str(idx),
+            "feature_label": humanize_feature_name(idx),
+            "feature_group": feature_group(idx),
+            "shap_value": float(val),
+        }
+        for idx, val in ranked.items()
+    ]
+
+
+def _build_global_importance_df(
+    shap_matrix: np.ndarray,
+    transformed_feature_names: list[str],
+    clinical_only: bool,
+) -> pd.DataFrame:
+    df = pd.DataFrame({
+        "feature": transformed_feature_names,
+        "mean_abs_shap": np.abs(shap_matrix).mean(axis=0),
+    })
+
+    if clinical_only:
+        df = df[df["feature"].map(is_clinical_only_feature)].copy()
+
+    df["feature_label"] = df["feature"].map(humanize_feature_name)
+    df["feature_group"] = df["feature"].map(feature_group)
+
+    return df.sort_values("mean_abs_shap", ascending=False, kind="stable").reset_index(drop=True)
 
 
 def _build_tree_explainer(model):

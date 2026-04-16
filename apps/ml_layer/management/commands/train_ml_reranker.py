@@ -23,6 +23,12 @@ class Command(BaseCommand):
             default="apps/recs_csl/output/safety_context.jsonl",
         )
         parser.add_argument(
+            "--feature-profile",
+            type=str,
+            default="default",
+            choices=["default", "experiment_c"],
+        )
+        parser.add_argument(
             "--ranked",
             type=str,
             default="apps/ranking_layer/output/ranked_recommendations.jsonl",
@@ -61,7 +67,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--max-ml-contrib",
             type=float,
-            default=20.0,
+            default=0.5,
         )
         parser.add_argument(
             "--seed",
@@ -119,6 +125,7 @@ class Command(BaseCommand):
             train_df=split.train_df,
             val_df=split.val_df,
             target_col="label",
+            feature_profile=options["feature_profile"],
         )
 
         self.stdout.write("Training LightGBM model...")
@@ -172,6 +179,7 @@ class Command(BaseCommand):
             "calibrator_path": str(calibrator_path),
             "max_ml_contrib": float(options["max_ml_contrib"]),
             "training": {
+            	"feature_profile": options["feature_profile"],
                 "top_k_positive": int(options["top_k_positive"]),
                 "seed": int(options["seed"]),
                 "train_rows": int(len(split.train_df)),
