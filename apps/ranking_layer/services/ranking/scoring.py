@@ -3,8 +3,15 @@ import pandas as pd
 from .config import (
     SEVERITY_SCORE_MAP,
     EVIDENCE_BONUS_PER_PASSED,
+    EVIDENCE_BONUS_CAP,
     CONTRAINDICATION_UNKNOWN_PENALTY,
-    MISSING_DATA_PENALTY,
+    CONTRAINDICATION_PRESENT_PENALTY,
+    MISSING_DATA_PENALTY_MINIMAL_TIER,
+    MISSING_DATA_PENALTY_LOW_COMPLETENESS,
+    MISSING_DATA_PENALTY_COLD_START,
+    VERY_LOW_COMPLETENESS_THRESHOLD,
+    LOW_COMPLETENESS_THRESHOLD,
+    VERY_LOW_COMPLETENESS_EXTRA_PENALTY,
 )
 
 
@@ -81,6 +88,14 @@ def compute_domain_alignment(row) -> int:
 
     if {"monitoring", "followup"} & tags_set and row.get("ceiling_Monitoring") in ["high", "medium", "moderate"]:
         score += 4
+    if {"lipids", "cholesterol"} & tags_set and row.get("ceiling_Lipids") in ["high", "medium", "moderate"]:
+        score += 5
+
+    if {"alcohol"} & tags_set and row.get("ceiling_Alcohol") in ["high", "medium", "moderate"]:
+        score += 4
+
+    if {"cardiometabolic", "multimorbidity", "bundle"} & tags_set and bool(row.get("Comorbidity", False)):
+        score += 4
 
     return score
 
@@ -89,16 +104,20 @@ def compute_missing_penalty(row) -> int:
     penalty = 0
 
     if row.get("feature_tier") == "minimal":
-        penalty += MISSING_DATA_PENALTY
+        penalty += MISSING_DATA_PENALTY_MINIMAL_TIER
 
-    if float(row.get("data_completeness_score", 1.0)) < 0.75:
-        penalty += MISSING_DATA_PENALTY
+    completeness = float(row.get("data_completeness_score", 1.0))
+
+    if completeness < LOW_COMPLETENESS_THRESHOLD:
+        penalty += MISSING_DATA_PENALTY_LOW_COMPLETENESS
+
+    if completeness < VERY_LOW_COMPLETENESS_THRESHOLD:
+        penalty += VERY_LOW_COMPLETENESS_EXTRA_PENALTY
 
     if row.get("cold_start_flag", False):
-        penalty += 5
+        penalty += MISSING_DATA_PENALTY_COLD_START
 
     return penalty
-
 
 def score_candidates(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
@@ -109,20 +128,33 @@ def score_candidates(df: pd.DataFrame) -> pd.DataFrame:
     out["priority_num"] = pd.to_numeric(out["priority"], errors="coerce").fillna(0.0)
     out["base_action_score"] = out["base_severity_score"] + out["priority_num"].clip(lower=0, upper=500) / 10.0
 
-    out["evidence_strength"] = out["evidence"].apply(count_passed_evidence).astype(float) * EVIDENCE_BONUS_PER_PASSED
+    passed_counts = out["evidence"].apply(count_passed_evidence).astype(float)
+    out["evidence_strength"] = (passed_counts * EVIDENCE_BONUS_PER_PASSED).clip(upper=EVIDENCE_BONUS_CAP)
     out["domain_alignment"] = out.apply(compute_domain_alignment, axis=1).astype(float)
     out["missing_penalty"] = out.apply(compute_missing_penalty, axis=1).astype(float)
 
+    unknown_penalty = pd.Series(0.0, index=out.index)
+    present_penalty = pd.Series(0.0, index=out.index)
+
     if "contraindications_unknown" in out.columns:
-        out["contraindication_penalty"] = (
+        unknown_penalty = (
             out["contraindications_unknown"]
             .fillna(False)
             .astype(bool)
             .map({True: CONTRAINDICATION_UNKNOWN_PENALTY, False: 0})
             .astype(float)
         )
-    else:
-        out["contraindication_penalty"] = 0.0
+
+    if "contraindicated" in out.columns:
+        present_penalty = (
+            out["contraindicated"]
+            .fillna(False)
+            .astype(bool)
+            .map({True: CONTRAINDICATION_PRESENT_PENALTY, False: 0})
+            .astype(float)
+        )
+
+    out["contraindication_penalty"] = unknown_penalty + present_penalty
 
     out["total_score"] = (
         out["base_action_score"]
@@ -130,6 +162,25 @@ def score_candidates(df: pd.DataFrame) -> pd.DataFrame:
         + out["domain_alignment"]
         - out["missing_penalty"]
         - out["contraindication_penalty"]
+    )
+    
+    out["positive_score_components"] = (
+        out["base_action_score"] + out["evidence_strength"] + out["domain_alignment"]
+    )
+
+    out["negative_score_components"] = (
+        out["missing_penalty"] + out["contraindication_penalty"]
+    )
+    
+    out["ranking_rationale_short"] = (
+        "severity+priority="
+        + out["base_action_score"].round(1).astype(str)
+        + "; evidence="
+        + out["evidence_strength"].round(1).astype(str)
+        + "; alignment="
+        + out["domain_alignment"].round(1).astype(str)
+        + "; penalties="
+        + out["negative_score_components"].round(1).astype(str)
     )
 
     return out

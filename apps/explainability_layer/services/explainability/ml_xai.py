@@ -93,6 +93,40 @@ FEATURE_LABEL_MAP = {
     "cat__bundle_family_Weight": "Weight bundle family",
     "cat__bundle_family_Smoking": "Smoking bundle family",
     "cat__bundle_family_Lipids": "Lipids bundle family",
+    "cat__severity_high": "higher-priority recommendation context",
+    "cat__severity_moderate": "moderate-priority recommendation context",
+    "cat__severity_low": "lower-priority recommendation context",
+    "num__is_monitoring_bundle": "monitoring-related need",
+    "num__is_diet_bundle": "diet-related need",
+    "num__is_movement_bundle": "physical-activity-related need",
+    "num__is_weight_bundle": "weight-related need",
+    "num__is_smoking_bundle": "smoking-related need",
+    "cat__action_type_inform": "supporting informational context",
+    "cat__action_type_recommend": "direct recommendation context",
+    "cat__action_type_escalate": "escalation context",
+    "num__followup_horizon_days": "recommended follow-up interval",
+    "num__persistence_risk_proxy": "persistence of elevated risk",
+    "num__repeat_measurement_available": "repeat measurements available",
+    "num__longitudinal_ready_flag": "longitudinal data readiness",
+    "num__short_followup_flag": "short follow-up need",
+    "num__high_persistence_risk_flag": "higher persistence risk",
+    "num__longitudinal_ready_x_monitoring_bundle": "monitoring supported by longitudinal data",
+    "num__followup_horizon_x_monitoring_bundle": "monitoring linked to follow-up interval",
+    "cat__followup_urgency_urgent": "urgent follow-up context",
+    "cat__followup_urgency_soon": "near-term follow-up context",
+    "cat__followup_urgency_monitor": "monitoring follow-up context",
+    "cat__followup_urgency_routine": "routine follow-up context",
+    "cat__monitoring_need_level_very_high": "very high monitoring need",
+    "cat__monitoring_need_level_high": "high monitoring need",
+    "cat__monitoring_need_level_moderate": "moderate monitoring need",
+    "cat__monitoring_need_level_low": "low monitoring need",
+    "cat__temporal_risk_tier_acute": "acute temporal risk",
+    "cat__temporal_risk_tier_high": "high temporal risk",
+    "cat__temporal_risk_tier_elevated": "elevated temporal risk",
+    "cat__temporal_risk_tier_stable": "stable temporal risk",
+    "cat__temporal_data_quality_good": "good temporal data quality",
+    "cat__temporal_data_quality_usable": "usable temporal data quality",
+    "cat__temporal_data_quality_limited": "limited temporal data quality",
 }
 
 FEATURE_GROUP_MAP = {
@@ -142,6 +176,19 @@ FEATURE_GROUP_MAP = {
     "Hypertension": "clinical",
     "Diabetes": "clinical",
     "Prediabetes": "clinical",
+    "action_code": "candidate_context",
+    "followup_horizon_days": "temporal",
+    "persistence_risk_proxy": "temporal",
+    "repeat_measurement_available": "temporal",
+    "longitudinal_ready_flag": "temporal",
+    "short_followup_flag": "temporal",
+    "high_persistence_risk_flag": "temporal",
+    "longitudinal_ready_x_monitoring_bundle": "temporal",
+    "followup_horizon_x_monitoring_bundle": "temporal",
+    "followup_urgency": "temporal",
+    "monitoring_need_level": "temporal",
+    "temporal_risk_tier": "temporal",
+    "temporal_data_quality": "temporal",
 }
 
 
@@ -224,7 +271,7 @@ def build_bundle_ml_xai_payload(
             if float(val) < 0
         ]
 
-        preferred_groups = {"clinical", "lifestyle", "safety_context", "candidate_context"}
+        preferred_groups = {"clinical", "lifestyle", "safety_context", "candidate_context", "temporal"}
 
         clinical_positive = [
             item for item in top_positive
@@ -234,17 +281,29 @@ def build_bundle_ml_xai_payload(
             item for item in top_negative
             if item["feature_group"] in preferred_groups
         ][:5]
+        
+        clinical_positive = _deduplicate_factors(clinical_positive)
+        clinical_negative = _deduplicate_factors(clinical_negative)
+
+        clinical_positive = _drop_contradictory_priority_labels(clinical_positive)
+        clinical_negative = _drop_contradictory_priority_labels(clinical_negative)
 
         if not clinical_positive:
             clinical_positive = top_positive[:3]
 
         if not clinical_negative:
             clinical_negative = top_negative[:3]
+            
+        patient_positive = [item for item in clinical_positive if _is_patient_safe_factor(item)][:3]
+        patient_negative = [item for item in clinical_negative if _is_patient_safe_factor(item)][:3]
 
         clinician_summary, patient_summary = _build_xai_summaries(
             positive_factors=clinical_positive,
             negative_factors=clinical_negative,
+            patient_positive_factors=patient_positive,
+            patient_negative_factors=patient_negative,
         )
+
 
         return {
             "xai_status": "ok",
@@ -406,44 +465,165 @@ def _factor_dict(feature_name: str, shap_value: float) -> dict:
         "shap_value": float(shap_value),
     }
 
+def _clean_factor_label(label: str) -> str:
+    text = str(label or "").strip()
+    if not text:
+        return ""
+
+    replacements = {
+        "hba1c": "HbA1c",
+        "day-1": "Day-1",
+    }
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+
+    return text
+
+
+def _is_patient_safe_factor(item: dict) -> bool:
+    group = str(item.get("feature_group", ""))
+    label = str(item.get("feature_label", "")).lower()
+
+    blocked_substrings = [
+        "action code",
+        "confidence label",
+        "upstream confidence",
+        "recommendation context",
+        "supporting informational context",
+        "direct recommendation context",
+        "escalation context",
+        "data completeness score",
+        "rule-based total score",
+        "normalized rule score",
+        "base severity score",
+        "base action score",
+        "domain alignment score",
+        "evidence strength score",
+        "missing-data penalty",
+        "contraindication penalty",
+	"higher clinical priority",
+	"lower clinical priority",
+	"high candidate severity",
+	"low candidate severity",
+	"moderate candidate severity",
+    ]
+
+    if group == "meta_ranking":
+        return False
+
+    return not any(token in label for token in blocked_substrings)
+
+
+def _deduplicate_factors(items: list[dict]) -> list[dict]:
+    seen = set()
+    out = []
+
+    for item in items:
+        label = _clean_factor_label(item.get("feature_label", ""))
+        group = str(item.get("feature_group", ""))
+        key = (label.lower(), group)
+        if label and key not in seen:
+            seen.add(key)
+            item = item.copy()
+            item["feature_label"] = label
+            out.append(item)
+
+    return out
+
+
+def _drop_contradictory_priority_labels(items: list[dict]) -> list[dict]:
+    labels = {str(item.get("feature_label", "")).lower() for item in items}
+
+    high_tokens = {
+        "higher clinical priority",
+        "high candidate severity",
+        "higher-priority recommendation context",
+    }
+    low_tokens = {
+        "lower clinical priority",
+        "low candidate severity",
+        "lower-priority recommendation context",
+    }
+
+    has_high = any(label in high_tokens for label in labels)
+    has_low = any(label in low_tokens for label in labels)
+
+    if has_high and has_low:
+        items = [
+            item for item in items
+            if str(item.get("feature_label", "")).lower() not in (high_tokens | low_tokens)
+        ]
+
+    return items
+
+
+def _join_labels(labels: list[str]) -> str:
+    labels = [str(x).strip() for x in labels if str(x).strip()]
+    if not labels:
+        return "none"
+    if len(labels) == 1:
+        return labels[0]
+    if len(labels) == 2:
+        return f"{labels[0]} and {labels[1]}"
+    return f"{', '.join(labels[:-1])}, and {labels[-1]}"
 
 def _build_xai_summaries(
     positive_factors: list[dict],
     negative_factors: list[dict],
+    patient_positive_factors: list[dict] | None = None,
+    patient_negative_factors: list[dict] | None = None,
 ) -> tuple[str, str]:
+    positive_factors = _deduplicate_factors(positive_factors)
+    negative_factors = _deduplicate_factors(negative_factors)
+
+    positive_factors = _drop_contradictory_priority_labels(positive_factors)
+    negative_factors = _drop_contradictory_priority_labels(negative_factors)
+
     pos_labels = [x.get("feature_label") for x in positive_factors[:3] if x.get("feature_label")]
     neg_labels = [x.get("feature_label") for x in negative_factors[:3] if x.get("feature_label")]
 
+    patient_positive_factors = patient_positive_factors or []
+    patient_negative_factors = patient_negative_factors or []
+
+    patient_pos_labels = [
+        x.get("feature_label") for x in patient_positive_factors[:2] if x.get("feature_label")
+    ]
+    patient_neg_labels = [
+        x.get("feature_label") for x in patient_negative_factors[:2] if x.get("feature_label")
+    ]
+
     if pos_labels and neg_labels:
         clinician = (
-            f"Features increasing relative ML emphasis included: {', '.join(pos_labels)}. "
-            f"Features decreasing relative ML emphasis included: {', '.join(neg_labels)}."
+            f"Factors increasing relative ML emphasis included {_join_labels(pos_labels)}. "
+            f"Factors decreasing relative ML emphasis included {_join_labels(neg_labels)}."
         )
-        patient = (
-            f"The model placed more emphasis on this recommendation because of factors such as {', '.join(pos_labels[:2]).lower()}. "
-            f"It placed less additional emphasis because of factors such as {', '.join(neg_labels[:2]).lower()}."
-        )
-        return clinician, patient
+    elif pos_labels:
+        clinician = f"Factors increasing relative ML emphasis included {_join_labels(pos_labels)}."
+    elif neg_labels:
+        clinician = f"Factors decreasing relative ML emphasis included {_join_labels(neg_labels)}."
+    else:
+        clinician = "Local ML explanation was computed, but no especially strong factor pattern was identified."
 
-    if pos_labels:
-        clinician = f"Features increasing relative ML emphasis included: {', '.join(pos_labels)}."
+    if patient_pos_labels and patient_neg_labels:
         patient = (
-            f"The model placed more emphasis on this recommendation because of factors such as "
-            f"{', '.join(pos_labels[:2]).lower()}."
+            f"The model gave relatively more weight to this recommendation because of factors such as {_join_labels(patient_pos_labels)}. "
+            f"Factors such as {_join_labels(patient_neg_labels)} reduced that additional emphasis."
         )
-        return clinician, patient
-
-    if neg_labels:
-        clinician = f"Features decreasing relative ML emphasis included: {', '.join(neg_labels)}."
+    elif patient_pos_labels:
         patient = (
-            f"The model placed less additional emphasis because of factors such as {', '.join(neg_labels[:2]).lower()}."
+            f"The model gave relatively more weight to this recommendation because of factors such as "
+            f"{_join_labels(patient_pos_labels)}."
         )
-        return clinician, patient
+    elif patient_neg_labels:
+        patient = (
+            f"Factors such as {_join_labels(patient_neg_labels)} reduced the model's additional emphasis."
+        )
+    else:
+        patient = (
+            "The model did not identify especially strong additional health or lifestyle factors for this recommendation."
+        )
 
-    return (
-        "Local ML explanation was computed, but no strong feature-attribution pattern was identified.",
-        "The model did not identify especially strong additional factors for this recommendation.",
-    )
+    return clinician, patient
 
 
 def _load_manifest() -> dict:

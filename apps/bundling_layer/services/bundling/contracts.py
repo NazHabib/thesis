@@ -1,3 +1,6 @@
+from apps.common.clinical_safety.severity import is_valid_severity
+
+
 REQUIRED_SAFETY_CONTEXT_COLUMNS = [
     "ParticipantKey",
     "triage_mode",
@@ -34,3 +37,13 @@ def validate_ranked_columns(df):
     missing = [c for c in REQUIRED_RANKED_COLUMNS if c not in df.columns]
     if missing:
         raise ValueError(f"Missing required ranked_recommendations columns: {missing}")
+
+    invalid = []
+    if "severity" in df.columns:
+        invalid = sorted({
+            str(v) for v in df["severity"].dropna().astype(str).unique()
+            if not is_valid_severity(v)
+        })
+
+    if invalid:
+        raise ValueError(f"Invalid severity values in ranked_recommendations: {invalid}")

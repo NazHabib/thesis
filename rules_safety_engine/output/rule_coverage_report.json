@@ -1,0 +1,240 @@
+{
+  "n_rules_total": 45,
+  "n_groups_total": 13,
+  "n_action_codes_total": 45,
+  "n_groups_underrepresented": 4,
+  "underrepresented_groups": [
+    {
+      "group": "HTN_ACUTE",
+      "n_rules": 2
+    },
+    {
+      "group": "SMOKING",
+      "n_rules": 2
+    },
+    {
+      "group": "DIABETES_ACUTE",
+      "n_rules": 1
+    },
+    {
+      "group": "ALCOHOL",
+      "n_rules": 1
+    }
+  ],
+  "top_10_rule_groups_by_rule_count": [
+    {
+      "group": "DIET",
+      "n_rules": 7,
+      "n_enabled": 7,
+      "mean_priority": 551.4285714285714,
+      "n_escalate": 0,
+      "n_recommend": 5,
+      "n_inform": 2,
+      "n_critical": 0,
+      "n_high": 2
+    },
+    {
+      "group": "HTN_MANAGEMENT",
+      "n_rules": 6,
+      "n_enabled": 6,
+      "mean_priority": 476.6666666666667,
+      "n_escalate": 0,
+      "n_recommend": 5,
+      "n_inform": 1,
+      "n_critical": 0,
+      "n_high": 2
+    },
+    {
+      "group": "DIABETES_MANAGEMENT",
+      "n_rules": 5,
+      "n_enabled": 5,
+      "mean_priority": 542.0,
+      "n_escalate": 0,
+      "n_recommend": 4,
+      "n_inform": 1,
+      "n_critical": 0,
+      "n_high": 1
+    },
+    {
+      "group": "DATA_QUALITY",
+      "n_rules": 5,
+      "n_enabled": 5,
+      "mean_priority": 374.0,
+      "n_escalate": 0,
+      "n_recommend": 0,
+      "n_inform": 5,
+      "n_critical": 0,
+      "n_high": 0
+    },
+    {
+      "group": "OBESITY",
+      "n_rules": 4,
+      "n_enabled": 4,
+      "mean_priority": 532.5,
+      "n_escalate": 1,
+      "n_recommend": 2,
+      "n_inform": 1,
+      "n_critical": 0,
+      "n_high": 1
+    },
+    {
+      "group": "CARDIOMETABOLIC_COMORBIDITY",
+      "n_rules": 3,
+      "n_enabled": 3,
+      "mean_priority": 733.3333333333334,
+      "n_escalate": 1,
+      "n_recommend": 2,
+      "n_inform": 0,
+      "n_critical": 0,
+      "n_high": 2
+    },
+    {
+      "group": "SAFETY",
+      "n_rules": 3,
+      "n_enabled": 3,
+      "mean_priority": 696.6666666666666,
+      "n_escalate": 2,
+      "n_recommend": 0,
+      "n_inform": 1,
+      "n_critical": 1,
+      "n_high": 1
+    },
+    {
+      "group": "LIPIDS",
+      "n_rules": 3,
+      "n_enabled": 3,
+      "mean_priority": 440.0,
+      "n_escalate": 0,
+      "n_recommend": 2,
+      "n_inform": 1,
+      "n_critical": 0,
+      "n_high": 0
+    },
+    {
+      "group": "PHYSICAL_ACTIVITY",
+      "n_rules": 3,
+      "n_enabled": 3,
+      "mean_priority": 393.3333333333333,
+      "n_escalate": 0,
+      "n_recommend": 2,
+      "n_inform": 1,
+      "n_critical": 0,
+      "n_high": 0
+    },
+    {
+      "group": "HTN_ACUTE",
+      "n_rules": 2,
+      "n_enabled": 2,
+      "mean_priority": 985.0,
+      "n_escalate": 2,
+      "n_recommend": 0,
+      "n_inform": 0,
+      "n_critical": 1,
+      "n_high": 1
+    }
+  ],
+  "top_10_high_frequency_rules": [
+    {
+      "rule_id": "SAFETY-0001",
+      "group": "SAFETY",
+      "action_code": "INFORM_SYSTEM_SCOPE",
+      "severity": "low",
+      "n_fired": 22282,
+      "pct_of_participants": 1.0
+    },
+    {
+      "rule_id": "DIET-0605",
+      "group": "DIET",
+      "action_code": "RECOMMEND_INCREASE_DIETARY_FIBER_DENSITY",
+      "severity": "moderate",
+      "n_fired": 12572,
+      "pct_of_participants": 0.5642222421685665
+    },
+    {
+      "rule_id": "DIET-0607",
+      "group": "DIET",
+      "action_code": "RECOMMEND_DASH_OR_MEDITERRANEAN_PATTERN",
+      "severity": "moderate",
+      "n_fired": 12373,
+      "pct_of_participants": 0.5552912664931334
+    },
+    {
+      "rule_id": "DIET-0602",
+      "group": "DIET",
+      "action_code": "RECOMMEND_SODIUM_REDUCTION_WHO_2000_DAY1",
+      "severity": "moderate",
+      "n_fired": 11875,
+      "pct_of_participants": 0.5329413876671752
+    },
+    {
+      "rule_id": "DIET-0604",
+      "group": "DIET",
+      "action_code": "INFORM_LOW_POTASSIUM_SODIUM_RATIO_CAUTIOUS",
+      "severity": "low",
+      "n_fired": 11212,
+      "pct_of_participants": 0.5031864285073153
+    },
+    {
+      "rule_id": "DM-0405",
+      "group": "DIABETES_MANAGEMENT",
+      "action_code": "INFORM_NORMAL_GLYCEMIA_PREVENTION",
+      "severity": "low",
+      "n_fired": 9843,
+      "pct_of_participants": 0.4417467013733058
+    },
+    {
+      "rule_id": "OB-0504",
+      "group": "OBESITY",
+      "action_code": "INFORM_CENTRAL_OBESITY_RISK",
+      "severity": "low",
+      "n_fired": 9732,
+      "pct_of_participants": 0.4367651018759537
+    },
+    {
+      "rule_id": "HTN-0306",
+      "group": "HTN_MANAGEMENT",
+      "action_code": "RECOMMEND_BP_SELF_MONITORING",
+      "severity": "low",
+      "n_fired": 9469,
+      "pct_of_participants": 0.4249618526164617
+    },
+    {
+      "rule_id": "DIET-0606",
+      "group": "DIET",
+      "action_code": "RECOMMEND_REDUCE_SATURATED_FAT",
+      "severity": "moderate",
+      "n_fired": 9461,
+      "pct_of_participants": 0.4246028184184544
+    },
+    {
+      "rule_id": "PA-0701",
+      "group": "PHYSICAL_ACTIVITY",
+      "action_code": "RECOMMEND_MVPA_START_GRADUAL",
+      "severity": "moderate",
+      "n_fired": 7821,
+      "pct_of_participants": 0.3510008078269455
+    }
+  ],
+  "top_10_low_frequency_active_rules": [
+    {
+      "rule_id": "DATA-0103",
+      "group": "DATA_QUALITY",
+      "action_code": "INFORM_BP_METHOD_INFERRED",
+      "severity": "low",
+      "n_fired": 0
+    },
+    {
+      "rule_id": "ACUTE-0201",
+      "group": "SAFETY",
+      "action_code": "ESCALATE_EMERGENCY_HTN_DM",
+      "severity": "critical",
+      "n_fired": 6
+    }
+  ],
+  "coverage_observations": [
+    "Rule coverage is broad across safety, hypertension, diabetes, obesity, diet, activity, smoking, alcohol, lipids, and multimorbidity.",
+    "The current rulebase is strongest in diet, blood pressure, glycaemic, and lifestyle-support recommendations.",
+    "Rare escalation rules appear appropriately sparse, reflecting low expected prevalence rather than missing coverage.",
+    "The main remaining gap is temporal/longitudinal rule logic rather than basic domain-family absence."
+  ]
+}

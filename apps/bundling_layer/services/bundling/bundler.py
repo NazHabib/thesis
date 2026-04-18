@@ -7,11 +7,13 @@ from .helpers import (
     build_bundle_title,
     build_explanation,
     build_rationale,
+    build_bundle_followup_window_label,
+    build_bundle_followup_timing_text,
     conservative_confidence,
     merge_evidence_lists,
     unique_flatten,
 )
-
+from apps.common.clinical_safety.scheduling import derive_followup_window_order
 
 def aggregate_bundle(
     participant_key: str,
@@ -41,6 +43,36 @@ def aggregate_bundle(
         pd.to_numeric(group["confidence_score"], errors="coerce").fillna(0).mean()
     )
 
+    followup_urgency = group["followup_urgency"].iloc[0] if "followup_urgency" in group.columns else None
+    followup_horizon_days = (
+        pd.to_numeric(group["followup_horizon_days"], errors="coerce").dropna().min()
+        if "followup_horizon_days" in group.columns
+        else None
+    )
+    monitoring_need_level = group["monitoring_need_level"].iloc[0] if "monitoring_need_level" in group.columns else None
+    temporal_risk_tier = group["temporal_risk_tier"].iloc[0] if "temporal_risk_tier" in group.columns else None
+    persistence_risk_proxy = (
+        pd.to_numeric(group["persistence_risk_proxy"], errors="coerce").dropna().max()
+        if "persistence_risk_proxy" in group.columns
+        else None
+    )
+    temporal_data_quality = group["temporal_data_quality"].iloc[0] if "temporal_data_quality" in group.columns else None
+    longitudinal_ready_flag = (
+        int(pd.to_numeric(group["longitudinal_ready_flag"], errors="coerce").fillna(0).max())
+        if "longitudinal_ready_flag" in group.columns
+        else 0
+    )
+    
+    followup_window_label = build_bundle_followup_window_label(
+        followup_horizon_days=followup_horizon_days,
+        followup_urgency=followup_urgency,
+    )
+    followup_window_order = derive_followup_window_order(followup_window_label)
+    followup_timing_text = build_bundle_followup_timing_text(
+        followup_window_label=followup_window_label,
+        monitoring_need_level=monitoring_need_level,
+        bundle_family=final_family,
+    )
     return pd.Series(
         {
             "ParticipantKey": participant_key,
@@ -59,6 +91,16 @@ def aggregate_bundle(
             "confidence_label": confidence_label,
             "rationale": build_rationale(final_family, tags, triage_mode),
             "explanation": build_explanation(final_family, action_codes, confidence_label, tags),
+            "followup_urgency": followup_urgency,
+            "followup_horizon_days": followup_horizon_days,
+            "monitoring_need_level": monitoring_need_level,
+            "temporal_risk_tier": temporal_risk_tier,
+            "persistence_risk_proxy": persistence_risk_proxy,
+            "temporal_data_quality": temporal_data_quality,
+            "longitudinal_ready_flag": longitudinal_ready_flag,
+            "followup_window_label": followup_window_label,
+            "followup_window_order": followup_window_order,
+            "followup_timing_text": followup_timing_text,
         }
     )
 
@@ -79,14 +121,14 @@ def apply_triage_policy(df: pd.DataFrame) -> pd.DataFrame:
 
         if not escalates.empty:
             keep = escalates.sort_values(
-                ["bundle_score", "confidence_score", "priority", "bundle_title"],
-                ascending=[False, False, True, True],
+                ["bundle_score", "confidence_score", "followup_window_order", "followup_horizon_days", "priority", "bundle_title"],
+                ascending=[False, False, True, True, True, True],
                 kind="stable",
             ).head(1)
         else:
             keep = grp.sort_values(
-                ["bundle_score", "confidence_score", "priority", "bundle_title"],
-                ascending=[False, False, True, True],
+                ["bundle_score", "confidence_score", "followup_window_order", "followup_horizon_days", "priority", "bundle_title"],
+                ascending=[False, False, True, True, True, True],
                 kind="stable",
             ).head(1)
 
@@ -103,8 +145,8 @@ def apply_triage_policy(df: pd.DataFrame) -> pd.DataFrame:
 
 def select_top_bundles(df: pd.DataFrame) -> pd.DataFrame:
     out = df.sort_values(
-        ["ParticipantKey", "bundle_score", "confidence_score", "priority", "bundle_title"],
-        ascending=[True, False, False, True, True],
+        ["ParticipantKey", "bundle_score", "confidence_score", "followup_window_order", "followup_horizon_days", "priority", "bundle_title"],
+        ascending=[True, False, False, True, True, True, True],
         kind="stable",
     ).copy()
 
@@ -148,6 +190,16 @@ def build_bundles(merged_df: pd.DataFrame) -> pd.DataFrame:
                 "confidence_label",
                 "rationale",
                 "explanation",
+                "followup_urgency",
+                "followup_horizon_days",
+                "followup_window_label",
+                "followup_window_order",
+                "followup_timing_text",
+                "monitoring_need_level",
+                "temporal_risk_tier",
+                "persistence_risk_proxy",
+                "temporal_data_quality",
+                "longitudinal_ready_flag",
             ]
         )
     )

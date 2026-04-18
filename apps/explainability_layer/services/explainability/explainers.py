@@ -4,6 +4,7 @@ from .confidence import build_confidence_messages
 from .templates import build_patient_why_text, build_clinician_why_text
 from .traceability import build_traceability_payload
 from .ml_xai import build_bundle_ml_xai_payload, build_ml_xai_texts
+from apps.common.clinical_safety.scheduling import build_followup_timing_note
 
 
 def explain_bundle(
@@ -20,6 +21,7 @@ def explain_bundle(
 
     ml_rerank_note = _build_ml_rerank_note(row)
     safety_context_note = _build_safety_context_note(row)
+    followup_timing_note = _build_followup_timing_note(row)
 
     xai_payload = _build_bundle_xai_with_fallback(
         bundle_row=row,
@@ -40,6 +42,7 @@ def explain_bundle(
         "ml_xai_payload": xai_payload,
         "clinician_ml_xai_explanation": xai_texts["clinician_ml_xai_explanation"],
         "patient_ml_xai_explanation": xai_texts["patient_ml_xai_explanation"],
+        "followup_timing_note": followup_timing_note,
     }
 
 
@@ -150,3 +153,10 @@ def _build_safety_context_note(row) -> str:
     if bool(row.get("triage_mode", False)):
         return "Urgent safety context detected; escalation-focused communication was prioritised."
     return "No triage override detected; standard safety-constrained recommendation communication applied."
+    
+def _build_followup_timing_note(row) -> str:
+    return build_followup_timing_note(
+        followup_window_label=row.get("followup_window_label"),
+        temporal_risk_tier=row.get("temporal_risk_tier"),
+        monitoring_need_level=row.get("monitoring_need_level"),
+    )

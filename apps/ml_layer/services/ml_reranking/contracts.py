@@ -1,5 +1,7 @@
 import pandas as pd
 
+from apps.common.clinical_safety.severity import is_valid_severity
+
 
 REQUIRED_SAFETY_CONTEXT_COLUMNS = [
     "ParticipantKey",
@@ -33,8 +35,6 @@ REQUIRED_RANKED_COLUMNS = [
     "confidence_label",
 ]
 
-# Optional participant-level clinical features for ML use.
-# The reranker can run without all of them, but more context improves usefulness.
 OPTIONAL_PARTICIPANT_FEATURE_COLUMNS = [
     "ParticipantKey",
     "RIDAGEYR",
@@ -97,6 +97,16 @@ def validate_ranked_columns(df: pd.DataFrame) -> None:
     missing = [c for c in REQUIRED_RANKED_COLUMNS if c not in df.columns]
     if missing:
         raise ValueError(f"Missing required ranked_recommendations columns: {missing}")
+
+    invalid = []
+    if "severity" in df.columns:
+        invalid = sorted({
+            str(v) for v in df["severity"].dropna().astype(str).unique()
+            if not is_valid_severity(v)
+        })
+
+    if invalid:
+        raise ValueError(f"Invalid severity values in ranked_recommendations: {invalid}")
 
 
 def validate_participant_features_columns(df: pd.DataFrame) -> None:

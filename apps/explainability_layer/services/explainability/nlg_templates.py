@@ -7,26 +7,40 @@ def build_patient_facing_explanation(
     confidence_label: str,
     triage_mode: bool,
     triage_reason: str,
+    followup_timing_text: str | None = None,
 ) -> str:
     confidence_text = {
-        "high": "This recommendation is supported by strong available evidence.",
-        "medium": "This recommendation is supported by moderate available evidence.",
-        "low": "This recommendation should be interpreted more cautiously because the available support is limited.",
-    }.get(str(confidence_label).lower(), "This recommendation is based on the available information.")
+        "high": "Overall support for this recommendation is strong.",
+        "medium": "Overall support for this recommendation is moderate.",
+        "low": "Support for this recommendation is more limited, so it should be interpreted cautiously.",
+    }.get(
+        str(confidence_label).lower(),
+        "This recommendation is based on the available information."
+    )
+
+    parts: list[str] = []
 
     if triage_mode:
-        return (
-            f"{bundle_title} was prioritised under a higher-safety clinical context. "
-            f"{rationale} "
-            f"The system is operating in safety-first mode ({triage_reason}), so this recommendation should be interpreted with additional caution. "
-            f"{confidence_text}"
+        parts.append(
+            f"{bundle_title} was prioritised because a higher-risk safety context was detected."
+        )
+    else:
+        parts.append(f"{bundle_title} was prioritised based on the available clinical and lifestyle information.")
+
+    if rationale:
+        parts.append(str(rationale).strip())
+
+    parts.append(confidence_text)
+
+    if followup_timing_text:
+        parts.append(str(followup_timing_text).strip())
+
+    if triage_mode and triage_reason and str(triage_reason).lower() != "none":
+        parts.append(
+            f"This was generated in safety-first mode because of {str(triage_reason).replace('_', ' ')}."
         )
 
-    return (
-        f"{bundle_title} was selected to support safer self-management. "
-        f"{rationale} "
-        f"{confidence_text}"
-    )
+    return " ".join(parts)
 
 
 def build_clinician_facing_explanation(
@@ -35,36 +49,44 @@ def build_clinician_facing_explanation(
     confidence_label: str,
     bundle_score: float | int | None,
     source_rule_ids: list[str] | None,
+    followup_urgency: str | None = None,
+    followup_window_label: str | None = None,
     ml_rerank_note: str | None = None,
 ) -> str:
     rule_text = ", ".join(source_rule_ids or []) if source_rule_ids else "N/A"
     score_text = f"{float(bundle_score):.3f}" if bundle_score is not None else "N/A"
 
-    base = (
-        f"Bundle family: {bundle_family}. "
-        f"Aggregated action count: {action_count}. "
-        f"Confidence label: {confidence_label}. "
-        f"Bundle score: {score_text}. "
-        f"Primary rule provenance: {rule_text}."
-    )
+    parts = [
+        f"Bundle family: {bundle_family}.",
+        f"Aggregated action count: {action_count}.",
+        f"Confidence label: {confidence_label}.",
+        f"Bundle score: {score_text}.",
+        f"Primary rule provenance: {rule_text}.",
+    ]
+
+    if followup_urgency:
+        parts.append(f"Follow-up urgency: {followup_urgency}.")
+
+    if followup_window_label:
+        parts.append(f"Suggested follow-up window: {followup_window_label}.")
 
     if ml_rerank_note:
-        base = f"{base} {ml_rerank_note}"
+        parts.append(str(ml_rerank_note).strip())
 
-    return base
+    return " ".join(parts)
 
 
 def build_patient_confidence_explanation(confidence_label: str) -> str:
     label = str(confidence_label).lower()
 
     if label == "high":
-        return "The system has strong supporting evidence for this recommendation."
+        return "The system found strong support for this recommendation."
     if label == "medium":
-        return "The system has moderate supporting evidence for this recommendation."
+        return "The system found moderate support for this recommendation."
     if label == "low":
-        return "The system has limited supporting evidence for this recommendation, so it should be interpreted cautiously."
+        return "The system found limited support for this recommendation, so it should be interpreted cautiously."
 
-    return "The confidence in this recommendation is based on the available information."
+    return "Confidence is based on the available information."
 
 
 def build_clinician_confidence_explanation(
@@ -88,9 +110,9 @@ def build_clinician_confidence_explanation(
     if label == "high":
         return f"{tier_text}{cold_text}High confidence based on upstream rule strength, retained evidence, and available participant data."
     if label == "medium":
-        return f"{tier_text}{cold_text}Moderate confidence; recommendation is supported but subject to data limitations or weaker contextual support."
+        return f"{tier_text}{cold_text}Moderate confidence; recommendation is supported but still constrained by available context."
     if label == "low":
-        return f"{tier_text}{cold_text}Low confidence; recommendation should be interpreted cautiously due to informational uncertainty."
+        return f"{tier_text}{cold_text}Low confidence; recommendation should be interpreted cautiously because of informational uncertainty."
 
     return f"{tier_text}{cold_text}Confidence explanation based on the available context."
 
@@ -112,9 +134,7 @@ def build_ml_rerank_note(
 
     if status == "rules_only_fallback":
         if fallback_reason:
-            return (
-                f"Final ordering remained rules-only because the ML layer fell back ({fallback_reason})."
-            )
+            return f"Final ordering remained rules-only because the ML layer fell back ({fallback_reason})."
         return "Final ordering remained rules-only."
 
     strategy_text = ""

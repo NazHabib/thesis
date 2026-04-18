@@ -32,6 +32,16 @@ FINAL_EXPLAINED_COLUMNS = [
     "explanation",
     "triage_mode",
     "triage_reason",
+    "followup_urgency",
+    "followup_horizon_days",
+    "monitoring_need_level",
+    "temporal_risk_tier",
+    "persistence_risk_proxy",
+    "temporal_data_quality",
+    "longitudinal_ready_flag",
+    "followup_window_label",
+    "followup_window_order",
+    "followup_timing_text",
     "patient_facing_explanation",
     "clinician_facing_explanation",
     "patient_confidence_explanation",
@@ -56,7 +66,20 @@ def run_explainability_layer(
 
     merged_df = final_recommendations_df.merge(
         safety_context_df[
-            ["ParticipantKey", "feature_tier", "triage_mode", "triage_reason", "confidence_ceiling_global"]
+            [
+                "ParticipantKey",
+                "feature_tier",
+                "triage_mode",
+                "triage_reason",
+                "confidence_ceiling_global",
+                "followup_urgency",
+                "followup_horizon_days",
+                "monitoring_need_level",
+                "temporal_risk_tier",
+                "persistence_risk_proxy",
+                "temporal_data_quality",
+                "longitudinal_ready_flag",
+            ]
         ].drop_duplicates(subset=["ParticipantKey"]),
         on="ParticipantKey",
         how="left",
@@ -76,24 +99,24 @@ def run_explainability_layer(
         )
         base.update(explanation_payload)
 
-        # Override with stronger standardized NLG templates
         base["patient_facing_explanation"] = build_patient_facing_explanation(
             bundle_title=base.get("bundle_title", "This recommendation"),
             rationale=base.get("rationale", "It was identified as clinically appropriate."),
             confidence_label=base.get("confidence_label", "medium"),
             triage_mode=bool(base.get("triage_mode", False)),
             triage_reason=base.get("triage_reason", "none"),
+            followup_timing_text=base.get("followup_timing_text"),
         )
-
         base["clinician_facing_explanation"] = build_clinician_facing_explanation(
             bundle_family=base.get("bundle_family", "unknown"),
             action_count=len(base.get("action_codes", []) or []),
             confidence_label=base.get("confidence_label", "medium"),
             bundle_score=base.get("bundle_score"),
             source_rule_ids=base.get("source_rule_ids", []),
+            followup_urgency=base.get("followup_urgency"),
+            followup_window_label=base.get("followup_window_label"),
             ml_rerank_note=None,
         )
-
         base["patient_confidence_explanation"] = build_patient_confidence_explanation(
             confidence_label=base.get("confidence_label", "medium"),
         )
@@ -140,6 +163,14 @@ def run_explainability_layer(
             "medium": int((explained_df["confidence_label"] == "medium").sum()),
             "low": int((explained_df["confidence_label"] == "low").sum()),
         },
+        "followup_urgency_counts": {
+            str(k): int(v)
+            for k, v in explained_df["followup_urgency"].fillna("unknown").value_counts(dropna=False).to_dict().items()
+        } if "followup_urgency" in explained_df.columns else {},
+        "temporal_risk_tier_counts": {
+            str(k): int(v)
+            for k, v in explained_df["temporal_risk_tier"].fillna("unknown").value_counts(dropna=False).to_dict().items()
+        } if "temporal_risk_tier" in explained_df.columns else {},
         "bundle_family_counts": {
             str(k): int(v)
             for k, v in explained_df["bundle_family"].value_counts(dropna=False).to_dict().items()

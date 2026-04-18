@@ -1,5 +1,6 @@
 import pandas as pd
 
+from apps.common.clinical_safety.temporal import build_temporal_features
 from .contracts import validate_cfm_columns
 from .feature_tiers import build_feature_tiers
 from .safety_context import build_safety_context
@@ -29,11 +30,18 @@ SAFETY_CONTEXT_COLUMNS = [
     "ceiling_Lipids",
     "ceiling_Monitoring",
     "ceiling_IntegratedCardiometabolic",
+    "followup_urgency",
+    "followup_horizon_days",
+    "monitoring_need_level",
+    "temporal_risk_tier",
+    "persistence_risk_proxy",
+    "repeat_measurement_available",
+    "temporal_data_quality",
+    "longitudinal_ready_flag",
     "warnings",
     "notes_pt",
     "cold_start_version",
 ]
-
 GATED_CANDIDATE_COLUMNS = [
     "ParticipantKey",
     "action_code",
@@ -56,7 +64,8 @@ GATED_CANDIDATE_COLUMNS = [
 def run_cold_start_layer(cfm_df: pd.DataFrame, participants_df: pd.DataFrame):
     validate_cfm_columns(cfm_df)
 
-    tiered_df = build_feature_tiers(cfm_df)
+    temporal_df = build_temporal_features(cfm_df)
+    tiered_df = build_feature_tiers(temporal_df)
     safety_context_df = build_safety_context(tiered_df)
     candidates_df = explode_candidates(participants_df)
     gated_candidates_df = apply_cold_start_gating(candidates_df, safety_context_df)

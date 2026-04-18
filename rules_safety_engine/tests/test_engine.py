@@ -2,6 +2,8 @@ import pandas as pd
 
 from rules_safety_engine.rules_engine.engine import evaluate_rules
 from rules_safety_engine.rules_engine.models import Rule
+from rules_safety_engine.rules_engine.rulebase_audit import audit_rulebase
+
 
 
 def test_engine_basic_htn_crisis():
@@ -237,3 +239,50 @@ def test_forbid_suppresses_same_tag_recommend():
 
     assert "AVOID_INTENSE_EXERCISE" in recs
     assert "INCREASE_ACTIVITY" not in recs
+    
+
+def test_rulebase_audit_detects_duplicate_rule_id():
+    rules = [
+        Rule(
+            rule_id="R1",
+            rule_version="1.0.0",
+            name="Rule 1",
+            group="test",
+            priority=10,
+            condition="SBP_mean >= 140",
+            action_type="recommend",
+            action_code="A1",
+        ),
+        Rule(
+            rule_id="R1",
+            rule_version="1.0.1",
+            name="Rule 1 updated",
+            group="test",
+            priority=20,
+            condition="SBP_mean >= 150",
+            action_type="recommend",
+            action_code="A2",
+        ),
+    ]
+
+    audit = audit_rulebase(rules)
+    assert any(x["issue_type"] == "duplicate_rule_id" for x in audit["issues"])
+
+
+def test_rulebase_audit_detects_missing_explanation_template():
+    rules = [
+        Rule(
+            rule_id="R1",
+            rule_version="1.0.0",
+            name="Rule 1",
+            group="test",
+            priority=10,
+            condition="SBP_mean >= 140",
+            action_type="recommend",
+            action_code="A1",
+            explanation_template="",
+        )
+    ]
+
+    audit = audit_rulebase(rules)
+    assert any(x["issue_type"] == "missing_explanation_template" for x in audit["issues"])

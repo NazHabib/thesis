@@ -76,13 +76,20 @@ def apply_cold_start_gating(
             .astype("int16")
         )
 
-        support_mask = is_triage & ~is_escalate & (
-            df["bundle_family"].astype("string").eq("Monitoring")
-            | df["action_type"].astype("string").eq("inform")
+        monitoring_support_mask = (
+            is_triage
+            & ~is_escalate
+            & df["bundle_family"].astype("string").eq("Monitoring")
         )
 
-        support_keep = (
-            df.loc[support_mask]
+        inform_support_mask = (
+            is_triage
+            & ~is_escalate
+            & df["action_type"].astype("string").eq("inform")
+        )
+
+        monitoring_keep = (
+            df.loc[monitoring_support_mask]
             .sort_values(
                 ["ParticipantKey", "sev_rank", "priority_num", "action_code"],
                 ascending=[True, False, False, True],
@@ -91,6 +98,21 @@ def apply_cold_start_gating(
             .head(1)[["ParticipantKey", "action_code"]]
             .assign(_keep_support=1)
         )
+
+        kept_participants = set(monitoring_keep["ParticipantKey"].astype(str).tolist())
+
+        inform_keep = (
+            df.loc[inform_support_mask & ~df["ParticipantKey"].astype(str).isin(kept_participants)]
+            .sort_values(
+                ["ParticipantKey", "sev_rank", "priority_num", "action_code"],
+                ascending=[True, False, False, True],
+            )
+            .groupby("ParticipantKey", sort=False)
+            .head(1)[["ParticipantKey", "action_code"]]
+            .assign(_keep_support=1)
+        )
+
+        support_keep = pd.concat([monitoring_keep, inform_keep], ignore_index=True, sort=False)
 
         df = df.merge(support_keep, on=["ParticipantKey", "action_code"], how="left")
 

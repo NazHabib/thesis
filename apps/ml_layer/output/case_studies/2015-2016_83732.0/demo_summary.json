@@ -1,15 +1,19 @@
 {
   "participant_key": "2015-2016_83732.0",
-  "top_rule_action": "RECOMMEND_DIABETES_REVIEW_ABOVE_TARGET",
-  "top_hybrid_action": "RECOMMEND_DIABETES_REVIEW_ABOVE_TARGET",
-  "top_bundle": "Glycaemic follow-up and review",
+  "top_rule_action": "INFORM_VERY_HIGH_SODIUM_DAY1",
+  "top_hybrid_action": "INFORM_VERY_HIGH_SODIUM_DAY1",
+  "top_bundle": "Reduce sodium and improve dietary pattern",
+  "top_followup_urgency": "soon",
+  "top_followup_horizon_days": 90,
   "rank_changed": false,
   "top3_changed": false,
   "n_candidates_before_ml": 5,
   "n_candidates_after_ml": 5,
   "n_bundles": 3,
   "n_explained_recommendations": 3,
-  "model_version": "v1.6.0",
+  "model_version": "v1.7.4_temporal_full",
   "fusion_strategy": "participant_minmax_total_score_plus_ml_contrib",
-  "shap_model_version": "v1.6.0"
+  "shap_model_version": "v1.6.0",
+  "top_followup_window_label": "within_3_months",
+  "top_followup_timing_text": "Dietary progress could be reviewed within about 3 months. Earlier review may be appropriate if monitoring needs increase."
 }

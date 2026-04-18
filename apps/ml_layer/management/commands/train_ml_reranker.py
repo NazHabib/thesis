@@ -11,7 +11,10 @@ from apps.ml_layer.training.splitters import make_stratified_participant_level_s
 from apps.ml_layer.training.preprocess import prepare_lgbm_features
 from apps.ml_layer.training.train_lgbm import train_lgbm_binary_classifier
 from apps.ml_layer.training.calibrate import calibrate_probabilities
-
+from apps.ml_layer.training.feature_groups import (
+    temporal_feature_count,
+    temporal_feature_subset,
+)
 
 class Command(BaseCommand):
     help = "Train, calibrate, and persist the ML reranker artifacts."
@@ -26,7 +29,7 @@ class Command(BaseCommand):
             "--feature-profile",
             type=str,
             default="default",
-            choices=["default", "experiment_c"],
+            choices=["default", "experiment_c", "temporal_full", "no_temporal", "temporal_only"],
         )
         parser.add_argument(
             "--ranked",
@@ -179,21 +182,23 @@ class Command(BaseCommand):
             "calibrator_path": str(calibrator_path),
             "max_ml_contrib": float(options["max_ml_contrib"]),
             "training": {
-            	"feature_profile": options["feature_profile"],
-                "top_k_positive": int(options["top_k_positive"]),
-                "seed": int(options["seed"]),
-                "train_rows": int(len(split.train_df)),
-                "val_rows": int(len(split.val_df)),
-                "test_rows": int(len(split.test_df)),
-                "train_participants": int(len(split.train_keys)),
-                "val_participants": int(len(split.val_keys)),
-                "test_participants": int(len(split.test_keys)),
-                "feature_columns": prepared.feature_columns,
-                "categorical_columns": prepared.categorical_columns,
-                "numeric_columns": prepared.numeric_columns,
-                "label_scheme": options["label_scheme"],
-                "min_score_norm": float(options["min_score_norm"]),
-            },
+            "feature_profile": options["feature_profile"],
+            "top_k_positive": int(options["top_k_positive"]),
+            "seed": int(options["seed"]),
+            "train_rows": int(len(split.train_df)),
+            "val_rows": int(len(split.val_df)),
+            "test_rows": int(len(split.test_df)),
+            "train_participants": int(len(split.train_keys)),
+            "val_participants": int(len(split.val_keys)),
+            "test_participants": int(len(split.test_keys)),
+            "feature_columns": prepared.feature_columns,
+            "categorical_columns": prepared.categorical_columns,
+            "numeric_columns": prepared.numeric_columns,
+            "temporal_feature_columns": temporal_feature_subset(prepared.feature_columns),
+            "temporal_feature_count": int(temporal_feature_count(prepared.feature_columns)),
+            "label_scheme": options["label_scheme"],
+            "min_score_norm": float(options["min_score_norm"]),
+        },
             "metrics": {
                 **train_result.metrics,
                 **calibration_result.metrics,

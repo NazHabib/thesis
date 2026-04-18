@@ -29,7 +29,7 @@ def build_shap_text_summaries(
             f"Features increasing relative ML emphasis included: {_join_labels(pos_labels[:3])}."
         )
         patient_parts.append(
-            f"The model gave relatively more emphasis because of: {_join_labels(pos_labels[:2])}."
+            f"The model gave relatively more weight because of: {_join_labels(pos_labels[:2])}."
         )
 
     if neg_labels:
@@ -37,7 +37,7 @@ def build_shap_text_summaries(
             f"Features decreasing relative ML emphasis included: {_join_labels(neg_labels[:3])}."
         )
         patient_parts.append(
-            f"Factors reducing relative emphasis included: {_join_labels(neg_labels[:2])}."
+            f"Factors increasing relative ML emphasis included: {_join_labels(neg_labels[:2])}."
         )
 
     return {

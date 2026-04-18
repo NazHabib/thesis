@@ -150,10 +150,33 @@ class Command(BaseCommand):
         out_json_path.parent.mkdir(parents=True, exist_ok=True)
         out_csv_path.parent.mkdir(parents=True, exist_ok=True)
 
+        model_version = "unknown"
+        if "ml_model_version" in reranked_test_df.columns:
+            non_null = reranked_test_df["ml_model_version"].dropna().astype(str)
+            if not non_null.empty:
+                model_version = non_null.iloc[0]
+
+        schema_version = "unknown"
+        if "ml_schema_version" in reranked_test_df.columns:
+            non_null = reranked_test_df["ml_schema_version"].dropna().astype(str)
+            if not non_null.empty:
+                schema_version = non_null.iloc[0]
+
+        calibration_version = "unknown"
+        if "ml_calibration_version" in reranked_test_df.columns:
+            non_null = reranked_test_df["ml_calibration_version"].dropna().astype(str)
+            if not non_null.empty:
+                calibration_version = non_null.iloc[0]
+
         payload = {
             "overall": bundle.overall,
             "subgroup_results": bundle.subgroup_results,
             "ml_runtime_manifest": ml_out.get("manifest", {}),
+            "model_metadata": {
+                "model_version": model_version,
+                "schema_version": schema_version,
+                "calibration_version": calibration_version,
+            },
             "evaluation_config": {
                 "top_k_positive": int(options["top_k_positive"]),
                 "label_scheme": options["label_scheme"],

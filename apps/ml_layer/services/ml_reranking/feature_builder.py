@@ -36,6 +36,14 @@ PARTICIPANT_FEATURE_COLUMNS = [
     "Lifestyle_risk_score",
     "Cardiometabolic_severity_score",
     "Severity_band",
+    "followup_urgency",
+    "followup_horizon_days",
+    "monitoring_need_level",
+    "temporal_risk_tier",
+    "persistence_risk_proxy",
+    "repeat_measurement_available",
+    "temporal_data_quality",
+    "longitudinal_ready_flag",
 ]
 
 
@@ -113,5 +121,18 @@ def add_interaction_features(df: pd.DataFrame) -> pd.DataFrame:
 
     if "Sodium_over_2300_flag" in out.columns:
         out["high_sodium_x_diet_bundle"] = out["Sodium_over_2300_flag"].fillna(0.0) * out["is_diet_bundle"]
+        
+    if "followup_horizon_days" in out.columns:
+        out["short_followup_flag"] = (pd.to_numeric(out["followup_horizon_days"], errors="coerce").fillna(365) <= 90).astype(int)
+
+    if "persistence_risk_proxy" in out.columns:
+        out["high_persistence_risk_flag"] = (pd.to_numeric(out["persistence_risk_proxy"], errors="coerce").fillna(0) >= 2).astype(int)
+
+    if "longitudinal_ready_flag" in out.columns:
+        out["longitudinal_ready_x_monitoring_bundle"] = out["longitudinal_ready_flag"].fillna(0).astype(int) * out["is_monitoring_bundle"]
+
+    if "followup_horizon_days" in out.columns and "is_monitoring_bundle" in out.columns:
+        horizon = pd.to_numeric(out["followup_horizon_days"], errors="coerce").fillna(365.0)
+        out["followup_horizon_x_monitoring_bundle"] = horizon * out["is_monitoring_bundle"]
 
     return out

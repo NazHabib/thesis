@@ -5,7 +5,7 @@
   },
   "cold_start": {},
   "ranking": {
-    "ranking_version": "ranking_1.0.0",
+    "ranking_version": "ranking_1.2.0",
     "participants": 1,
     "input_candidates": 11,
     "output_ranked_candidates": 5,
@@ -31,14 +31,14 @@
       "inform": 1
     },
     "bundle_family_counts": {
-      "Monitoring": 2,
       "DietPattern": 2,
+      "Monitoring": 2,
       "Movement": 1
     },
     "score_summary": {
-      "min_total_score": 120.0,
-      "max_total_score": 162.0,
-      "mean_total_score": 146.8
+      "min_total_score": 92.0,
+      "max_total_score": 152.0,
+      "mean_total_score": 127.2
     }
   },
   "ml_reranking": {
@@ -61,12 +61,12 @@
       "none": 5
     },
     "score_summary": {
-      "min_total_score": 120.0,
-      "max_total_score": 162.0,
-      "mean_total_score": 146.8,
+      "min_total_score": 92.0,
+      "max_total_score": 152.0,
+      "mean_total_score": 127.2,
       "min_final_score": 0.0,
-      "max_final_score": 1.7486326344576115,
-      "mean_final_score": 1.0857
+      "max_final_score": 1.5,
+      "mean_final_score": 0.8867
     }
   },
   "bundling": {
@@ -78,8 +78,8 @@
     "avg_bundles_per_participant": 3.0,
     "avg_actions_per_bundle": 1.6667,
     "bundle_family_counts": {
-      "Monitoring": 1,
       "DietPattern": 1,
+      "Monitoring": 1,
       "Movement": 1
     },
     "confidence_counts": {
@@ -87,10 +87,19 @@
       "medium": 2,
       "low": 0
     },
+    "followup_window_counts": {
+      "within_3_months": 3
+    },
+    "followup_urgency_counts": {
+      "soon": 3
+    },
+    "temporal_risk_tier_counts": {
+      "elevated": 3
+    },
     "score_summary": {
-      "min_bundle_score": 0.38095238095238093,
-      "max_bundle_score": 1.7486326344576115,
-      "mean_bundle_score": 1.261
+      "min_bundle_score": 0.6,
+      "max_bundle_score": 1.5,
+      "mean_bundle_score": 1.1
     }
   },
   "explainability": {
@@ -104,9 +113,15 @@
       "medium": 2,
       "low": 0
     },
+    "followup_urgency_counts": {
+      "soon": 3
+    },
+    "temporal_risk_tier_counts": {
+      "elevated": 3
+    },
     "bundle_family_counts": {
-      "Monitoring": 1,
       "DietPattern": 1,
+      "Monitoring": 1,
       "Movement": 1
     },
     "xai_status_counts": {

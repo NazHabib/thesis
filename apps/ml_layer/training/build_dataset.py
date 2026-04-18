@@ -4,6 +4,8 @@ import pandas as pd
 
 from apps.ml_layer.services.ml_reranking.feature_builder import add_interaction_features
 
+from apps.common.clinical_safety.temporal import build_temporal_features
+
 
 TRAINING_REQUIRED_SAFETY_COLUMNS = [
     "ParticipantKey",
@@ -72,6 +74,14 @@ DEFAULT_PARTICIPANT_FEATURE_COLUMNS = [
     "Lifestyle_risk_score",
     "Cardiometabolic_severity_score",
     "Severity_band",
+    "followup_urgency",
+    "followup_horizon_days",
+    "monitoring_need_level",
+    "temporal_risk_tier",
+    "persistence_risk_proxy",
+    "repeat_measurement_available",
+    "temporal_data_quality",
+    "longitudinal_ready_flag",
 ]
 
 DEFAULT_LABEL_SCHEME = "rule_top_k"
@@ -121,6 +131,8 @@ def build_ml_training_dataset(
     )
 
     if participant_features_df is not None and not participant_features_df.empty:
+        participant_features_df = build_temporal_features(participant_features_df.copy())
+
         if "ParticipantKey" not in participant_features_df.columns:
             raise ValueError("participant_features_df must contain 'ParticipantKey'")
 

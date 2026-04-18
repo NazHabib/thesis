@@ -110,7 +110,7 @@ class Command(BaseCommand):
 
         with open(out_dir / "case_study_summary.json", "w", encoding="utf-8") as f:
             json.dump(summary, f, indent=2, ensure_ascii=False)
-            
+
         demo_summary = self._build_demo_summary(
             participant_key=participant_key,
             ranked_case=ranked_case,
@@ -138,6 +138,17 @@ class Command(BaseCommand):
     @staticmethod
     def _safe_name(value: str) -> str:
         return str(value).replace("/", "_")
+        
+    @staticmethod
+    def _json_safe_scalar(value):
+        if pd.isna(value):
+            return None
+        if hasattr(value, "item"):
+            try:
+                return value.item()
+            except Exception:
+                return value
+        return value    
 
     @staticmethod
     def _read_jsonl_if_exists(path: Path) -> pd.DataFrame:
@@ -155,8 +166,8 @@ class Command(BaseCommand):
     def _sort_ranked_before_ml(df: pd.DataFrame) -> pd.DataFrame:
         if df.empty:
             return df
-        sort_cols = [c for c in ["total_score", "confidence_score", "priority", "action_code"] if c in df.columns]
-        asc = [False, False, False, True][: len(sort_cols)]
+        sort_cols = [c for c in ["bundle_score", "confidence_score", "followup_window_order", "followup_horizon_days", "priority", "bundle_title"] if c in df.columns]
+        asc = [False, False, True, True, False, True][: len(sort_cols)]
         return df.sort_values(by=sort_cols, ascending=asc, kind="stable").reset_index(drop=True)
 
     @staticmethod
@@ -171,16 +182,16 @@ class Command(BaseCommand):
     def _sort_bundles(df: pd.DataFrame) -> pd.DataFrame:
         if df.empty:
             return df
-        sort_cols = [c for c in ["bundle_score", "confidence_score", "priority", "bundle_title"] if c in df.columns]
-        asc = [False, False, False, True][: len(sort_cols)]
+        sort_cols = [c for c in ["bundle_score", "confidence_score", "followup_horizon_days", "priority", "bundle_title"] if c in df.columns]
+        asc = [False, False, True, False, True][: len(sort_cols)]
         return df.sort_values(by=sort_cols, ascending=asc, kind="stable").reset_index(drop=True)
 
     @staticmethod
     def _sort_explained(df: pd.DataFrame) -> pd.DataFrame:
         if df.empty:
             return df
-        sort_cols = [c for c in ["bundle_score", "confidence_score", "priority", "bundle_title"] if c in df.columns]
-        asc = [False, False, False, True][: len(sort_cols)]
+        sort_cols = [c for c in ["bundle_score", "confidence_score", "followup_horizon_days", "priority", "bundle_title"] if c in df.columns]
+        asc = [False, False, True, False, True][: len(sort_cols)]
         return df.sort_values(by=sort_cols, ascending=asc, kind="stable").reset_index(drop=True)
 
     @staticmethod
@@ -209,6 +220,17 @@ class Command(BaseCommand):
             versions = reranked_case["ml_model_version"].dropna().astype(str).unique().tolist()
             model_version = versions[0] if versions else None
 
+        temporal_summary = {}
+        if not bundles_case.empty:
+            temporal_summary = {
+                "followup_urgency_counts": bundles_case["followup_urgency"].fillna("unknown").value_counts(dropna=False).to_dict()
+                if "followup_urgency" in bundles_case.columns else {},
+                "temporal_risk_tier_counts": bundles_case["temporal_risk_tier"].fillna("unknown").value_counts(dropna=False).to_dict()
+                if "temporal_risk_tier" in bundles_case.columns else {},
+                "min_followup_horizon_days": float(pd.to_numeric(bundles_case["followup_horizon_days"], errors="coerce").dropna().min())
+                if "followup_horizon_days" in bundles_case.columns and pd.to_numeric(bundles_case["followup_horizon_days"], errors="coerce").dropna().shape[0] > 0 else None,
+            }
+
         summary = {
             "participant_key": participant_key,
             "metadata": {
@@ -222,6 +244,7 @@ class Command(BaseCommand):
                 "final_bundles": int(len(bundles_case)),
                 "explained_recommendations": int(len(explained_case)),
             },
+            "temporal_summary": temporal_summary,
             "top_ranked_before_ml": ranked_case.head(5).to_dict(orient="records"),
             "top_reranked_after_ml": reranked_case.head(5).to_dict(orient="records"),
             "top_final_bundles": bundles_case.head(5).to_dict(orient="records"),
@@ -256,7 +279,7 @@ class Command(BaseCommand):
             }
 
         return summary
-        
+
     @staticmethod
     def _build_demo_summary(
         participant_key: str,
@@ -275,8 +298,32 @@ class Command(BaseCommand):
             top_hybrid_action = reranked_case.iloc[0]["action_code"]
 
         top_bundle = None
+        top_followup_urgency = None
+        top_followup_horizon_days = None
+        top_followup_window_label = None
+        top_followup_timing_text = None
         if not bundles_case.empty and "bundle_title" in bundles_case.columns:
             top_bundle = bundles_case.iloc[0]["bundle_title"]
+            top_followup_window_label = (
+                bundles_case.iloc[0]["followup_window_label"]
+                if "followup_window_label" in bundles_case.columns
+                else None
+            )
+            top_followup_timing_text = (
+                bundles_case.iloc[0]["followup_timing_text"]
+                if "followup_timing_text" in bundles_case.columns
+                else None
+            )
+            top_followup_urgency = (
+                bundles_case.iloc[0]["followup_urgency"]
+                if "followup_urgency" in bundles_case.columns
+                else None
+            )
+            top_followup_horizon_days = (
+                Command._json_safe_scalar(bundles_case.iloc[0]["followup_horizon_days"])
+                if "followup_horizon_days" in bundles_case.columns
+                else None
+            )
 
         rank_changed = bool(top_rule_action != top_hybrid_action) if top_rule_action and top_hybrid_action else False
 
@@ -296,12 +343,14 @@ class Command(BaseCommand):
             model_version = model_version[0] if model_version else None
 
         return {
-            "participant_key": participant_key,
-            "top_rule_action": top_rule_action,
-            "top_hybrid_action": top_hybrid_action,
-            "top_bundle": top_bundle,
-            "rank_changed": rank_changed,
-            "top3_changed": top3_changed,
+            "participant_key": str(participant_key),
+            "top_rule_action": str(top_rule_action) if top_rule_action is not None else None,
+            "top_hybrid_action": str(top_hybrid_action) if top_hybrid_action is not None else None,
+            "top_bundle": str(top_bundle) if top_bundle is not None else None,
+            "top_followup_urgency": str(top_followup_urgency) if top_followup_urgency is not None else None,
+            "top_followup_horizon_days": top_followup_horizon_days,
+            "rank_changed": bool(rank_changed),
+            "top3_changed": bool(top3_changed),
             "n_candidates_before_ml": int(len(ranked_case)),
             "n_candidates_after_ml": int(len(reranked_case)),
             "n_bundles": int(len(bundles_case)),
@@ -309,6 +358,8 @@ class Command(BaseCommand):
             "model_version": model_version,
             "fusion_strategy": "participant_minmax_total_score_plus_ml_contrib",
             "shap_model_version": shap_report.get("model_version") if shap_report else None,
+            "top_followup_window_label": str(top_followup_window_label) if top_followup_window_label is not None else None,
+            "top_followup_timing_text": str(top_followup_timing_text) if top_followup_timing_text is not None else None,
         }
 
     @staticmethod
@@ -347,15 +398,24 @@ class Command(BaseCommand):
                 "bundle_family",
                 "bundle_score",
                 "confidence_label",
+                "followup_urgency",
+                "followup_horizon_days",
+                "temporal_risk_tier",
                 "source_rule_ids",
                 "n_actions_in_bundle",
+                "followup_window_label",
+                "followup_timing_text",
             ])
 
         out = bundles_case.copy().reset_index(drop=True)
-        out["bundle_rank"] = out.index + 1
-        out["n_actions_in_bundle"] = out["action_codes"].apply(
-            lambda x: len(x) if isinstance(x, list) else 0
-        )
+
+        if "bundle_rank" not in out.columns:
+            out["bundle_rank"] = out.index + 1
+
+        if "n_actions_in_bundle" not in out.columns:
+            out["n_actions_in_bundle"] = out["action_codes"].apply(
+                lambda x: len(x) if isinstance(x, list) else 0
+            )
 
         cols = [
             c for c in [
@@ -364,6 +424,9 @@ class Command(BaseCommand):
                 "bundle_family",
                 "bundle_score",
                 "confidence_label",
+                "followup_urgency",
+                "followup_horizon_days",
+                "temporal_risk_tier",
                 "source_rule_ids",
                 "n_actions_in_bundle",
             ]

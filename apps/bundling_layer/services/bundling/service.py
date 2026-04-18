@@ -24,9 +24,19 @@ FINAL_BUNDLE_COLUMNS = [
     "explanation",
     "triage_mode",
     "triage_reason",
+    "followup_urgency",
+    "followup_horizon_days",
+    "monitoring_need_level",
+    "temporal_risk_tier",
+    "persistence_risk_proxy",
+    "temporal_data_quality",
+    "longitudinal_ready_flag",
     "n_actions_in_bundle",
     "dominant_action_code",
     "bundle_rank",
+    "followup_window_label",
+    "followup_window_order",
+    "followup_timing_text",
 ]
 
 
@@ -44,8 +54,6 @@ def run_bundling_layer(
         validate="m:1",
     )
 
-    # If ML reranking output is present, prefer final_score as the active
-    # total_score used by bundling, while preserving traceability.
     if "final_score" in merged_df.columns:
         merged_df["rule_total_score"] = merged_df["total_score"]
         merged_df["effective_score"] = merged_df["final_score"]
@@ -55,7 +63,6 @@ def run_bundling_layer(
 
     bundles_df = build_bundles(merged_df)
 
-    # Add bundle metadata
     if "action_codes" in bundles_df.columns:
         bundles_df["n_actions_in_bundle"] = bundles_df["action_codes"].apply(
             lambda x: len(x) if isinstance(x, list) else 0
@@ -67,8 +74,16 @@ def run_bundling_layer(
         bundles_df["n_actions_in_bundle"] = 0
         bundles_df["dominant_action_code"] = None
 
-    sort_cols = [c for c in ["ParticipantKey", "bundle_score", "confidence_score", "priority", "bundle_title"] if c in bundles_df.columns]
-    ascending = [True, False, False, False, True][:len(sort_cols)]
+    sort_cols = [c for c in [
+        "ParticipantKey",
+        "bundle_score",
+        "confidence_score",
+        "followup_window_order",
+        "followup_horizon_days",
+        "priority",
+        "bundle_title",
+    ] if c in bundles_df.columns]
+    ascending = [True, False, False, True, True, False, True][:len(sort_cols)]
     bundles_df = bundles_df.sort_values(by=sort_cols, ascending=ascending, kind="stable").reset_index(drop=True)
 
     bundles_df["bundle_rank"] = bundles_df.groupby("ParticipantKey").cumcount() + 1
@@ -94,6 +109,18 @@ def run_bundling_layer(
             "medium": int((bundles_df["confidence_label"] == "medium").sum()),
             "low": int((bundles_df["confidence_label"] == "low").sum()),
         },
+        "followup_window_counts": {
+            str(k): int(v)
+            for k, v in bundles_df["followup_window_label"].fillna("unknown").value_counts(dropna=False).to_dict().items()
+        } if "followup_window_label" in bundles_df.columns else {},
+        "followup_urgency_counts": {
+            str(k): int(v)
+            for k, v in bundles_df["followup_urgency"].fillna("unknown").value_counts(dropna=False).to_dict().items()
+        } if "followup_urgency" in bundles_df.columns else {},
+        "temporal_risk_tier_counts": {
+            str(k): int(v)
+            for k, v in bundles_df["temporal_risk_tier"].fillna("unknown").value_counts(dropna=False).to_dict().items()
+        } if "temporal_risk_tier" in bundles_df.columns else {},
         "score_summary": {
             "min_bundle_score": float(bundles_df["bundle_score"].min()) if not bundles_df.empty else 0.0,
             "max_bundle_score": float(bundles_df["bundle_score"].max()) if not bundles_df.empty else 0.0,

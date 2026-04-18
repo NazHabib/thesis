@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import Any
 
@@ -9,6 +7,10 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
+from apps.ml_layer.training.feature_groups import (
+    remove_temporal_columns,
+    keep_temporal_only_columns,
+)
 
 NON_FEATURE_COLUMNS = [
     "ParticipantKey",
@@ -32,6 +34,10 @@ CATEGORICAL_FEATURES_CANDIDATES = [
     "confidence_ceiling_global",
     "coldstart_confidence_ceiling",
     "Severity_band",
+    "followup_urgency",
+    "monitoring_need_level",
+    "temporal_risk_tier",
+    "temporal_data_quality",
 ]
 
 NUMERIC_FEATURES_CANDIDATES = [
@@ -95,6 +101,14 @@ NUMERIC_FEATURES_CANDIDATES = [
     "inactive_flag_proxy",
     "inactive_x_movement_bundle",
     "high_sodium_x_diet_bundle",
+    "followup_horizon_days",
+    "persistence_risk_proxy",
+    "repeat_measurement_available",
+    "longitudinal_ready_flag",
+    "short_followup_flag",
+    "high_persistence_risk_flag",
+    "longitudinal_ready_x_monitoring_bundle",
+    "followup_horizon_x_monitoring_bundle",
 ]
 
 EXPERIMENT_C_EXCLUDE_FEATURES = {
@@ -211,14 +225,29 @@ def _apply_feature_profile(
     if profile == "default":
         return categorical_columns, numeric_columns
 
+    base_categorical = list(categorical_columns)
+    base_numeric = [c for c in numeric_columns if c not in EXPERIMENT_C_EXCLUDE_FEATURES]
+
     if profile == "experiment_c":
-        categorical_out = list(categorical_columns)
-        numeric_out = [c for c in numeric_columns if c not in EXPERIMENT_C_EXCLUDE_FEATURES]
+        return base_categorical, base_numeric
+
+    if profile == "temporal_full":
+        return base_categorical, base_numeric
+
+    if profile == "no_temporal":
+        categorical_out = remove_temporal_columns(base_categorical)
+        numeric_out = remove_temporal_columns(base_numeric)
         return categorical_out, numeric_out
+
+    if profile == "temporal_only":
+        return keep_temporal_only_columns(
+            categorical_columns=base_categorical,
+            numeric_columns=base_numeric,
+        )
 
     raise ValueError(
         f"Unsupported feature_profile: {feature_profile}. "
-        f"Supported values: default, experiment_c"
+        f"Supported values: default, experiment_c, temporal_full, no_temporal, temporal_only"
     )
 
 

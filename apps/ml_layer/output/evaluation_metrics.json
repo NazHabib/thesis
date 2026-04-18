@@ -449,6 +449,7 @@
   },
   "ml_runtime_manifest": {
     "ml_reranking_version": "0.1.0",
+    "fusion_strategy": "participant_minmax_total_score_plus_ml_contrib",
     "participants": 3272,
     "input_ranked_candidates": 14243,
     "output_reranked_candidates": 14243,
@@ -476,6 +477,11 @@
       "max_final_score": 178.0,
       "mean_final_score": 0.822
     }
+  },
+  "model_metadata": {
+    "model_version": "v1.6.0",
+    "schema_version": "v1",
+    "calibration_version": "v1"
   },
   "evaluation_config": {
     "top_k_positive": 3,

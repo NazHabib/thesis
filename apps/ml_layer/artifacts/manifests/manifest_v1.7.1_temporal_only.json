@@ -1,0 +1,72 @@
+{
+  "model_name": "lightgbm_reranker",
+  "model_version": "v1.7.1_temporal_only",
+  "feature_schema_version": "v1",
+  "calibration_version": "v1",
+  "calibration_method": "isotonic",
+  "model_path": "/mnt/c/Users/nazmu/documents/thesis_proj/apps/ml_layer/artifacts/models/lgbm_model_v1.7.1_temporal_only.joblib",
+  "preprocessor_path": "/mnt/c/Users/nazmu/documents/thesis_proj/apps/ml_layer/artifacts/preprocessors/lgbm_preprocessor_v1.7.1_temporal_only.joblib",
+  "calibrator_path": "/mnt/c/Users/nazmu/documents/thesis_proj/apps/ml_layer/artifacts/calibrators/calibrator_isotonic_v1.joblib",
+  "max_ml_contrib": 0.5,
+  "training": {
+    "feature_profile": "temporal_only",
+    "top_k_positive": 3,
+    "seed": 42,
+    "train_rows": 66151,
+    "val_rows": 14085,
+    "test_rows": 14243,
+    "train_participants": 15267,
+    "val_participants": 3272,
+    "test_participants": 3272,
+    "feature_columns": [
+      "action_code",
+      "action_type",
+      "severity",
+      "bundle_family",
+      "confidence_label",
+      "feature_tier",
+      "confidence_ceiling_global",
+      "coldstart_confidence_ceiling",
+      "Severity_band",
+      "data_completeness_score"
+    ],
+    "categorical_columns": [
+      "action_code",
+      "action_type",
+      "severity",
+      "bundle_family",
+      "confidence_label",
+      "feature_tier",
+      "confidence_ceiling_global",
+      "coldstart_confidence_ceiling",
+      "Severity_band"
+    ],
+    "numeric_columns": [
+      "data_completeness_score"
+    ],
+    "temporal_feature_columns": [],
+    "temporal_feature_count": 0,
+    "label_scheme": "rule_top_k_with_min_score",
+    "min_score_norm": 0.85
+  },
+  "metrics": {
+    "train_log_loss": 0.20594605733906482,
+    "val_log_loss": 0.21012172029407597,
+    "train_roc_auc": 0.9703544673288674,
+    "val_roc_auc": 0.9699903434763743,
+    "scale_pos_weight": 1.4193914124789702,
+    "train_rows": 66151,
+    "val_rows": 14085,
+    "train_positive_rate": 0.4133270850024943,
+    "val_positive_rate": 0.41682641107561236,
+    "calibration_method": "isotonic",
+    "val_brier_raw": 0.06651723344759101,
+    "val_brier_calibrated": 0.06397338483350429,
+    "val_log_loss_raw": 0.21012172029407597,
+    "val_log_loss_calibrated": 0.19579159566798332,
+    "val_pred_raw_min": 0.0022626715123467275,
+    "val_pred_raw_max": 0.9969293741068501,
+    "val_pred_calibrated_min": 1e-08,
+    "val_pred_calibrated_max": 0.99999999
+  }
+}
