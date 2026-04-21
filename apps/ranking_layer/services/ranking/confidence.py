@@ -28,12 +28,25 @@ def apply_confidence(df: pd.DataFrame) -> pd.DataFrame:
     out = normalize_scores(df)
 
     out["confidence_label_raw"] = out["score_norm"].apply(score_to_confidence_label)
-
     raw_num = out["confidence_label_raw"].map(CONFIDENCE_TO_NUM).fillna(1).astype(int)
-    ceiling_num = out["coldstart_confidence_ceiling"].map(CONFIDENCE_TO_NUM).fillna(2).astype(int)
+
+    if "coldstart_confidence_ceiling" in out.columns:
+        ceiling_num = (
+            out["coldstart_confidence_ceiling"]
+            .map(CONFIDENCE_TO_NUM)
+            .fillna(2)
+            .astype(int)
+        )
+    else:
+        ceiling_num = pd.Series(2, index=out.index, dtype="int64")
 
     out["confidence_num_final"] = np.minimum(raw_num.to_numpy(), ceiling_num.to_numpy())
     out["confidence_label"] = out["confidence_num_final"].map(NUM_TO_CONFIDENCE)
+
+    # canonical downstream field
     out["confidence_score"] = out["score_norm"].round(4)
+
+    # optional audit field
+    out["confidence_score_raw"] = out["confidence_score"]
 
     return out

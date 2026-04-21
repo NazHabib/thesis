@@ -70,6 +70,14 @@ OPTIONAL_PARTICIPANT_FEATURE_COLUMNS = [
     "Lifestyle_risk_score",
     "Cardiometabolic_severity_score",
     "Severity_band",
+    "followup_urgency",
+    "followup_horizon_days",
+    "monitoring_need_level",
+    "temporal_risk_tier",
+    "persistence_risk_proxy",
+    "repeat_measurement_available",
+    "temporal_data_quality",
+    "longitudinal_ready_flag",
 ]
 
 ML_ADDED_COLUMNS = [
@@ -98,6 +106,12 @@ def validate_ranked_columns(df: pd.DataFrame) -> None:
     if missing:
         raise ValueError(f"Missing required ranked_recommendations columns: {missing}")
 
+    if "ParticipantKey" in df.columns and df["ParticipantKey"].isna().any():
+        raise ValueError("ranked_recommendations contains null ParticipantKey values")
+
+    if "action_code" in df.columns and df["action_code"].isna().any():
+        raise ValueError("ranked_recommendations contains null action_code values")
+
     invalid = []
     if "severity" in df.columns:
         invalid = sorted({
@@ -107,6 +121,21 @@ def validate_ranked_columns(df: pd.DataFrame) -> None:
 
     if invalid:
         raise ValueError(f"Invalid severity values in ranked_recommendations: {invalid}")
+
+    allowed_confidence = {"low", "medium", "high"}
+    if "confidence_label" in df.columns:
+        invalid_conf = sorted({
+            str(v) for v in df["confidence_label"].dropna().astype(str).unique()
+            if str(v) not in allowed_confidence
+        })
+        if invalid_conf:
+            raise ValueError(f"Invalid confidence_label values in ranked_recommendations: {invalid_conf}")
+
+    for col in ["priority", "total_score", "score_norm", "confidence_score"]:
+        if col in df.columns:
+            s = pd.to_numeric(df[col], errors="coerce")
+            if s.isna().any():
+                raise ValueError(f"ranked_recommendations contains non-numeric or missing values in {col}")
 
 
 def validate_participant_features_columns(df: pd.DataFrame) -> None:

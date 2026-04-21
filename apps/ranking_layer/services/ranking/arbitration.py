@@ -5,43 +5,51 @@ from .config import MAX_RECOMMENDATIONS_PER_PARTICIPANT
 MAX_PER_FAMILY = 2
 
 
+def _sort_candidate_frame(df: pd.DataFrame) -> pd.DataFrame:
+    out = df.copy()
+
+    if "priority_num" not in out.columns:
+        out["priority_num"] = pd.to_numeric(out["priority"], errors="coerce").fillna(0)
+
+    return out.sort_values(
+        ["total_score", "base_severity_score", "priority_num", "action_code"],
+        ascending=[False, False, False, True],
+        kind="stable",
+    )
+
+
 def apply_conflict_policy(group: pd.DataFrame) -> pd.DataFrame:
     if "conflict_policy" not in group.columns or group["conflict_policy"].isna().all():
         return group
 
-    policy = group["conflict_policy"].dropna().iloc[0]
+    policies = group["conflict_policy"].dropna().astype(str).unique().tolist()
+    if len(policies) > 1:
+        raise ValueError(f"Mixed conflict_policy values within one conflict group: {policies}")
 
-    if policy == "keep_strongest":
-        return group.sort_values("total_score", ascending=False).head(1)
+    policy = policies[0]
+    action_type = group["action_type"].fillna("").astype(str)
 
-    if policy == "mutually_exclusive":
-        return group.sort_values("total_score", ascending=False).head(1)
+    if policy in {"keep_strongest", "mutually_exclusive"}:
+        return _sort_candidate_frame(group).head(1)
 
     if policy == "suppress_recommend_if_escalate":
-        if (group["action_type"] == "escalate").any():
-            return group[group["action_type"] == "escalate"]
+        if action_type.eq("escalate").any():
+            return _sort_candidate_frame(group[action_type.eq("escalate")])
 
     return group
 
 
 def apply_family_cap(group: pd.DataFrame) -> pd.DataFrame:
     if "bundle_family" not in group.columns:
-        return group.head(MAX_RECOMMENDATIONS_PER_PARTICIPANT)
+        return _sort_candidate_frame(group).head(MAX_RECOMMENDATIONS_PER_PARTICIPANT)
 
     capped = (
-        group.sort_values(
-            ["total_score", "base_severity_score", "priority_num", "action_code"],
-            ascending=[False, False, False, True],
-        )
+        _sort_candidate_frame(group)
         .groupby("bundle_family", sort=False, group_keys=False)
         .head(MAX_PER_FAMILY)
     )
 
-    capped = capped.sort_values(
-        ["total_score", "base_severity_score", "priority_num", "action_code"],
-        ascending=[False, False, False, True],
-    )
-
+    capped = _sort_candidate_frame(capped)
     return capped.head(MAX_RECOMMENDATIONS_PER_PARTICIPANT)
 
 
@@ -69,6 +77,7 @@ def arbitrate_candidates(df: pd.DataFrame) -> pd.DataFrame:
     out = out.sort_values(
         ["ParticipantKey", "total_score", "base_severity_score", "priority_num", "action_code"],
         ascending=[True, False, False, False, True],
+        kind="stable",
     )
 
     ranked_parts = []
@@ -81,5 +90,12 @@ def arbitrate_candidates(df: pd.DataFrame) -> pd.DataFrame:
         out = pd.concat(ranked_parts, ignore_index=True, sort=False)
     else:
         out = out.iloc[0:0].copy()
+
+    if not out.empty:
+        out = out.sort_values(
+            ["ParticipantKey", "total_score", "base_severity_score", "priority_num", "action_code"],
+            ascending=[True, False, False, False, True],
+            kind="stable",
+        ).reset_index(drop=True)
 
     return out

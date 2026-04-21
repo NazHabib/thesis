@@ -10,6 +10,7 @@ from .config import (
 )
 
 
+
 def pick_family_ceiling(df: pd.DataFrame) -> pd.Series:
     fam = df["bundle_family"].astype("string").fillna("IntegratedCardiometabolic")
 
@@ -51,6 +52,20 @@ def apply_cold_start_gating(
         how="left",
         validate="m:1",
     )
+    
+    if candidates_df.empty:
+    out = candidates_df.copy()
+    for col, default in {
+        "coldstart_gate": pd.Series(dtype="object"),
+        "coldstart_drop_reason": pd.Series(dtype="object"),
+        "generated_by_layer": pd.Series(dtype="object"),
+        "coldstart_confidence_ceiling": pd.Series(dtype="object"),
+        "coldstart_note_codes": pd.Series(dtype="object"),
+        "cold_start_flag": pd.Series(dtype="bool"),
+    }.items():
+        if col not in out.columns:
+            out[col] = default
+    return out
 
     df["coldstart_gate"] = "keep"
     df["coldstart_drop_reason"] = None
@@ -159,19 +174,18 @@ def apply_cold_start_gating(
             action_type="escalate",
             severity="critical",
             priority=100,
-            tags=[["Monitoring"]] * len(base),
+            tags=[["monitoring"] for _ in range(len(base))],
             evidence=[
-                [
-                    {
-                        "feature": "triage_mode",
-                        "value": True,
-                        "operator": "==",
-                        "threshold": True,
-                        "passed": True,
-                    }
-                ]
-            ] * len(base),
-            source_rule_ids=[["CSL_GENERATED"]] * len(base),
+                [{
+                    "feature": "triage_mode",
+                    "value": True,
+                    "operator": "==",
+                    "threshold": True,
+                    "passed": True,
+                }]
+                for _ in range(len(base))
+            ],
+            source_rule_ids=[["CSL_GENERATED"] for _ in range(len(base))],
             bundle_family="Monitoring",
             coldstart_gate="keep",
             coldstart_drop_reason=None,

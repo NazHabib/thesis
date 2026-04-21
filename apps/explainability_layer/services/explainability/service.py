@@ -163,6 +163,10 @@ def run_explainability_layer(
             "medium": int((explained_df["confidence_label"] == "medium").sum()),
             "low": int((explained_df["confidence_label"] == "low").sum()),
         },
+        "followup_window_counts": {
+    	    str(k): int(v)
+    	    for k, v in explained_df["followup_window_label"].fillna("unknown").value_counts(dropna=False).to_dict().items()
+	} if "followup_window_label" in explained_df.columns else {},
         "followup_urgency_counts": {
             str(k): int(v)
             for k, v in explained_df["followup_urgency"].fillna("unknown").value_counts(dropna=False).to_dict().items()

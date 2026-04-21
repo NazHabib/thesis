@@ -61,6 +61,18 @@ def run_ml_reranking_layer(
         ranked_df=ranked_df,
         participant_features_df=participant_features_df,
     )
+    
+    if not merged_df.empty and merged_df["feature_tier"].isna().any():
+    missing_keys = (
+        merged_df.loc[merged_df["feature_tier"].isna(), "ParticipantKey"]
+        .astype(str)
+        .drop_duplicates()
+        .tolist()
+    )
+    raise ValueError(
+        "ML reranking found ranked candidates without matching safety_context rows: "
+        f"{missing_keys[:10]}" + (" ..." if len(missing_keys) > 10 else "")
+    )
 
     valid, issues = validate_ml_feature_table(merged_df)
     if not valid:

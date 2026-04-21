@@ -20,6 +20,13 @@ def derive_followup_window_label(
     urgency = str(followup_urgency).strip().lower() if followup_urgency is not None else ""
 
     if pd.isna(horizon):
+        if urgency in {"urgent", "soon", "monitor", "routine"}:
+            return {
+                "urgent": "within_1_month",
+                "soon": "within_3_months",
+                "monitor": "within_6_months",
+                "routine": "routine_annual",
+            }[urgency]
         return "unknown"
 
     if horizon <= 30:

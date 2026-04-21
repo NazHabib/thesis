@@ -12,6 +12,15 @@ from .config import (
     VERY_LOW_COMPLETENESS_THRESHOLD,
     LOW_COMPLETENESS_THRESHOLD,
     VERY_LOW_COMPLETENESS_EXTRA_PENALTY,
+    DOMAIN_ALIGNMENT_TRIAGE_BONUS,
+    DOMAIN_ALIGNMENT_DIABETES_CORE_BONUS,
+    DOMAIN_ALIGNMENT_BP_CORE_BONUS,
+    DOMAIN_ALIGNMENT_DIET_HIGH_BONUS,
+    DOMAIN_ALIGNMENT_DIET_MEDIUM_BONUS,
+    DOMAIN_ALIGNMENT_MOVEMENT_BONUS,
+    DOMAIN_ALIGNMENT_WEIGHT_BONUS,
+    DOMAIN_ALIGNMENT_SMOKING_BONUS,
+    DOMAIN_ALIGNMENT_MONITORING_BONUS,
 )
 
 
@@ -59,39 +68,47 @@ def compute_domain_alignment(row) -> int:
     tags = row["tags"] if isinstance(row["tags"], list) else []
     tags_set = {str(t).lower() for t in tags}
 
+    diet_ceiling = str(row.get("ceiling_DietPattern", "")).strip().lower()
+    movement_ceiling = str(row.get("ceiling_Movement", "")).strip().lower()
+    smoking_ceiling = str(row.get("ceiling_Smoking", "")).strip().lower()
+    monitoring_ceiling = str(row.get("ceiling_Monitoring", "")).strip().lower()
+    lipids_ceiling = str(row.get("ceiling_Lipids", "")).strip().lower()
+    alcohol_ceiling = str(row.get("ceiling_Alcohol", "")).strip().lower()
+
     score = 0
 
     if {"acute", "safety"} & tags_set and bool(row.get("triage_mode", False)):
-        score += 15
+        score += DOMAIN_ALIGNMENT_TRIAGE_BONUS
 
     if {"diabetes", "a1c"} & tags_set and bool(row.get("a1c_core", False)):
-        score += 8
+        score += DOMAIN_ALIGNMENT_DIABETES_CORE_BONUS
 
     if {"htn", "bp"} & tags_set and bool(row.get("bp_core", False)):
-        score += 8
+        score += DOMAIN_ALIGNMENT_BP_CORE_BONUS
 
     if {"diet", "pattern", "sodium"} & tags_set:
-        if row.get("ceiling_DietPattern") == "high":
-            score += 8
-        elif row.get("ceiling_DietPattern") in ["medium", "moderate"]:
-            score += 4
+        if diet_ceiling == "high":
+            score += DOMAIN_ALIGNMENT_DIET_HIGH_BONUS
+        elif diet_ceiling in {"medium", "moderate"}:
+            score += DOMAIN_ALIGNMENT_DIET_MEDIUM_BONUS
 
     if {"physical_activity", "mvpa"} & tags_set:
-        if row.get("ceiling_Movement") in ["high", "medium", "moderate"]:
-            score += 6
+        if movement_ceiling in {"high", "medium", "moderate"}:
+            score += DOMAIN_ALIGNMENT_MOVEMENT_BONUS
 
     if {"weight", "obesity", "bmi"} & tags_set and bool(row.get("bmi_core", False)):
-        score += 6
+        score += DOMAIN_ALIGNMENT_WEIGHT_BONUS
 
-    if {"smoking", "tobacco"} & tags_set and row.get("ceiling_Smoking") == "high":
+    if {"smoking", "tobacco"} & tags_set and smoking_ceiling == "high":
+        score += DOMAIN_ALIGNMENT_SMOKING_BONUS
+
+    if {"monitoring", "followup"} & tags_set and monitoring_ceiling in {"high", "medium", "moderate"}:
+        score += DOMAIN_ALIGNMENT_MONITORING_BONUS
+
+    if {"lipids", "cholesterol"} & tags_set and lipids_ceiling in {"high", "medium", "moderate"}:
         score += 5
 
-    if {"monitoring", "followup"} & tags_set and row.get("ceiling_Monitoring") in ["high", "medium", "moderate"]:
-        score += 4
-    if {"lipids", "cholesterol"} & tags_set and row.get("ceiling_Lipids") in ["high", "medium", "moderate"]:
-        score += 5
-
-    if {"alcohol"} & tags_set and row.get("ceiling_Alcohol") in ["high", "medium", "moderate"]:
+    if {"alcohol"} & tags_set and alcohol_ceiling in {"high", "medium", "moderate"}:
         score += 4
 
     if {"cardiometabolic", "multimorbidity", "bundle"} & tags_set and bool(row.get("Comorbidity", False)):
@@ -106,7 +123,10 @@ def compute_missing_penalty(row) -> int:
     if row.get("feature_tier") == "minimal":
         penalty += MISSING_DATA_PENALTY_MINIMAL_TIER
 
-    completeness = float(row.get("data_completeness_score", 1.0))
+    try:
+        completeness = float(row.get("data_completeness_score", 1.0))
+    except (TypeError, ValueError):
+        completeness = 1.0
 
     if completeness < LOW_COMPLETENESS_THRESHOLD:
         penalty += MISSING_DATA_PENALTY_LOW_COMPLETENESS
@@ -118,6 +138,7 @@ def compute_missing_penalty(row) -> int:
         penalty += MISSING_DATA_PENALTY_COLD_START
 
     return penalty
+
 
 def score_candidates(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
@@ -163,7 +184,7 @@ def score_candidates(df: pd.DataFrame) -> pd.DataFrame:
         - out["missing_penalty"]
         - out["contraindication_penalty"]
     )
-    
+
     out["positive_score_components"] = (
         out["base_action_score"] + out["evidence_strength"] + out["domain_alignment"]
     )
@@ -171,9 +192,9 @@ def score_candidates(df: pd.DataFrame) -> pd.DataFrame:
     out["negative_score_components"] = (
         out["missing_penalty"] + out["contraindication_penalty"]
     )
-    
+
     out["ranking_rationale_short"] = (
-        "severity+priority="
+        "base_action="
         + out["base_action_score"].round(1).astype(str)
         + "; evidence="
         + out["evidence_strength"].round(1).astype(str)

@@ -1,10 +1,7 @@
 import pandas as pd
 
-from .confidence import build_confidence_messages
-from .templates import build_patient_why_text, build_clinician_why_text
 from .traceability import build_traceability_payload
 from .ml_xai import build_bundle_ml_xai_payload, build_ml_xai_texts
-from apps.common.clinical_safety.scheduling import build_followup_timing_note
 
 
 def explain_bundle(
@@ -13,15 +10,7 @@ def explain_bundle(
     safety_context_df=None,
     participant_features_df=None,
 ) -> dict:
-    confidence_payload = build_confidence_messages(row.get("confidence_label"))
-
-    patient_why = build_patient_why_text(row)
-    clinician_why = build_clinician_why_text(row)
     traceability_payload = build_traceability_payload(row)
-
-    ml_rerank_note = _build_ml_rerank_note(row)
-    safety_context_note = _build_safety_context_note(row)
-    followup_timing_note = _build_followup_timing_note(row)
 
     xai_payload = _build_bundle_xai_with_fallback(
         bundle_row=row,
@@ -32,17 +21,10 @@ def explain_bundle(
     xai_texts = build_ml_xai_texts(xai_payload)
 
     return {
-        "patient_facing_explanation": patient_why,
-        "clinician_facing_explanation": clinician_why,
-        "patient_confidence_explanation": confidence_payload["patient_confidence_explanation"],
-        "clinician_confidence_explanation": confidence_payload["clinician_confidence_explanation"],
-        "safety_context_note": safety_context_note,
-        "ml_rerank_note": ml_rerank_note,
         "traceability_payload": traceability_payload,
         "ml_xai_payload": xai_payload,
         "clinician_ml_xai_explanation": xai_texts["clinician_ml_xai_explanation"],
         "patient_ml_xai_explanation": xai_texts["patient_ml_xai_explanation"],
-        "followup_timing_note": followup_timing_note,
     }
 
 
@@ -126,7 +108,11 @@ def _build_top_action_xai_fallback(
 
     sort_cols = [c for c in ["final_score", "total_score", "confidence_score", "priority"] if c in candidate_rows.columns]
     ascending = [False] * len(sort_cols)
-    candidate_rows = candidate_rows.sort_values(by=sort_cols, ascending=ascending, kind="stable").reset_index(drop=True)
+    candidate_rows = candidate_rows.sort_values(
+        by=sort_cols,
+        ascending=ascending,
+        kind="stable",
+    ).reset_index(drop=True)
 
     representative_row = candidate_rows.iloc[0].to_dict()
 
@@ -140,23 +126,3 @@ def _build_top_action_xai_fallback(
         return payload if isinstance(payload, dict) else {}
     except Exception:
         return {}
-
-
-def _build_ml_rerank_note(row) -> str:
-    return (
-        "Final bundle order may reflect bounded post-ranking refinement from the ML reranking layer, "
-        "without overriding upstream clinical safety rules."
-    )
-
-
-def _build_safety_context_note(row) -> str:
-    if bool(row.get("triage_mode", False)):
-        return "Urgent safety context detected; escalation-focused communication was prioritised."
-    return "No triage override detected; standard safety-constrained recommendation communication applied."
-    
-def _build_followup_timing_note(row) -> str:
-    return build_followup_timing_note(
-        followup_window_label=row.get("followup_window_label"),
-        temporal_risk_tier=row.get("temporal_risk_tier"),
-        monitoring_need_level=row.get("monitoring_need_level"),
-    )

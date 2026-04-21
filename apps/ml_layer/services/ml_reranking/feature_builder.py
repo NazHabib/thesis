@@ -66,9 +66,10 @@ def build_ml_feature_table(
 
     if participant_features_df is not None and not participant_features_df.empty:
         available_feature_cols = [
-            c for c in PARTICIPANT_FEATURE_COLUMNS
-            if c in participant_features_df.columns
-        ]
+    	    c for c in PARTICIPANT_FEATURE_COLUMNS
+    	    if c in participant_features_df.columns
+    	    and (c == "ParticipantKey" or c not in merged_df.columns)
+	]
         participant_df = (
             participant_features_df[available_feature_cols]
             .drop_duplicates(subset=["ParticipantKey"])
@@ -90,7 +91,11 @@ def build_ml_feature_table(
 def add_interaction_features(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
 
-    bundle_family = out["bundle_family"].astype(str) if "bundle_family" in out.columns else pd.Series("", index=out.index)
+    available_feature_cols = [
+        c for c in PARTICIPANT_FEATURE_COLUMNS
+        if c in participant_features_df.columns
+        and (c == "ParticipantKey" or c not in merged_df.columns)
+    ]
 
     out["is_diet_bundle"] = bundle_family.eq("DietPattern").astype(int)
     out["is_movement_bundle"] = bundle_family.eq("Movement").astype(int)

@@ -16,6 +16,11 @@ class Command(BaseCommand):
             default="apps/ml_layer/output/reranked_recommendations.jsonl",
         )
         parser.add_argument(
+    	    "--manifests-dir",
+    	    type=str,
+    	    default="apps/ml_layer/artifacts/manifests",
+	)
+        parser.add_argument(
             "--bundles",
             type=str,
             default="apps/ml_layer/output/final_recommendations_after_ml.jsonl",
@@ -53,7 +58,7 @@ class Command(BaseCommand):
         base_dir = Path(settings.BASE_DIR)
         out_dir = base_dir / options["output_dir"]
         out_dir.mkdir(parents=True, exist_ok=True)
-        
+        manifests_dir = base_dir / options["manifests_dir"]
         
 
         reranked_path = base_dir / options["reranked"]
@@ -99,9 +104,9 @@ class Command(BaseCommand):
             participant_keys=options["participants"],
         )
         experiment_comparison_df = self._build_experiment_comparison_df(
-            evaluation_metrics=evaluation_metrics,
-            manifest_paths=manifest_paths,
-        )
+    	    manifests_dir=manifests_dir,
+       	    evaluation_metrics=evaluation_metrics,
+	)
 
         summary_metrics_df.to_csv(out_dir / "summary_metrics.csv", index=False)
         ranking_impact_metrics_df.to_csv(out_dir / "ranking_impact_metrics.csv", index=False)
@@ -327,69 +332,71 @@ class Command(BaseCommand):
 
     @staticmethod
     def _build_experiment_comparison_df(
+        manifests_dir: Path,
         evaluation_metrics: dict,
-        manifest_paths: list[Path] | None = None,
     ) -> pd.DataFrame:
-        manifest_paths = manifest_paths or []
         rows = []
 
-        # Manifest-driven multi-experiment comparison
-        for manifest_path in manifest_paths:
-            if not manifest_path.exists():
-                continue
+        if manifests_dir.exists():
+            for path in sorted(manifests_dir.glob("manifest_*.json")):
+                try:
+                    with open(path, "r", encoding="utf-8") as f:
+                        manifest = json.load(f)
+                except Exception:
+                    continue
 
-            with open(manifest_path, "r", encoding="utf-8") as f:
-                manifest = json.load(f)
+                training = manifest.get("training", {})
+                metrics = manifest.get("metrics", {})
 
-            training = manifest.get("training", {})
-            metrics = manifest.get("metrics", {})
+                rows.append({
+                    "experiment_name": manifest.get("model_version", path.stem.replace("manifest_", "")),
+                    "model_version": manifest.get("model_version", "unknown"),
+                    "feature_profile": training.get("feature_profile", "unknown"),
+                    "schema_version": manifest.get("feature_schema_version", "unknown"),
+                    "calibration_version": manifest.get("calibration_version", "unknown"),
+                    "calibration_method": manifest.get("calibration_method", "unknown"),
+                    "top_k_positive": training.get("top_k_positive"),
+                    "label_scheme": training.get("label_scheme"),
+                    "min_score_norm": training.get("min_score_norm"),
+                    "temporal_feature_count": training.get("temporal_feature_count"),
+                    "train_rows": training.get("train_rows"),
+                    "val_rows": training.get("val_rows"),
+                    "test_rows": training.get("test_rows"),
+                    "val_log_loss": metrics.get("val_log_loss"),
+                    "val_roc_auc": metrics.get("val_roc_auc"),
+                    "val_brier_raw": metrics.get("val_brier_raw"),
+                    "val_brier_calibrated": metrics.get("val_brier_calibrated"),
+                    "val_log_loss_calibrated": metrics.get("val_log_loss_calibrated"),
+                })
 
-            rows.append({
-                "experiment_name": manifest.get("model_version", "unknown"),
-                "model_version": manifest.get("model_version", "unknown"),
-                "feature_profile": training.get("feature_profile"),
-                "schema_version": manifest.get("feature_schema_version", "unknown"),
-                "calibration_version": manifest.get("calibration_version", "unknown"),
-                "calibration_method": manifest.get("calibration_method"),
-                "top_k_positive": training.get("top_k_positive"),
-                "label_scheme": training.get("label_scheme"),
-                "min_score_norm": training.get("min_score_norm"),
-                "temporal_feature_count": training.get("temporal_feature_count", 0),
-                "train_rows": training.get("train_rows"),
-                "val_rows": training.get("val_rows"),
-                "test_rows": training.get("test_rows"),
-                "val_log_loss": metrics.get("val_log_loss"),
-                "val_roc_auc": metrics.get("val_roc_auc"),
-                "val_brier_raw": metrics.get("val_brier_raw"),
-                "val_brier_calibrated": metrics.get("val_brier_calibrated"),
-                "val_log_loss_calibrated": metrics.get("val_log_loss_calibrated"),
-            })
+        overall = evaluation_metrics.get("overall", {}) if isinstance(evaluation_metrics, dict) else {}
+        model_meta = evaluation_metrics.get("model_metadata", {}) if isinstance(evaluation_metrics, dict) else {}
+        eval_cfg = evaluation_metrics.get("evaluation_config", {}) if isinstance(evaluation_metrics, dict) else {}
 
         if rows:
-            df = pd.DataFrame(rows)
+            for row in rows:
+                if row["model_version"] == model_meta.get("model_version"):
+                    row["participants_evaluated"] = overall.get("participants_evaluated")
+                    row["mean_hybrid_precision@1"] = overall.get("mean_hybrid_precision@1")
+                    row["mean_hybrid_recall@1"] = overall.get("mean_hybrid_recall@1")
+                    row["mean_hybrid_ndcg@1"] = overall.get("mean_hybrid_ndcg@1")
+                    row["mean_hybrid_precision@3"] = overall.get("mean_hybrid_precision@3")
+                    row["mean_hybrid_recall@3"] = overall.get("mean_hybrid_recall@3")
+                    row["mean_hybrid_ndcg@3"] = overall.get("mean_hybrid_ndcg@3")
+                    row["mean_hybrid_precision@5"] = overall.get("mean_hybrid_precision@5")
+                    row["mean_hybrid_recall@5"] = overall.get("mean_hybrid_recall@5")
+                    row["mean_hybrid_ndcg@5"] = overall.get("mean_hybrid_ndcg@5")
+                    row["mean_brier_ml"] = overall.get("mean_brier_ml")
+                    row["mean_top1_changed"] = overall.get("mean_top1_changed")
+                    row["mean_top3_changed"] = overall.get("mean_top3_changed")
+                    row["mean_any_rank_changed"] = overall.get("mean_any_rank_changed")
+                    row["mean_mean_absolute_rank_shift"] = overall.get("mean_mean_absolute_rank_shift")
+                    row["mean_promoted_count"] = overall.get("mean_promoted_count")
+                    row["mean_demoted_count"] = overall.get("mean_demoted_count")
 
-            profile_order = {
-                "experiment_c": 1,
-                "no_temporal": 2,
-                "temporal_only": 3,
-                "temporal_full": 4,
-            }
-            if "feature_profile" in df.columns:
-                df["profile_order"] = df["feature_profile"].map(profile_order).fillna(99)
-                df = df.sort_values(
-                    by=["profile_order", "model_version"],
-                    ascending=[True, True],
-                    kind="stable",
-                ).drop(columns=["profile_order"])
+            return pd.DataFrame(rows)
 
-            return df.reset_index(drop=True)
-
-        # Fallback to legacy single-active-experiment evaluation view
-        overall = evaluation_metrics.get("overall", {}) if isinstance(evaluation_metrics, dict) else {}
-        eval_cfg = evaluation_metrics.get("evaluation_config", {}) if isinstance(evaluation_metrics, dict) else {}
-        model_meta = evaluation_metrics.get("model_metadata", {}) if isinstance(evaluation_metrics, dict) else {}
-
-        rows = [{
+        return pd.DataFrame([{
             "experiment_name": "current_active_experiment",
             "model_version": model_meta.get("model_version", "unknown"),
             "feature_profile": None,
@@ -425,9 +432,7 @@ class Command(BaseCommand):
             "mean_mean_absolute_rank_shift": overall.get("mean_mean_absolute_rank_shift"),
             "mean_promoted_count": overall.get("mean_promoted_count"),
             "mean_demoted_count": overall.get("mean_demoted_count"),
-        }]
-
-        return pd.DataFrame(rows)
+        }])
         
         
     @staticmethod

@@ -49,12 +49,32 @@ def run_ranking_layer(
         how="left",
         validate="m:1",
     )
+    
+    if not merged_df.empty:
+        missing_context_mask = merged_df["feature_tier"].isna()
+        if missing_context_mask.any():
+            missing_keys = (
+                merged_df.loc[missing_context_mask, "ParticipantKey"]
+                .astype(str)
+                .drop_duplicates()
+                .tolist()
+            )
+            preview = missing_keys[:10]
+            raise ValueError(
+                "Ranking layer found candidates without matching safety_context rows: "
+                f"{preview}"
+                + (" ..." if len(missing_keys) > 10 else "")
+            )
 
     merged_df = apply_bundle_family(merged_df)
 
     scored_df = score_candidates(merged_df)
     confident_df = apply_confidence(scored_df)
     ranked_df = arbitrate_candidates(confident_df)
+
+    missing_final = [c for c in FINAL_RANKED_COLUMNS if c not in ranked_df.columns]
+    if missing_final:
+        raise ValueError(f"Ranking layer missing expected output columns: {missing_final}")
 
     ranked_df = ranked_df[FINAL_RANKED_COLUMNS].copy()
 
