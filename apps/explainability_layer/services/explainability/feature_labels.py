@@ -72,6 +72,63 @@ FEATURE_LABELS = {
     "cat__severity_moderate": "Moderate candidate severity",
     "cat__severity_high": "High candidate severity",
     "cat__severity_critical": "Critical candidate severity",
+    
+    "num__profile_data_completeness_score": "Patient profile completeness score",
+    "num__profile_current_smoker_flag": "Profile-derived current smoker flag",
+    "num__profile_inactive_flag": "Profile-derived inactivity flag",
+    "num__profile_high_alcohol_risk_flag": "Profile-derived high alcohol risk flag",
+    "num__profile_poor_diet_signal_flag": "Profile-derived poor diet signal flag",
+
+    "cat__profile_age_group_under_18": "Profile age group: under 18",
+    "cat__profile_age_group_18_39": "Profile age group: 18–39",
+    "cat__profile_age_group_40_64": "Profile age group: 40–64",
+    "cat__profile_age_group_65_plus": "Profile age group: 65+",
+
+    "cat__profile_cardiometabolic_risk_low": "Profile cardiometabolic risk: low",
+    "cat__profile_cardiometabolic_risk_moderate": "Profile cardiometabolic risk: moderate",
+    "cat__profile_cardiometabolic_risk_high": "Profile cardiometabolic risk: high",
+    "cat__profile_cardiometabolic_risk_very_high": "Profile cardiometabolic risk: very high",
+
+    "cat__profile_glycaemic_status_normal": "Profile glycaemic status: normal",
+    "cat__profile_glycaemic_status_prediabetes_range": "Profile glycaemic status: prediabetes range",
+    "cat__profile_glycaemic_status_diabetes_range": "Profile glycaemic status: diabetes range",
+    "cat__profile_glycaemic_status_at_target_known_diabetes": "Profile glycaemic status: known diabetes at target",
+    "cat__profile_glycaemic_status_above_target_known_diabetes": "Profile glycaemic status: known diabetes above target",
+
+    "cat__profile_bp_status_normal": "Profile blood pressure status: normal",
+    "cat__profile_bp_status_elevated": "Profile blood pressure status: elevated",
+    "cat__profile_bp_status_stage_1_hypertension": "Profile blood pressure status: stage 1 hypertension",
+    "cat__profile_bp_status_stage_2_hypertension": "Profile blood pressure status: stage 2 hypertension",
+    "cat__profile_bp_status_severe_hypertension": "Profile blood pressure status: severe hypertension",
+
+    "cat__profile_weight_status_underweight": "Profile weight status: underweight",
+    "cat__profile_weight_status_normal": "Profile weight status: normal",
+    "cat__profile_weight_status_overweight": "Profile weight status: overweight",
+    "cat__profile_weight_status_obesity": "Profile weight status: obesity",
+    
+    # Patient profile features
+    "cat__profile_age_group_18_39": "Age group 18–39",
+    "cat__profile_age_group_40_64": "Age group 40–64",
+    "cat__profile_age_group_65_plus": "Age group 65+",
+    "cat__profile_cardiometabolic_risk_low": "Low cardiometabolic risk",
+    "cat__profile_cardiometabolic_risk_moderate": "Moderate cardiometabolic risk",
+    "cat__profile_cardiometabolic_risk_high": "High cardiometabolic risk",
+    "cat__profile_cardiometabolic_risk_very_high": "Very high cardiometabolic risk",
+    "cat__profile_glycaemic_status_normal": "Normal glycaemic status",
+    "cat__profile_glycaemic_status_prediabetes_range": "Prediabetes range",
+    "cat__profile_glycaemic_status_above_target_known_diabetes": "Diabetes above target",
+    "cat__profile_bp_status_normal": "Normal blood pressure",
+    "cat__profile_bp_status_stage_1_hypertension": "Stage 1 hypertension",
+    "cat__profile_bp_status_stage_2_hypertension": "Stage 2 hypertension",
+    "cat__profile_weight_status_normal": "Normal weight",
+    "cat__profile_weight_status_overweight": "Overweight",
+    "cat__profile_weight_status_obesity": "Obesity",
+
+    "num__profile_data_completeness_score": "Profile data completeness",
+    "num__profile_current_smoker_flag": "Profile smoker flag",
+    "num__profile_inactive_flag": "Profile inactivity flag",
+    "num__profile_high_alcohol_risk_flag": "Profile alcohol risk flag",
+    "num__profile_poor_diet_signal_flag": "Profile poor diet signal",
 }
 
 
@@ -140,6 +197,14 @@ CLINICAL_FEATURES = {
     "num__Cardiometabolic_severity_score",
 }
 
+PATIENT_PROFILE_FEATURES = {
+    "num__profile_data_completeness_score",
+    "num__profile_current_smoker_flag",
+    "num__profile_inactive_flag",
+    "num__profile_high_alcohol_risk_flag",
+    "num__profile_poor_diet_signal_flag",
+}
+
 
 def humanize_feature_name(raw_name: str) -> str:
     raw_name = str(raw_name)
@@ -159,8 +224,15 @@ def feature_group(raw_name: str) -> str:
         return "lifestyle"
     if raw_name.startswith(CANDIDATE_CONTEXT_PREFIXES):
         return "candidate_context"
+    if raw_name.startswith("cat__profile_") or raw_name in PATIENT_PROFILE_FEATURES:
+        return "patient_profile"
     return "other"
 
 
 def is_clinical_only_feature(raw_name: str) -> bool:
-    return feature_group(raw_name) in {"clinical", "lifestyle", "safety_context"}
+    return feature_group(raw_name) in {
+        "clinical",
+        "lifestyle",
+        "safety_context",
+        "patient_profile",
+    }

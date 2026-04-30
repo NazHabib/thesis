@@ -28,16 +28,34 @@ def aggregate_bundle(
     coldstart_note_codes = unique_flatten(group["coldstart_note_codes"].tolist())
     evidence = merge_evidence_lists(group["evidence"])
 
-    if (group["action_type"] == "escalate").any():
+    action_types = set(group["action_type"].dropna().astype(str).str.lower())
+
+    if "escalate" in action_types:
         bundle_action_type = "escalate"
+    elif "forbid" in action_types:
+        bundle_action_type = "forbid"
+    elif "recommend" in action_types:
+        bundle_action_type = "recommend"
+    elif "inform" in action_types:
+        bundle_action_type = "inform"
     else:
-        mode_vals = group["action_type"].mode()
-        bundle_action_type = mode_vals.iloc[0] if not mode_vals.empty else "recommend"
+        bundle_action_type = "recommend"
 
-    final_family = infer_bundle_family(action_codes, tags)
+    final_family = (
+        str(bundle_family).strip()
+        if bundle_family is not None and pd.notna(bundle_family) and str(bundle_family).strip()
+        else infer_bundle_family(action_codes, tags)
+    )
 
-    bundle_priority = int(pd.to_numeric(group["priority"], errors="coerce").fillna(999).min())
-    bundle_score = float(pd.to_numeric(group["total_score"], errors="coerce").fillna(0).max())
+    bundle_priority = int(pd.to_numeric(group["priority"], errors="coerce").fillna(0).max())
+    score_col = "effective_score" if "effective_score" in group.columns else "total_score"
+    bundle_score = float(pd.to_numeric(group[score_col], errors="coerce").fillna(0).max())
+    fusion_strategy = group["fusion_strategy"].dropna().astype(str).iloc[0] if "fusion_strategy" in group.columns and not group["fusion_strategy"].dropna().empty else None
+    fusion_version = group["fusion_version"].dropna().astype(str).iloc[0] if "fusion_version" in group.columns and not group["fusion_version"].dropna().empty else None
+    fusion_status = group["fusion_status"].dropna().astype(str).iloc[0] if "fusion_status" in group.columns and not group["fusion_status"].dropna().empty else None
+    rule_score_norm_participant = float(pd.to_numeric(group["rule_score_norm_participant"], errors="coerce").fillna(0).max()) if "rule_score_norm_participant" in group.columns else 0.0
+    fusion_rule_component = float(pd.to_numeric(group["fusion_rule_component"], errors="coerce").fillna(0).max()) if "fusion_rule_component" in group.columns else 0.0
+    fusion_ml_component = float(pd.to_numeric(group["fusion_ml_component"], errors="coerce").fillna(0).max()) if "fusion_ml_component" in group.columns else 0.0
     confidence_label = conservative_confidence(group["confidence_label"])
     confidence_score = float(
         pd.to_numeric(group["confidence_score"], errors="coerce").fillna(0).mean()
@@ -101,6 +119,12 @@ def aggregate_bundle(
             "followup_window_label": followup_window_label,
             "followup_window_order": followup_window_order,
             "followup_timing_text": followup_timing_text,
+            "fusion_strategy": fusion_strategy,
+            "fusion_version": fusion_version,
+            "fusion_status": fusion_status,
+            "rule_score_norm_participant": rule_score_norm_participant,
+            "fusion_rule_component": fusion_rule_component,
+            "fusion_ml_component": fusion_ml_component,
         }
     )
 

@@ -37,6 +37,12 @@ FINAL_BUNDLE_COLUMNS = [
     "followup_window_label",
     "followup_window_order",
     "followup_timing_text",
+    "fusion_strategy",
+    "fusion_version",
+    "fusion_status",
+    "rule_score_norm_participant",
+    "fusion_rule_component",
+    "fusion_ml_component",
 ]
 
 
@@ -57,8 +63,8 @@ def run_bundling_layer(
     if "final_score" in merged_df.columns:
         merged_df["rule_total_score"] = merged_df["total_score"]
         merged_df["effective_score"] = merged_df["final_score"]
-        merged_df["total_score"] = merged_df["final_score"]
     else:
+        merged_df["rule_total_score"] = merged_df["total_score"]
         merged_df["effective_score"] = merged_df["total_score"]
 
     bundles_df = build_bundles(merged_df)

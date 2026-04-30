@@ -2,20 +2,43 @@
 {% block title %}Clinician Dashboard{% endblock %}
 
 {% block content %}
-<h2>Clinician Dashboard</h2>
+<div class="card hero-card mb-4">
+  <div class="card-body p-4">
+    <p class="mb-2 opacity-75">Clinical presentation layer</p>
+    <h1 class="display-6 fw-bold mb-2">Clinician Dashboard</h1>
+    <p class="mb-0 opacity-75">Review assigned patients, alerts, and thesis demo outputs.</p>
+  </div>
+</div>
 
-<p class="text-muted">
-  Welcome, {{ request.user.username }}.
-</p>
+<div class="row g-3">
+  <div class="col-md-4">
+    <a class="text-decoration-none text-dark" href="{% url 'clinician:thesis_demo' %}">
+      <div class="metric-card h-100">
+        <div class="muted-label">Presentation</div>
+        <h4 class="mt-2">Thesis Demo</h4>
+        <p class="text-muted mb-0">Pipeline recommendations, fusion, and explainability.</p>
+      </div>
+    </a>
+  </div>
 
-<div class="d-flex gap-2">
-  <a class="btn btn-outline-primary" href="{% url 'clinician:patients' %}">
-    Assigned Patients
-  </a>
+  <div class="col-md-4">
+    <a class="text-decoration-none text-dark" href="{% url 'clinician:patients' %}">
+      <div class="metric-card h-100">
+        <div class="muted-label">Care access</div>
+        <h4 class="mt-2">Assigned Patients</h4>
+        <p class="text-muted mb-0">Open patient records and recommendation history.</p>
+      </div>
+    </a>
+  </div>
 
-  <a class="btn btn-outline-warning" href="{% url 'clinician:alerts' %}">
-    Alerts
-  </a>
+  <div class="col-md-4">
+    <a class="text-decoration-none text-dark" href="{% url 'clinician:alerts' %}">
+      <div class="metric-card h-100">
+        <div class="muted-label">Safety</div>
+        <h4 class="mt-2">Alerts</h4>
+        <p class="text-muted mb-0">Escalations and safety-relevant events.</p>
+      </div>
+    </a>
+  </div>
 </div>
 {% endblock %}
-

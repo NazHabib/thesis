@@ -268,3 +268,26 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+
+# ML/collaborative generated outputs
+apps/ml_layer/output/
+apps/explainability_layer/output/
+apps/collaborative_layer/output/
+
+# Large ML artifacts
+apps/ml_layer/artifacts/models/*.joblib
+apps/ml_layer/artifacts/preprocessors/*.joblib
+apps/ml_layer/artifacts/calibrators/*.joblib
+
+# Keep manifests if you want thesis traceability
+# apps/ml_layer/artifacts/manifests/
+
+# Python cache
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Local/editor
+.vscode/
+.idea/
+*.swp

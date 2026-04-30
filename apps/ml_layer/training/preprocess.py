@@ -8,7 +8,10 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
 from apps.ml_layer.training.feature_groups import (
+    COLLABORATIVE_FEATURE_COLUMNS,
     remove_temporal_columns,
+    remove_collaborative_columns,
+    remove_patient_profile_columns,
     keep_temporal_only_columns,
 )
 
@@ -38,6 +41,12 @@ CATEGORICAL_FEATURES_CANDIDATES = [
     "monitoring_need_level",
     "temporal_risk_tier",
     "temporal_data_quality",
+    "profile_age_group",
+    "profile_cardiometabolic_risk",
+    "profile_glycaemic_status",
+    "profile_bp_status",
+    "profile_weight_status",
+    "profile_version",
 ]
 
 NUMERIC_FEATURES_CANDIDATES = [
@@ -109,6 +118,22 @@ NUMERIC_FEATURES_CANDIDATES = [
     "high_persistence_risk_flag",
     "longitudinal_ready_x_monitoring_bundle",
     "followup_horizon_x_monitoring_bundle",
+    "collab_available_flag",
+    "collab_neighbor_count",
+    "collab_support_count",
+    "collab_support_rate",
+    "collab_mean_rule_score_norm",
+    "collab_mean_rank_pre_ml",
+    "collab_family_support_rate",
+    "collab_weighted_support_rate",
+    "collab_weighted_mean_rule_score_norm",
+    "collab_weighted_mean_rank_pre_ml",
+    "collab_mean_supporting_similarity",
+    "profile_data_completeness_score",
+    "profile_current_smoker_flag",
+    "profile_inactive_flag",
+    "profile_high_alcohol_risk_flag",
+    "profile_poor_diet_signal_flag",
 ]
 
 EXPERIMENT_C_EXCLUDE_FEATURES = {
@@ -228,26 +253,50 @@ def _apply_feature_profile(
     base_categorical = list(categorical_columns)
     base_numeric = [c for c in numeric_columns if c not in EXPERIMENT_C_EXCLUDE_FEATURES]
 
-    if profile == "experiment_c":
+    # Old temporal model: explicitly excludes collaborative features.
+    if profile == "temporal_full":
+        return (
+            remove_patient_profile_columns(remove_collaborative_columns(base_categorical)),
+            remove_patient_profile_columns(remove_collaborative_columns(base_numeric)),
+        )
+     
+    if profile == "temporal_collab_profile_full":
         return base_categorical, base_numeric
 
-    if profile == "temporal_full":
-        return base_categorical, base_numeric
+    # New ablation model: temporal + collaborative features.
+    if profile == "temporal_collab_full":
+        return (
+            remove_patient_profile_columns(base_categorical),
+            remove_patient_profile_columns(base_numeric),
+        )
+
+    if profile == "experiment_c":
+        return (
+            remove_collaborative_columns(base_categorical),
+            remove_collaborative_columns(base_numeric),
+        )
 
     if profile == "no_temporal":
         categorical_out = remove_temporal_columns(base_categorical)
         numeric_out = remove_temporal_columns(base_numeric)
+        numeric_out = remove_collaborative_columns(numeric_out)
+        categorical_out = remove_collaborative_columns(categorical_out)
         return categorical_out, numeric_out
 
     if profile == "temporal_only":
-        return keep_temporal_only_columns(
+        cat_out, num_out = keep_temporal_only_columns(
             categorical_columns=base_categorical,
             numeric_columns=base_numeric,
+        )
+        return (
+            remove_collaborative_columns(cat_out),
+            remove_collaborative_columns(num_out),
         )
 
     raise ValueError(
         f"Unsupported feature_profile: {feature_profile}. "
-        f"Supported values: default, experiment_c, temporal_full, no_temporal, temporal_only"
+        "Supported values: default, experiment_c, temporal_full, "
+        "temporal_collab_full, no_temporal, temporal_only"
     )
 
 

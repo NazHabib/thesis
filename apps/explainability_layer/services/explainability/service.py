@@ -52,6 +52,12 @@ FINAL_EXPLAINED_COLUMNS = [
     "patient_ml_xai_explanation",
     "ml_xai_payload",
     "traceability_payload",
+    "fusion_strategy",
+    "fusion_version",
+    "fusion_status",
+    "rule_score_norm_participant",
+    "fusion_rule_component",
+    "fusion_ml_component",
 ]
 
 
@@ -136,7 +142,7 @@ def run_explainability_layer(
         base["ml_rerank_note"] = build_ml_rerank_note(
             rerank_status=base.get("rerank_status"),
             fallback_reason=base.get("fallback_reason"),
-            fusion_strategy="participant_minmax_total_score_plus_ml_contrib",
+            fusion_strategy=base.get("fusion_strategy"),
         )
 
         explained_records.append(base)
@@ -147,6 +153,13 @@ def run_explainability_layer(
         explained_df = explained_df.drop(columns=["triage_mode_ctx"])
     if "triage_reason_ctx" in explained_df.columns:
         explained_df = explained_df.drop(columns=["triage_reason_ctx"])
+
+    if explained_df.empty:
+        explained_df = pd.DataFrame(columns=FINAL_EXPLAINED_COLUMNS)
+
+    for col in FINAL_EXPLAINED_COLUMNS:
+        if col not in explained_df.columns:
+            explained_df[col] = None
 
     explained_df = explained_df[FINAL_EXPLAINED_COLUMNS].copy()
 

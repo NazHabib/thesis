@@ -1,6 +1,9 @@
 import pandas as pd
 import joblib
 
+from .fusion.contracts import FusionContext
+from .fusion.registry import resolve_fusion_strategy, DEFAULT_FUSION_STRATEGY
+
 from .artifact_loader import MLArtifactLoader
 from .config import (
     ACTIVE_MANIFEST_PATH,
@@ -28,6 +31,7 @@ def run_ml_reranking_layer(
     safety_context_df: pd.DataFrame,
     ranked_df: pd.DataFrame,
     participant_features_df: pd.DataFrame | None = None,
+    fusion_strategy: str | None = None,
 ) -> dict:
     """
     Post-ranking, pre-bundling reranking layer.
@@ -63,16 +67,16 @@ def run_ml_reranking_layer(
     )
     
     if not merged_df.empty and merged_df["feature_tier"].isna().any():
-    missing_keys = (
-        merged_df.loc[merged_df["feature_tier"].isna(), "ParticipantKey"]
-        .astype(str)
-        .drop_duplicates()
-        .tolist()
-    )
-    raise ValueError(
-        "ML reranking found ranked candidates without matching safety_context rows: "
-        f"{missing_keys[:10]}" + (" ..." if len(missing_keys) > 10 else "")
-    )
+        missing_keys = (
+            merged_df.loc[merged_df["feature_tier"].isna(), "ParticipantKey"]
+            .astype(str)
+            .drop_duplicates()
+            .tolist()
+        )
+        raise ValueError(
+            "ML reranking found ranked candidates without matching safety_context rows: "
+            f"{missing_keys[:10]}" + (" ..." if len(missing_keys) > 10 else "")
+        )
 
     valid, issues = validate_ml_feature_table(merged_df)
     if not valid:
@@ -117,6 +121,7 @@ def run_ml_reranking_layer(
     reranked_df = _apply_patient_level_reranking(
         merged_df=merged_df,
         artifacts=artifacts,
+        fusion_strategy=fusion_strategy,
     )
 
     reranked_df = reranked_df[FINAL_RERANKED_COLUMNS].copy()
@@ -135,6 +140,7 @@ def run_ml_reranking_layer(
 def _apply_patient_level_reranking(
     merged_df: pd.DataFrame,
     artifacts: dict,
+    fusion_strategy: str | None = None,
 ) -> pd.DataFrame:
     out_frames: list[pd.DataFrame] = []
 
@@ -143,6 +149,7 @@ def _apply_patient_level_reranking(
             participant_key=participant_key,
             df=group_df.copy(),
             artifacts=artifacts,
+            fusion_strategy=fusion_strategy,
         )
         out_frames.append(participant_out)
 
@@ -156,6 +163,7 @@ def _rerank_single_participant(
     participant_key: str,
     df: pd.DataFrame,
     artifacts: dict,
+    fusion_strategy: str | None = None,
 ) -> pd.DataFrame:
     triage_mode = bool(df["triage_mode"].fillna(False).iloc[0])
 
@@ -225,22 +233,31 @@ def _rerank_single_participant(
     out = df.copy()
     out["ml_score"] = pred_cal.astype(float)
     out["lambda_u"] = float(lambda_u)
-    out["ml_contrib"] = (out["lambda_u"] * out["ml_score"]).clip(
-        lower=0.0,
-        upper=artifacts["max_ml_contrib"],
+    strategy = resolve_fusion_strategy(fusion_strategy)
+
+    ctx = FusionContext(
+        participant_key=str(participant_key),
+        strategy_name=strategy.name,
+        strategy_version=strategy.version,
+        lambda_u=float(lambda_u),
+        max_ml_contrib=float(artifacts["max_ml_contrib"]),
+        feature_tier=str(feature_tier),
+        triage_mode=False,
+        model_version=artifacts["model_version"],
+        schema_version=artifacts["schema_version"],
+        calibration_version=artifacts["calibration_version"],
     )
 
-    # Experiment E: normalize rule score within participant before fusion
-    total_min = float(out["total_score"].min())
-    total_max = float(out["total_score"].max())
-    score_range = total_max - total_min
-
-    if score_range <= 1e-8:
-        out["final_score"] = out["ml_contrib"]
-    else:
-        out["final_score"] = (
-            (out["total_score"] - total_min) / score_range
-        ) + out["ml_contrib"]
+    try:
+        out = strategy.fuse(out, ctx)
+    except Exception as exc:
+        return rules_only_fallback(
+            ranked_df=df,
+            reason=f"fusion_failure:{type(exc).__name__}",
+            model_version=artifacts["model_version"],
+            schema_version=artifacts["schema_version"],
+            calibration_version=artifacts["calibration_version"],
+    )
 
     out["rerank_status"] = "ml_reranked"
     out["fallback_reason"] = None
@@ -249,8 +266,8 @@ def _rerank_single_participant(
     out["ml_calibration_version"] = artifacts["calibration_version"]
 
     out = out.sort_values(
-        by=["final_score", "total_score", "confidence_score", "priority"],
-        ascending=[False, False, False, False],
+        by=["final_score", "total_score", "confidence_score", "priority", "action_code"],
+        ascending=[False, False, False, False, True],
         kind="stable",
     ).reset_index(drop=True)
 
@@ -367,10 +384,67 @@ def _build_manifest(
             str(k): int(v)
             for k, v in output_df["rerank_status"].fillna("unknown").value_counts(dropna=False).to_dict().items()
         }
+        
+    def _numeric_series(df: pd.DataFrame, col: str, default: float = 0.0) -> pd.Series:
+        if col in df.columns:
+            return pd.to_numeric(df[col], errors="coerce").fillna(default)
+        return pd.Series(default, index=df.index, dtype="float64")
 
+    collaborative_summary = {}
+    if "collab_available_flag" in output_df.columns:
+        available = _numeric_series(output_df, "collab_available_flag", 0.0)
+
+        collaborative_summary = {
+            "collab_available_pct": round(float(available.mean() * 100), 4),
+            "mean_neighbor_count": round(float(_numeric_series(output_df, "collab_neighbor_count").mean()), 4),
+            "mean_support_rate": round(float(_numeric_series(output_df, "collab_support_rate").mean()), 4),
+            "mean_family_support_rate": round(float(_numeric_series(output_df, "collab_family_support_rate").mean()), 4),
+            "mean_similarity": round(float(_numeric_series(output_df, "collab_mean_supporting_similarity").mean()), 4),
+            "mean_weighted_support_rate": round(float(_numeric_series(output_df, "collab_weighted_support_rate").mean()), 4),
+            "mean_weighted_rule_score_norm": round(float(_numeric_series(output_df, "collab_weighted_mean_rule_score_norm").mean()), 4),
+            "mean_weighted_rank_pre_ml": round(float(_numeric_series(output_df, "collab_weighted_mean_rank_pre_ml").mean()), 4),
+        }
     return {
         "ml_reranking_version": ML_RERANKING_VERSION,
-        "fusion_strategy": "participant_minmax_total_score_plus_ml_contrib",
+        
+        "fusion_strategy": (
+            str(output_df["fusion_strategy"].dropna().iloc[0])
+            if "fusion_strategy" in output_df.columns and not output_df["fusion_strategy"].dropna().empty
+            else DEFAULT_FUSION_STRATEGY
+        ),
+        "fusion": {
+            "strategy_counts": (
+                {
+                    str(k): int(v)
+                    for k, v in output_df["fusion_strategy"]
+                    .fillna("unknown")
+                    .value_counts()
+                    .to_dict()
+                    .items()
+                }
+                if "fusion_strategy" in output_df.columns else {}
+            ),
+            "status_counts": (
+                {
+                    str(k): int(v)
+                    for k, v in output_df["fusion_status"]
+                    .fillna("unknown")
+                    .value_counts()
+                    .to_dict()
+                    .items()
+                }
+                if "fusion_status" in output_df.columns else {}
+            ),
+            "mean_rule_component": (
+                round(float(_numeric_series(output_df, "fusion_rule_component").mean()), 6)
+                if "fusion_rule_component" in output_df.columns else 0.0
+            ),
+            "mean_ml_component": (
+                round(float(_numeric_series(output_df, "fusion_ml_component").mean()), 6)
+                if "fusion_ml_component" in output_df.columns else 0.0
+            ),
+        },
+        
         "participants": n_participants,
         "input_ranked_candidates": int(len(input_ranked_df)),
         "output_reranked_candidates": int(len(output_df)),
@@ -381,6 +455,7 @@ def _build_manifest(
             "full": int((safety_context_df["feature_tier"] == "full").sum()),
         },
         "rerank_mode": rerank_mode,
+        "collaborative_summary": collaborative_summary,
         "rerank_status_counts": rerank_status_counts,
         "fallback_reason_counts": fallback_counts,
         "score_summary": {

@@ -80,6 +80,46 @@ OPTIONAL_PARTICIPANT_FEATURE_COLUMNS = [
     "longitudinal_ready_flag",
 ]
 
+COLLABORATIVE_FEATURE_COLUMNS = [
+    "collab_available_flag",
+    "collab_neighbor_count",
+    "collab_support_count",
+    "collab_support_rate",
+    "collab_mean_rule_score_norm",
+    "collab_mean_rank_pre_ml",
+    "collab_family_support_rate",
+    "collab_weighted_support_rate",
+    "collab_weighted_mean_rule_score_norm",
+    "collab_weighted_mean_rank_pre_ml",
+    "collab_mean_supporting_similarity",
+    "collab_safety_interpretation",
+]
+
+PATIENT_PROFILE_FEATURE_COLUMNS = [
+    "profile_age_group",
+    "profile_cardiometabolic_risk",
+    "profile_glycaemic_status",
+    "profile_bp_status",
+    "profile_weight_status",
+    "profile_lifestyle_flags",
+    "profile_data_completeness_score",
+    "profile_version",
+    "profile_current_smoker_flag",
+    "profile_inactive_flag",
+    "profile_high_alcohol_risk_flag",
+    "profile_poor_diet_signal_flag",
+]
+
+FUSION_ADDED_COLUMNS = [
+    "rule_score_norm_participant",
+    "fusion_rule_component",
+    "fusion_ml_component",
+    "fusion_strategy",
+    "fusion_version",
+    "fusion_status",
+    "fusion_artifact_version",
+]
+
 ML_ADDED_COLUMNS = [
     "ml_score",
     "lambda_u",
@@ -90,7 +130,23 @@ ML_ADDED_COLUMNS = [
     "ml_model_version",
     "ml_schema_version",
     "ml_calibration_version",
-]
+] + FUSION_ADDED_COLUMNS + COLLABORATIVE_FEATURE_COLUMNS + PATIENT_PROFILE_FEATURE_COLUMNS
+
+
+COLLAB_DEFAULTS = {
+    "collab_available_flag": 0,
+    "collab_neighbor_count": 0,
+    "collab_support_count": 0,
+    "collab_support_rate": 0.0,
+    "collab_mean_rule_score_norm": 0.0,
+    "collab_mean_rank_pre_ml": 0.0,
+    "collab_family_support_rate": 0.0,
+    "collab_weighted_support_rate": 0.0,
+    "collab_weighted_mean_rule_score_norm": 0.0,
+    "collab_weighted_mean_rank_pre_ml": 0.0,
+    "collab_mean_supporting_similarity": 0.0,
+    "collab_safety_interpretation": "",
+}
 
 FINAL_RERANKED_COLUMNS = REQUIRED_RANKED_COLUMNS + ML_ADDED_COLUMNS
 
@@ -126,7 +182,7 @@ def validate_ranked_columns(df: pd.DataFrame) -> None:
     if "confidence_label" in df.columns:
         invalid_conf = sorted({
             str(v) for v in df["confidence_label"].dropna().astype(str).unique()
-            if str(v) not in allowed_confidence
+            if str(v).strip().lower() not in allowed_confidence
         })
         if invalid_conf:
             raise ValueError(f"Invalid confidence_label values in ranked_recommendations: {invalid_conf}")
@@ -145,7 +201,15 @@ def validate_participant_features_columns(df: pd.DataFrame) -> None:
 
 def ensure_ml_output_columns(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
+
     for col in ML_ADDED_COLUMNS:
         if col not in out.columns:
             out[col] = None
+
+    for col, default in COLLAB_DEFAULTS.items():
+        if col not in out.columns:
+            out[col] = default
+        else:
+            out[col] = out[col].fillna(default)
+
     return out

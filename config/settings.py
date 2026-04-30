@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "unsafe-dev-key")
 DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() == "true"
 
-ALLOWED_HOSTS = [h.strip() for h in os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",") if h.strip()]
+ALLOWED_HOSTS = ["*"]
 
 # Application definition
 
@@ -54,6 +54,9 @@ INSTALLED_APPS = [
     'apps.ml_layer',
     'apps.bundling_layer',
     'apps.explainability_layer',
+    'apps.collaborative_layer',
+    'apps.patient_profile_layer.apps.PatientProfileLayerConfig',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [

@@ -14,6 +14,10 @@ from apps.ml_layer.training.calibrate import calibrate_probabilities
 from apps.ml_layer.training.feature_groups import (
     temporal_feature_count,
     temporal_feature_subset,
+    collaborative_feature_count,
+    collaborative_feature_subset,
+    patient_profile_feature_count,
+    patient_profile_feature_subset,
 )
 
 class Command(BaseCommand):
@@ -26,11 +30,19 @@ class Command(BaseCommand):
             default="apps/recs_csl/output/safety_context.jsonl",
         )
         parser.add_argument(
-            "--feature-profile",
-            type=str,
-            default="default",
-            choices=["default", "experiment_c", "temporal_full", "no_temporal", "temporal_only"],
-        )
+	    "--feature-profile",
+	    type=str,
+	    default="default",
+	    choices=[
+		"default",
+		"experiment_c",
+		"temporal_full",
+		"temporal_collab_full",
+		"no_temporal",
+		"temporal_only",
+		"temporal_collab_profile_full",
+	    ],
+	)
         parser.add_argument(
             "--ranked",
             type=str,
@@ -196,6 +208,10 @@ class Command(BaseCommand):
             "numeric_columns": prepared.numeric_columns,
             "temporal_feature_columns": temporal_feature_subset(prepared.feature_columns),
             "temporal_feature_count": int(temporal_feature_count(prepared.feature_columns)),
+            "patient_profile_feature_columns": patient_profile_feature_subset(prepared.feature_columns),
+            "patient_profile_feature_count": int(patient_profile_feature_count(prepared.feature_columns)),
+            "collaborative_feature_columns": collaborative_feature_subset(prepared.feature_columns),
+	    "collaborative_feature_count": int(collaborative_feature_count(prepared.feature_columns)),
             "label_scheme": options["label_scheme"],
             "min_score_norm": float(options["min_score_norm"]),
         },

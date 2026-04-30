@@ -11,6 +11,7 @@ from apps.ml_layer.services.ml_reranking.service import run_ml_reranking_layer
 from apps.ml_layer.services.ml_reranking.adapter import prepare_reranked_for_bundling
 from apps.bundling_layer.services.bundling.service import run_bundling_layer
 from apps.explainability_layer.services.explainability.service import run_explainability_layer
+from apps.patient_profile_layer.services.profile_builder import build_profiles_from_path
 
 
 class Command(BaseCommand):
@@ -43,6 +44,13 @@ class Command(BaseCommand):
             "--save-intermediate",
             action="store_true",
         )
+        
+        parser.add_argument(
+            "--fusion-strategy",
+            type=str,
+            default=None,
+            choices=["minmax_additive_v1", "weighted_average_v1"],
+)
 
     def handle(self, *args, **options):
         base_dir = Path(settings.BASE_DIR)
@@ -93,6 +101,25 @@ class Command(BaseCommand):
             raise ValueError("No participant rows remained after filtering cfm_df.")
         if rules_df.empty:
             raise ValueError("No recommendation rows remained after filtering rules_df.")
+            
+        self.stdout.write("Ensuring patient profile snapshot exists...")
+        patient_profile_parquet = (
+            base_dir / "apps" / "patient_profile_layer" / "output" / "patient_profiles.parquet"
+        )
+
+        if patient_profile_parquet.exists():
+            self.stdout.write("Patient profile snapshot found; reusing.")
+        else:
+            self.stdout.write("Patient profile snapshot missing; building now.")
+            build_profiles_from_path(
+                participant_features_path=cfm_path,
+                output_jsonl_path=base_dir / "apps" / "patient_profile_layer" / "output" / "patient_profiles.jsonl",
+                output_parquet_path=patient_profile_parquet,
+                output_dataset_root=base_dir / "apps" / "patient_profile_layer" / "output" / "patient_profiles_dataset",
+                limit=limit,
+                incremental=False,
+                write_partitioned_dataset=True,
+            )
 
         self.stdout.write("Adapting flat rules output to cold-start participant format...")
         participants_df = self._build_participants_candidates_df(rules_df)
@@ -114,7 +141,9 @@ class Command(BaseCommand):
             safety_context_df=safety_context_df,
             ranked_df=ranked_df,
             participant_features_df=cfm_df,
+            fusion_strategy=options.get("fusion_strategy"),
         )
+        
         reranked_df = ml_out["reranked_recommendations"]
 
         bundling_input_df = prepare_reranked_for_bundling(reranked_df)
@@ -184,6 +213,7 @@ class Command(BaseCommand):
                 "cold_start": cs_out.get("manifest", {}),
                 "ranking": ranking_out.get("manifest", {}),
                 "ml_reranking": ml_out.get("manifest", {}),
+                "fusion_strategy": options.get("fusion_strategy"),
                 "bundling": bundling_out.get("manifest", {}),
                 "explainability": explainability_out.get("manifest", {}),
             }

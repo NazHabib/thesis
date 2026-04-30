@@ -53,23 +53,27 @@ def apply_cold_start_gating(
         validate="m:1",
     )
     
-    if candidates_df.empty:
-    out = candidates_df.copy()
-    for col, default in {
-        "coldstart_gate": pd.Series(dtype="object"),
-        "coldstart_drop_reason": pd.Series(dtype="object"),
-        "generated_by_layer": pd.Series(dtype="object"),
-        "coldstart_confidence_ceiling": pd.Series(dtype="object"),
-        "coldstart_note_codes": pd.Series(dtype="object"),
-        "cold_start_flag": pd.Series(dtype="bool"),
-    }.items():
-        if col not in out.columns:
-            out[col] = default
-    return out
+    if df.empty:
+        out = df.copy()
+        defaults = {
+            "coldstart_gate": pd.Series(dtype="object"),
+            "coldstart_drop_reason": pd.Series(dtype="object"),
+            "generated_by_layer": pd.Series(dtype="object"),
+            "coldstart_confidence_ceiling": pd.Series(dtype="object"),
+            "coldstart_note_codes": pd.Series(dtype="object"),
+            "cold_start_flag": pd.Series(dtype="bool"),
+        }
+        for col, default in defaults.items():
+            if col not in out.columns:
+                out[col] = default
+        return out
 
     df["coldstart_gate"] = "keep"
     df["coldstart_drop_reason"] = None
     df["generated_by_layer"] = None
+
+    is_triage = df["triage_mode"].fillna(False)
+    is_escalate = df["action_type"].astype("string").eq("escalate")
 
     is_triage = df["triage_mode"].fillna(False)
     is_escalate = df["action_type"].astype("string").eq("escalate")
@@ -220,9 +224,33 @@ def apply_cold_start_gating(
         if row["action_type"] == "escalate" and row["triage_mode"]:
             codes.append("CS_NOTE_TRIAGE_ESCALATION")
 
-        if row["generated_by_layer"] == "cold_start_safety":
+        if row.get("generated_by_layer") == "cold_start_safety":
             codes.append("CS_NOTE_GENERATED_ESCALATE")
 
         df.at[idx, "coldstart_note_codes"] = codes
 
-    return df[df["coldstart_gate"] == "keep"].copy()
+    out = df[df["coldstart_gate"] == "keep"].copy()
+
+    required_defaults = {
+        "ParticipantKey": pd.Series(dtype="object"),
+        "action_code": pd.Series(dtype="object"),
+        "action_type": pd.Series(dtype="object"),
+        "severity": pd.Series(dtype="object"),
+        "priority": pd.Series(dtype="float64"),
+        "tags": pd.Series(dtype="object"),
+        "evidence": pd.Series(dtype="object"),
+        "source_rule_ids": pd.Series(dtype="object"),
+        "bundle_family": pd.Series(dtype="object"),
+        "coldstart_gate": pd.Series(dtype="object"),
+        "coldstart_drop_reason": pd.Series(dtype="object"),
+        "generated_by_layer": pd.Series(dtype="object"),
+        "coldstart_confidence_ceiling": pd.Series(dtype="object"),
+        "coldstart_note_codes": pd.Series(dtype="object"),
+        "cold_start_flag": pd.Series(dtype="bool"),
+    }
+
+    for col, default in required_defaults.items():
+        if col not in out.columns:
+            out[col] = default
+
+    return out

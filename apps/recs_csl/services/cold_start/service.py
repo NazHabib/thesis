@@ -89,8 +89,60 @@ def run_cold_start_layer(cfm_df: pd.DataFrame, participants_df: pd.DataFrame):
         gated_candidates_df = gated_candidates_df[GATED_CANDIDATE_COLUMNS].copy()
 
     safety_context_df = safety_context_df[SAFETY_CONTEXT_COLUMNS].copy()
+    
+    n_participants = int(safety_context_df["ParticipantKey"].nunique())
+
+    manifest = {
+        "cold_start_version": safety_context_df["cold_start_version"].iloc[0]
+        if not safety_context_df.empty and "cold_start_version" in safety_context_df.columns
+        else "unknown",
+        "participants": n_participants,
+        "input_cfm_rows": int(len(cfm_df)),
+        "input_participant_candidate_rows": int(len(participants_df)),
+        "output_safety_context_rows": int(len(safety_context_df)),
+        "output_gated_candidates": int(len(gated_candidates_df)),
+        "triage_count": int(safety_context_df["triage_mode"].fillna(False).sum()),
+        "feature_tier_counts": {
+            "minimal": int((safety_context_df["feature_tier"] == "minimal").sum()),
+            "core": int((safety_context_df["feature_tier"] == "core").sum()),
+            "full": int((safety_context_df["feature_tier"] == "full").sum()),
+        },
+        "confidence_ceiling_global_counts": {
+            str(k): int(v)
+            for k, v in safety_context_df["confidence_ceiling_global"]
+            .fillna("unknown")
+            .value_counts(dropna=False)
+            .to_dict()
+            .items()
+        },
+        "followup_urgency_counts": {
+            str(k): int(v)
+            for k, v in safety_context_df["followup_urgency"]
+            .fillna("unknown")
+            .value_counts(dropna=False)
+            .to_dict()
+            .items()
+        },
+        "temporal_risk_tier_counts": {
+            str(k): int(v)
+            for k, v in safety_context_df["temporal_risk_tier"]
+            .fillna("unknown")
+            .value_counts(dropna=False)
+            .to_dict()
+            .items()
+        },
+        "gated_bundle_family_counts": {
+            str(k): int(v)
+            for k, v in gated_candidates_df["bundle_family"]
+            .fillna("unknown")
+            .value_counts(dropna=False)
+            .to_dict()
+            .items()
+        } if not gated_candidates_df.empty else {},
+    }
 
     return {
         "safety_context": safety_context_df,
         "gated_candidates": gated_candidates_df,
+        "manifest": manifest,
     }

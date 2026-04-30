@@ -18,19 +18,17 @@ def compute_lambda(
     """
     Dynamic ML influence policy.
 
-    System rule:
-    - triage -> 0
-    - minimal -> ~0.15
-    - core -> ~0.30
-    - full -> ~0.40
-
-    Penalties reduce ML influence under uncertainty.
+    Policy:
+    - triage disables ML influence
+    - base lambda depends on feature tier
+    - penalties reduce lambda under lower completeness or lower rule confidence
+    - final value is clipped to the configured safety bounds
     """
     if bool(triage_mode):
         return 0.0
 
     tier = str(feature_tier).strip().lower() if feature_tier is not None else "minimal"
-    base = LAMBDA_BY_FEATURE_TIER.get(tier, LAMBDA_BY_FEATURE_TIER["minimal"])
+    base = float(LAMBDA_BY_FEATURE_TIER.get(tier, LAMBDA_BY_FEATURE_TIER["minimal"]))
 
     completeness = _safe_float(data_completeness_score, default=0.0)
     rule_conf = _safe_float(max_rule_confidence_score, default=0.0)

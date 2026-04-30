@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 from pathlib import Path
 
@@ -7,7 +9,7 @@ from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
-    help = "Export thesis-ready summary tables from reranking, bundling, evaluation, and selected SHAP reports."
+    help = "Export thesis-ready summary tables from reranking, bundling, evaluation, explainability, and pipeline manifests."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -16,10 +18,10 @@ class Command(BaseCommand):
             default="apps/ml_layer/output/reranked_recommendations.jsonl",
         )
         parser.add_argument(
-    	    "--manifests-dir",
-    	    type=str,
-    	    default="apps/ml_layer/artifacts/manifests",
-	)
+            "--manifests-dir",
+            type=str,
+            default="apps/ml_layer/artifacts/manifests",
+        )
         parser.add_argument(
             "--bundles",
             type=str,
@@ -51,32 +53,72 @@ class Command(BaseCommand):
             nargs="*",
             default=[],
             help="Optional list of manifest JSON paths to include in experiment comparison export.",
-        )        
-        
+        )
+        parser.add_argument(
+            "--manifest-path",
+            type=str,
+            default="apps/ml_layer/output/full_pipeline_manifest.json",
+        )
+        parser.add_argument(
+            "--gated",
+            type=str,
+            default="apps/ml_layer/output/gated_candidates_after_coldstart.jsonl",
+        )
+        parser.add_argument(
+            "--ranked",
+            type=str,
+            default="apps/ml_layer/output/ranked_before_ml.jsonl",
+        )
+        parser.add_argument(
+            "--explained",
+            type=str,
+            default="apps/ml_layer/output/explained_recommendations.jsonl",
+        )
 
     def handle(self, *args, **options):
         base_dir = Path(settings.BASE_DIR)
         out_dir = base_dir / options["output_dir"]
         out_dir.mkdir(parents=True, exist_ok=True)
         manifests_dir = base_dir / options["manifests_dir"]
-        
 
         reranked_path = base_dir / options["reranked"]
         bundles_path = base_dir / options["bundles"]
         evaluation_json_path = base_dir / options["evaluation_json"]
         shap_dir = base_dir / options["shap_dir"]
-        
+        manifest_path = base_dir / options["manifest_path"]
+        gated_path = base_dir / options["gated"]
+        ranked_path = base_dir / options["ranked"]
+        explained_path = base_dir / options["explained"]
+
         manifest_paths = [
             (base_dir / p) if not Path(p).is_absolute() else Path(p)
             for p in options["manifest_paths"]
         ]
+        
+        ablation_df = self._build_ablation_summary_df(manifest_paths)
+        ablation_df.to_csv(out_dir / "ablation_summary.csv", index=False)
+
+        manifest = {}
+        if manifest_path.exists():
+            self.stdout.write("Loading full pipeline manifest...")
+            with open(manifest_path, "r", encoding="utf-8") as f:
+                manifest = json.load(f)
+
+        self.stdout.write("Loading gated candidates...")
+        gated_df = pd.read_json(gated_path, lines=True)
+
+        self.stdout.write("Loading ranked candidates...")
+        ranked_df = pd.read_json(ranked_path, lines=True)
 
         self.stdout.write("Loading reranked recommendations...")
         reranked_df = pd.read_json(reranked_path, lines=True)
 
         self.stdout.write("Loading bundled recommendations...")
         bundles_df = pd.read_json(bundles_path, lines=True)
-        
+
+        self.stdout.write("Loading explained recommendations...")
+        explained_df = pd.read_json(explained_path, lines=True)
+
         followup_window_distribution_df = self._build_followup_window_distribution_df(bundles_df)
 
         evaluation_metrics = {}
@@ -91,6 +133,7 @@ class Command(BaseCommand):
             bundles_df=bundles_df,
             evaluation_metrics=evaluation_metrics,
         )
+        fusion_strategy_distribution_df = self._build_fusion_strategy_distribution_df(reranked_df)
         fallback_counts_df = self._build_fallback_counts_df(reranked_df)
         lambda_tier_counts_df = self._build_lambda_tier_counts_df(reranked_df)
         confidence_distribution_df = self._build_confidence_distribution_df(bundles_df)
@@ -104,11 +147,51 @@ class Command(BaseCommand):
             participant_keys=options["participants"],
         )
         experiment_comparison_df = self._build_experiment_comparison_df(
-    	    manifests_dir=manifests_dir,
-       	    evaluation_metrics=evaluation_metrics,
-	)
+            manifests_dir=manifests_dir,
+            evaluation_metrics=evaluation_metrics,
+        )
+
+        pipeline_stage_counts_df = self._build_pipeline_stage_counts_df(
+            manifest=manifest,
+            gated_df=gated_df,
+            ranked_df=ranked_df,
+            reranked_df=reranked_df,
+            bundles_df=bundles_df,
+            explained_df=explained_df,
+        )
+
+        cold_start_summary_df = self._build_manifest_section_df(
+            section_name="cold_start",
+            payload=manifest.get("cold_start", {}),
+        )
+
+        ranking_manifest_summary_df = self._build_manifest_section_df(
+            section_name="ranking",
+            payload=manifest.get("ranking", {}),
+        )
+
+        ml_reranking_manifest_summary_df = self._build_manifest_section_df(
+            section_name="ml_reranking",
+            payload=manifest.get("ml_reranking", {}),
+        )
+
+        bundling_manifest_summary_df = self._build_manifest_section_df(
+            section_name="bundling",
+            payload=manifest.get("bundling", {}),
+        )
+
+        explainability_manifest_summary_df = self._build_manifest_section_df(
+            section_name="explainability",
+            payload=manifest.get("explainability", {}),
+        )
+
+        xai_status_distribution_df = self._build_xai_status_distribution_df(explained_df)
 
         summary_metrics_df.to_csv(out_dir / "summary_metrics.csv", index=False)
+        fusion_strategy_distribution_df.to_csv(
+            out_dir / "fusion_strategy_distribution.csv",
+            index=False
+        )
         ranking_impact_metrics_df.to_csv(out_dir / "ranking_impact_metrics.csv", index=False)
         fallback_counts_df.to_csv(out_dir / "fallback_counts.csv", index=False)
         lambda_tier_counts_df.to_csv(out_dir / "lambda_tier_counts.csv", index=False)
@@ -120,6 +203,14 @@ class Command(BaseCommand):
         shap_top_features_df.to_csv(out_dir / "shap_top_features_case_studies.csv", index=False)
         experiment_comparison_df.to_csv(out_dir / "experiment_comparison.csv", index=False)
         followup_window_distribution_df.to_csv(out_dir / "followup_window_distribution.csv", index=False)
+
+        pipeline_stage_counts_df.to_csv(out_dir / "pipeline_stage_counts.csv", index=False)
+        cold_start_summary_df.to_csv(out_dir / "cold_start_summary.csv", index=False)
+        ranking_manifest_summary_df.to_csv(out_dir / "ranking_manifest_summary.csv", index=False)
+        ml_reranking_manifest_summary_df.to_csv(out_dir / "ml_reranking_manifest_summary.csv", index=False)
+        bundling_manifest_summary_df.to_csv(out_dir / "bundling_manifest_summary.csv", index=False)
+        explainability_manifest_summary_df.to_csv(out_dir / "explainability_manifest_summary.csv", index=False)
+        xai_status_distribution_df.to_csv(out_dir / "xai_status_distribution.csv", index=False)
 
         self.stdout.write(self.style.SUCCESS("Thesis tables exported."))
         self.stdout.write(f"Saved to: {out_dir}")
@@ -248,6 +339,20 @@ class Command(BaseCommand):
             "count": vc.values,
             "pct": [round((v / total) * 100, 4) if total else 0.0 for v in vc.values],
         })
+        
+    @staticmethod
+    def _build_fusion_strategy_distribution_df(reranked_df: pd.DataFrame) -> pd.DataFrame:
+        if "fusion_strategy" not in reranked_df.columns:
+            return pd.DataFrame(columns=["fusion_strategy", "count", "pct"])
+
+        vc = reranked_df["fusion_strategy"].fillna("unknown").value_counts(dropna=False)
+        total = len(reranked_df)
+
+        return pd.DataFrame({
+            "fusion_strategy": vc.index.astype(str),
+            "count": vc.values,
+            "pct": [round((v / total) * 100, 4) if total else 0.0 for v in vc.values],
+        })
 
     @staticmethod
     def _build_followup_horizon_summary_df(bundles_df: pd.DataFrame) -> pd.DataFrame:
@@ -351,6 +456,7 @@ class Command(BaseCommand):
                 rows.append({
                     "experiment_name": manifest.get("model_version", path.stem.replace("manifest_", "")),
                     "model_version": manifest.get("model_version", "unknown"),
+                    "patient_profile_feature_count": training.get("patient_profile_feature_count"),
                     "feature_profile": training.get("feature_profile", "unknown"),
                     "schema_version": manifest.get("feature_schema_version", "unknown"),
                     "calibration_version": manifest.get("calibration_version", "unknown"),
@@ -433,8 +539,7 @@ class Command(BaseCommand):
             "mean_promoted_count": overall.get("mean_promoted_count"),
             "mean_demoted_count": overall.get("mean_demoted_count"),
         }])
-        
-        
+
     @staticmethod
     def _build_followup_window_distribution_df(bundles_df: pd.DataFrame) -> pd.DataFrame:
         if "followup_window_label" not in bundles_df.columns:
@@ -447,3 +552,105 @@ class Command(BaseCommand):
             "count": vc.values,
             "pct": [round((v / total) * 100, 4) if total else 0.0 for v in vc.values],
         })
+
+    @staticmethod
+    def _build_pipeline_stage_counts_df(
+        manifest: dict,
+        gated_df: pd.DataFrame,
+        ranked_df: pd.DataFrame,
+        reranked_df: pd.DataFrame,
+        bundles_df: pd.DataFrame,
+        explained_df: pd.DataFrame,
+    ) -> pd.DataFrame:
+        run_scope = manifest.get("run_scope", {}) if isinstance(manifest, dict) else {}
+
+        participants = 0
+        if "ParticipantKey" in gated_df.columns and not gated_df.empty:
+            participants = int(gated_df["ParticipantKey"].nunique())
+
+        return pd.DataFrame([
+            {
+                "participant_key": run_scope.get("participant_key"),
+                "limit": run_scope.get("limit"),
+                "participants": participants,
+                "gated_candidates": int(len(gated_df)),
+                "ranked_candidates": int(len(ranked_df)),
+                "reranked_candidates": int(len(reranked_df)),
+                "final_bundles": int(len(bundles_df)),
+                "explained_recommendations": int(len(explained_df)),
+            }
+        ])
+
+    @staticmethod
+    def _flatten_dict(prefix: str, payload: dict) -> list[dict]:
+        rows = []
+
+        for key, value in payload.items():
+            metric = f"{prefix}.{key}" if prefix else str(key)
+
+            if isinstance(value, dict):
+                rows.extend(Command._flatten_dict(metric, value))
+            else:
+                rows.append({
+                    "metric": metric,
+                    "value": value,
+                })
+
+        return rows
+
+    @staticmethod
+    def _build_manifest_section_df(section_name: str, payload: dict) -> pd.DataFrame:
+        if not isinstance(payload, dict) or not payload:
+            return pd.DataFrame(columns=["section", "metric", "value"])
+
+        rows = Command._flatten_dict("", payload)
+        for row in rows:
+            row["section"] = section_name
+
+        return pd.DataFrame(rows)[["section", "metric", "value"]]
+
+    @staticmethod
+    def _build_xai_status_distribution_df(explained_df: pd.DataFrame) -> pd.DataFrame:
+        if "ml_xai_payload" not in explained_df.columns:
+            return pd.DataFrame(columns=["xai_status", "count", "pct"])
+
+        statuses = explained_df["ml_xai_payload"].apply(
+            lambda x: x.get("xai_status", "unknown") if isinstance(x, dict) else "unknown"
+        )
+        vc = statuses.value_counts(dropna=False)
+        total = len(explained_df)
+
+        return pd.DataFrame({
+            "xai_status": vc.index.astype(str),
+            "count": vc.values,
+            "pct": [round((v / total) * 100, 4) if total else 0.0 for v in vc.values],
+        })
+        
+    @staticmethod
+    def _build_ablation_summary_df(manifest_paths: list[Path]) -> pd.DataFrame:
+        rows = []
+
+        for path in manifest_paths:
+            if not path.exists():
+                continue
+
+            with open(path, "r", encoding="utf-8") as f:
+                manifest = json.load(f)
+
+            training = manifest.get("training", {})
+            metrics = manifest.get("metrics", {})
+
+            rows.append({
+            	"patient_profile_feature_count": training.get("patient_profile_feature_count", 0),
+                "model_version": manifest.get("model_version", path.stem),
+                "feature_profile": training.get("feature_profile"),
+                "collaborative_feature_count": training.get("collaborative_feature_count", 0),
+                "temporal_feature_count": training.get("temporal_feature_count", 0),
+                "max_ml_contrib": manifest.get("max_ml_contrib"),
+                "val_log_loss": metrics.get("val_log_loss"),
+                "val_roc_auc": metrics.get("val_roc_auc"),
+                "val_brier_calibrated": metrics.get("val_brier_calibrated"),
+                "val_log_loss_calibrated": metrics.get("val_log_loss_calibrated"),
+            })
+
+        return pd.DataFrame(rows)

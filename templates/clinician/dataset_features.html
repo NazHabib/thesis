@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block title %}Dataset Features{% endblock %}
+
+{% block content %}
+<div class="card hero-card p-4 mb-4">
+  <div class="card-body">
+    <div class="muted-label text-white-50">Dataset evidence</div>
+    <h1 class="display-6 fw-bold mb-2">Dataset Features</h1>
+    <p class="mb-0 text-white-50">
+      Engineered NHANES variables used by the safety rules, ML reranker, fusion layer, and explanations.
+    </p>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="metric-card">
+      <div class="muted-label">Minimal tier</div>
+      <h3>{{ minimal_count }}</h3>
+      <div class="text-muted small">Demographic and basic body measures</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="metric-card">
+      <div class="muted-label">Core tier</div>
+      <h3>{{ core_count }}</h3>
+      <div class="text-muted small">Adds BP and glycaemic markers</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="metric-card">
+      <div class="muted-label">Full tier</div>
+      <h3>{{ full_count }}</h3>
+      <div class="text-muted small">Adds diet, activity, smoking, lipids</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="metric-card">
+      <div class="muted-label">Active model features</div>
+      <h3>{{ total_model_features }}</h3>
+      <div class="text-muted small">Runtime schema features</div>
+    </div>
+  </div>
+</div>
+
+<div class="alert alert-secondary mb-4">
+  <strong>Feature design:</strong>
+  Minimal → Core → Full → Temporal → Collaborative → Patient Profile.
+  This supports safe fallback when data are incomplete while allowing richer personalization when more information is available.
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="metric-card">
+      <div class="muted-label">Temporal features</div>
+      <h3>{{ temporal_feature_count }}</h3>
+      <div class="text-muted small">Follow-up urgency, persistence risk, monitoring readiness</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="metric-card">
+      <div class="muted-label">Collaborative features</div>
+      <h3>{{ collaborative_feature_count }}</h3>
+      <div class="text-muted small">Neighbour support and similarity-based evidence</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="metric-card">
+      <div class="muted-label">Patient profile features</div>
+      <h3>{{ patient_profile_feature_count }}</h3>
+      <div class="text-muted small">Clinical state abstraction for personalization</div>
+    </div>
+  </div>
+</div>
+
+<div class="card soft-card mb-4">
+  <div class="card-body">
+    <div class="muted-label">Clinical feature domains</div>
+    <h4>Grouped feature families</h4>
+
+    <div class="row g-3 mt-2">
+      {% for d in domain_cards %}
+        <div class="col-md-4">
+          <div class="border rounded p-3 h-100 bg-light">
+            <div class="d-flex justify-content-between">
+              <strong>{{ d.domain }}</strong>
+              <span class="badge text-bg-secondary">{{ d.count }}</span>
+            </div>
+            <div class="small text-muted mt-2">
+              {{ d.features|join:", " }}
+              {% if d.count > 12 %} ...{% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="card soft-card mb-4">
+  <div class="card-body">
+    <div class="muted-label">Feature glossary</div>
+    <h4>Active model feature explanations</h4>
+
+    <div class="table-responsive mt-3">
+      <table class="table table-sm table-hover align-middle">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Meaning</th>
+            <th>Domain</th>
+            <th>Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for f in glossary_rows %}
+            <tr>
+              <td><strong>{{ f.name }}</strong></td>
+              <td>{{ f.description }}</td>
+              <td>{{ f.domains }}</td>
+              <td>{{ f.role }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <p class="text-muted small mb-0">
+      Showing the first 80 active model features to keep the page readable.
+    </p>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-6">
+    <div class="card soft-card h-100">
+      <div class="card-body">
+        <div class="muted-label">Data quality</div>
+        <h4>Highest missingness variables</h4>
+
+        <table class="table table-sm mt-3">
+          <thead>
+            <tr>
+              <th>Variable</th>
+              <th>Missing %</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in missingness_rows %}
+              <tr>
+                <td>{{ r.variable }}</td>
+                <td>{{ r.missing_pct|floatformat:3 }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <p class="text-muted small mb-0">
+          Missingness motivates the minimal/core/full feature-tier design and safety-first fallback logic.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card soft-card h-100">
+      <div class="card-body">
+        <div class="muted-label">Clinical prevalence</div>
+        <h4>Selected unweighted indicators</h4>
+
+        <table class="table table-sm mt-3">
+          <thead>
+            <tr>
+              <th>Indicator</th>
+              <th>Non-missing</th>
+              <th>Prevalence</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in prevalence_rows %}
+              <tr>
+                <td>{{ r.indicator }}</td>
+                <td>{{ r.n_nonmissing }}</td>
+                <td>{{ r.prevalence_unweighted|floatformat:3 }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <p class="text-muted small mb-0">
+          These indicators define the cardiometabolic risk context used by the rules and ML reranking layer.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

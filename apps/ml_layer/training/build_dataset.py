@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import pandas as pd
 
-from apps.ml_layer.services.ml_reranking.feature_builder import add_interaction_features
+from apps.ml_layer.services.ml_reranking.feature_builder import (
+    add_interaction_features,
+    append_collaborative_features,
+    append_patient_profile_features,
+)
 
 from apps.common.clinical_safety.temporal import build_temporal_features
 
@@ -152,11 +156,15 @@ def build_ml_training_dataset(
     df = _deduplicate_participant_candidates(df)
     df = _add_rule_rank_columns(df)
 
-    df = _apply_label_scheme(
-        df=df,
-        label_scheme=label_scheme,
-        top_k_positive=top_k_positive,
-        min_score_norm=min_score_norm,
+    if participant_features_df is not None and not participant_features_df.empty:
+        df = append_patient_profile_features(df)
+        df = append_collaborative_features(df)
+
+    df = _apply_label_scheme( 
+        df=df, 
+        label_scheme=label_scheme, 
+        top_k_positive=top_k_positive, 
+        min_score_norm=min_score_norm, 
     )
 
     df = add_interaction_features(df)

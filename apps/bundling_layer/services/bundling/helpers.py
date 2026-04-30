@@ -171,6 +171,18 @@ def build_rationale(bundle_family: str, tags: list[str], triage_mode: bool) -> s
             "This bundle combines cross-domain actions intended to address overall "
             "cardiometabolic risk in a coordinated way."
         )
+    
+    if bundle_family == "DiabetesSelfManagement":
+        return (
+            "This bundle brings together diabetes self-management actions intended to support "
+            "safer day-to-day glycaemic management and sustained self-care."
+        )
+
+    if bundle_family == "DataQuality":
+        return (
+            "This bundle brings together data-quality and measurement-completion actions intended "
+            "to improve the reliability of subsequent clinical interpretation and follow-up."
+        )
 
     return "This bundle combines related recommendations into a coherent action plan."
 
@@ -195,6 +207,10 @@ def build_explanation(bundle_family: str, action_codes: list[str], confidence_la
         focus = "lipid-related cardiovascular risk"
     elif bundle_family == "Alcohol":
         focus = "alcohol-related risk reduction"
+    elif bundle_family == "DiabetesSelfManagement":
+        focus = "diabetes self-management"
+    elif bundle_family == "DataQuality":
+        focus = "completion of key health data"
     elif bundle_family == "IntegratedCardiometabolic":
         focus = "overall cardiometabolic risk reduction"
     else:

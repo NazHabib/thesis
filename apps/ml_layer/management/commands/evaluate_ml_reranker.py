@@ -65,6 +65,12 @@ class Command(BaseCommand):
             type=float,
             default=0.80,
         )
+        parser.add_argument(
+            "--fusion-strategy",
+            type=str,
+            default=None,
+            choices=["minmax_additive_v1", "weighted_average_v1"],
+        )
 
     def handle(self, *args, **options):
         base_dir = Path(settings.BASE_DIR)
@@ -112,6 +118,7 @@ class Command(BaseCommand):
             safety_context_df=safety_test_df,
             ranked_df=ranked_test_df,
             participant_features_df=participant_features_test_df,
+            fusion_strategy=options.get("fusion_strategy"),
         )
         reranked_test_df = ml_out["reranked_recommendations"].copy()
 
