@@ -1,39 +1,87 @@
 {% extends "base.html" %}
 {% block title %}My Alerts{% endblock %}
+
 {% block content %}
-<h2>My Alerts</h2>
+<div class="hero-card mb-4">
+  <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+    <div>
+      <p class="muted-label mb-1">Patient alerts</p>
+      <h2 class="mb-2">My Alerts</h2>
+      <p class="text-muted mb-0">
+        These messages highlight items that may need attention or follow-up.
+      </p>
+    </div>
+    <div>
+      <a class="btn btn-outline-secondary" href="{% url 'user:dashboard' %}">Back to dashboard</a>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="metric-card">
+      <p class="muted-label mb-1">Needs attention</p>
+      <h3 class="mb-0">{{ open_count }}</h3>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="metric-card">
+      <p class="muted-label mb-1">Reviewed</p>
+      <h3 class="mb-0">{{ reviewed_count }}</h3>
+    </div>
+  </div>
+</div>
 
 {% if alerts %}
-  <div class="list-group">
-    {% for a in alerts %}
-      <div class="list-group-item">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <strong>[{{ a.severity }}]</strong> {{ a.title }}
-            {% if a.acknowledged %}
-              <span class="badge text-bg-success ms-2">Acknowledged</span>
-            {% endif %}
+  <div class="soft-card">
+    <div class="list-group list-group-flush">
+      {% for a in alerts %}
+        <div class="list-group-item px-0 py-3">
+          <div class="d-flex flex-column flex-md-row justify-content-between gap-2">
+            <div>
+              <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                <h5 class="mb-0">{{ a.title }}</h5>
+
+                {% if a.acknowledged %}
+                  <span class="badge text-bg-success">Reviewed</span>
+                {% else %}
+                  <span class="badge text-bg-warning">Needs attention</span>
+                {% endif %}
+
+                {% if a.escalated_to_clinician %}
+                  <span class="badge text-bg-info">Clinician review requested</span>
+                {% endif %}
+              </div>
+
+              {% if a.message %}
+                <p class="mb-2 text-muted">{{ a.message }}</p>
+              {% else %}
+                <p class="mb-2 text-muted">Please review this item when convenient.</p>
+              {% endif %}
+
+              <small class="text-muted">
+                Created {{ a.created_at|date:"d M Y, H:i" }}
+              </small>
+            </div>
+
+            <div class="text-md-end">
+              {% if not a.acknowledged %}
+                <a class="btn btn-sm btn-outline-success" href="{% url 'user:alert_ack' a.id %}">
+                  Mark as reviewed
+                </a>
+              {% endif %}
+            </div>
           </div>
-          <small class="text-muted">{{ a.created_at }}</small>
         </div>
-
-        {% if a.message %}
-          <p class="mb-1 mt-2">{{ a.message }}</p>
-        {% endif %}
-
-        <small class="text-muted">Type: {{ a.alert_type }}{% if a.escalated_to_clinician %} | Escalated{% endif %}</small>
-
-        <div class="mt-2">
-          {% if not a.acknowledged %}
-            <a class="btn btn-sm btn-outline-success" href="{% url 'user:alert_ack' a.id %}">Acknowledge</a>
-          {% endif %}
-        </div>
-      </div>
-    {% endfor %}
+      {% endfor %}
+    </div>
   </div>
 {% else %}
-  <p class="text-muted">No alerts.</p>
+  <div class="soft-card">
+    <h5 class="mb-2">No alerts right now</h5>
+    <p class="text-muted mb-0">
+      There are currently no patient alerts to review.
+    </p>
+  </div>
 {% endif %}
-
-<a class="btn btn-outline-secondary mt-3" href="{% url 'user:dashboard' %}">Back</a>
 {% endblock %}

@@ -1,35 +1,110 @@
 {% extends "base.html" %}
-{% block title %}Alerts{% endblock %}
+{% block title %}Clinician Alerts{% endblock %}
+
 {% block content %}
-<h2>Alerts</h2>
-<p class="text-muted">Alerts for assigned patients.</p>
+<div class="hero-card mb-4">
+  <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+    <div>
+      <p class="muted-label mb-1">Clinician alerts</p>
+      <h2 class="mb-2">Alerts and care messages</h2>
+      <p class="text-muted mb-0">
+        Review patient-visible alerts, clinician notes, and safety-relevant events for assigned patients.
+      </p>
+    </div>
+
+    <div>
+      <a class="btn btn-outline-secondary" href="{% url 'clinician:patients' %}">
+        Assigned patients
+      </a>
+    </div>
+  </div>
+</div>
 
 {% if alerts %}
-  <div class="list-group">
-    {% for a in alerts %}
-      <div class="list-group-item">
-        <div class="d-flex justify-content-between">
-          <div>
-            <strong>[{{ a.severity }}]</strong> {{ a.title }}
-            <span class="badge text-bg-dark ms-2">{{ a.user.username }}</span>
-            {% if a.acknowledged %}
-              <span class="badge text-bg-success ms-1">Ack</span>
-            {% endif %}
+  <div class="soft-card">
+    <div class="list-group list-group-flush">
+      {% for a in alerts %}
+        <div class="list-group-item px-0 py-3">
+          <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
+            <div class="flex-grow-1">
+              <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                <h5 class="mb-0">{{ a.title }}</h5>
+
+                <span class="badge text-bg-dark">{{ a.user.username }}</span>
+
+                {% if a.severity == "CRITICAL" %}
+                  <span class="badge text-bg-danger">Critical</span>
+                {% elif a.severity == "HIGH" %}
+                  <span class="badge text-bg-warning">High</span>
+                {% elif a.severity == "MEDIUM" %}
+                  <span class="badge text-bg-info">Medium</span>
+                {% else %}
+                  <span class="badge text-bg-light border">Low</span>
+                {% endif %}
+
+                {% if a.visibility == "patient_visible" %}
+                  <span class="badge text-bg-primary">Patient visible</span>
+                {% else %}
+                  <span class="badge text-bg-secondary">Clinician note</span>
+                {% endif %}
+
+                {% if a.acknowledged %}
+                  <span class="badge text-bg-success">Reviewed by patient</span>
+                {% else %}
+                  <span class="badge text-bg-warning">Not reviewed</span>
+                {% endif %}
+              </div>
+
+              {% if a.message %}
+                <p class="mb-2">{{ a.message }}</p>
+              {% endif %}
+
+              {% if a.clinician_note %}
+                <div class="border rounded-3 bg-light p-2 mb-2">
+                  <strong>Internal note:</strong>
+                  <p class="mb-0">{{ a.clinician_note }}</p>
+                </div>
+              {% endif %}
+
+              <small class="text-muted">
+                Type: {{ a.alert_type }}
+                · Created {{ a.created_at|date:"d M Y, H:i" }}
+                {% if a.created_by %}
+                  · By {{ a.created_by.username }}
+                {% else %}
+                  · System-generated
+                {% endif %}
+              </small>
+            </div>
+
+            <div class="d-grid gap-2 align-self-start" style="min-width: 170px;">
+              <a class="btn btn-sm btn-outline-primary"
+                 href="{% url 'clinician:patient_detail' a.user.id %}">
+                Open patient
+              </a>
+              {% if a.recommendation_run %}
+                <a class="btn btn-sm btn-outline-primary"
+                  href="{% url 'clinician:patient_run_detail' a.user.id a.recommendation_run.id %}">
+                  Open linked run
+                </a>
+              {% endif %}
+
+              <a class="btn btn-sm btn-primary"
+                 href="{% url 'clinician:send_patient_message' a.user.id %}">
+                Send message
+              </a>
+            </div>
           </div>
-          <small class="text-muted">{{ a.created_at }}</small>
         </div>
-
-        {% if a.message %}
-          <p class="mb-1 mt-2">{{ a.message }}</p>
-        {% endif %}
-
-        <small class="text-muted">Type: {{ a.alert_type }}{% if a.escalated_to_clinician %} | Escalated{% endif %}</small>
-      </div>
-    {% endfor %}
+      {% endfor %}
+    </div>
   </div>
 {% else %}
-  <p class="text-muted">No alerts.</p>
+  <div class="soft-card">
+    <h5 class="mb-2">No alerts</h5>
+    <p class="text-muted mb-0">
+      There are currently no alerts or clinician messages for your assigned patients.
+    </p>
+  </div>
 {% endif %}
-
-<a class="btn btn-outline-secondary mt-3" href="{% url 'clinician:dashboard' %}">Back</a>
 {% endblock %}

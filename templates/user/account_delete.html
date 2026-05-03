@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Delete Account{% endblock %}
+
+{% block content %}
+<div class="hero-card mb-4">
+  <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+    <div>
+      <p class="muted-label mb-1">Account deletion</p>
+      <h2 class="mb-2">Delete Account</h2>
+      <p class="text-muted mb-0">
+        This page lets you permanently delete your patient account.
+      </p>
+    </div>
+    <div>
+      <a class="btn btn-outline-secondary" href="{% url 'user:profile' %}">Back to profile</a>
+    </div>
+  </div>
+</div>
+
+<div class="soft-card border-danger">
+  <h4 class="text-danger mb-3">Permanent action</h4>
+
+  <p>
+    Deleting your account will remove your login and related patient portal data from this Django application.
+    This action cannot be undone.
+  </p>
+
+  <p class="text-muted">
+    This does not delete the thesis research pipeline files or aggregated model outputs stored separately in the project.
+  </p>
+
+  <form method="post" class="mt-4">
+    {% csrf_token %}
+
+    <label class="form-label">
+      Type <strong>DELETE</strong> to confirm
+    </label>
+    <input class="form-control mb-3" name="confirm_text" placeholder="DELETE">
+
+    <div class="d-flex flex-wrap gap-2">
+      <button class="btn btn-danger" type="submit">Delete my account</button>
+      <a class="btn btn-outline-secondary" href="{% url 'user:profile' %}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

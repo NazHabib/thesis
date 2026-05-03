@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Pipeline Runs{% endblock %}
+
+{% block content %}
+<div class="hero-card mb-4">
+  <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+    <div>
+      <p class="muted-label mb-1">Admin audit</p>
+      <h2 class="mb-2">Pipeline Runs</h2>
+      <p class="mb-0">
+        Review recommendation generation mode, item counts, and audit notes for patient-facing runs.
+      </p>
+    </div>
+    <div>
+      <a class="btn btn-outline-light" href="{% url 'clinician:admin_tools' %}">Admin tools</a>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <a class="text-decoration-none text-dark" href="{% url 'clinician:pipeline_runs' %}?mode=live">
+      <div class="metric-card h-100">
+        <p class="muted-label mb-1">Live pipeline</p>
+        <h3 class="mb-1">{{ live_count }}</h3>
+        <p class="text-muted mb-0">Full single-patient pipeline runs.</p>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-4">
+    <a class="text-decoration-none text-dark" href="{% url 'clinician:pipeline_runs' %}?mode=fallback">
+      <div class="metric-card h-100">
+        <p class="muted-label mb-1">Fallback</p>
+        <h3 class="mb-1">{{ fallback_count }}</h3>
+        <p class="text-muted mb-0">Reference-matching fallback runs.</p>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-4">
+    <a class="text-decoration-none text-dark" href="{% url 'clinician:pipeline_runs' %}?mode=old">
+      <div class="metric-card h-100">
+        <p class="muted-label mb-1">Other</p>
+        <h3 class="mb-1">{{ old_count }}</h3>
+        <p class="text-muted mb-0">Legacy or earlier development runs.</p>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div class="soft-card">
+  <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+    <div>
+      <p class="muted-label mb-1">Audit table</p>
+      <h4 class="mb-0">
+        Recommendation runs
+        {% if mode == "live" %}
+          <span class="badge text-bg-success ms-2">Live only</span>
+        {% elif mode == "fallback" %}
+          <span class="badge text-bg-warning ms-2">Fallback only</span>
+        {% elif mode == "old" %}
+          <span class="badge text-bg-secondary ms-2">Other only</span>
+        {% endif %}
+      </h4>
+    </div>
+    <a class="btn btn-sm btn-outline-secondary" href="{% url 'clinician:pipeline_runs' %}">Clear filter</a>
+  </div>
+
+  {% if runs %}
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>Created</th>
+            <th>User</th>
+            <th>Engine</th>
+            <th>Items</th>
+            <th>Status</th>
+            <th>Notes preview</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for run in runs %}
+            <tr>
+              <td>{{ run.created_at|date:"d M Y, H:i" }}</td>
+              <td>
+                <strong>{{ run.user.username }}</strong>
+                <div class="text-muted small">{{ run.user.role }}</div>
+              </td>
+              <td><code>{{ run.engine_version }}</code></td>
+              <td>{{ run.item_count }}</td>
+              <td>
+                {% if run.engine_version == "live_single_patient_pipeline" %}
+                  <span class="badge text-bg-success">Live pipeline</span>
+                {% elif run.engine_version == "reference_match_fallback" %}
+                  <span class="badge text-bg-warning">Fallback</span>
+                {% else %}
+                  <span class="badge text-bg-secondary">Other</span>
+                {% endif %}
+              </td>
+              <td class="small text-muted" style="max-width: 480px;">
+                {{ run.notes|truncatechars:220 }}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-muted mb-0">No runs found for this filter.</p>
+  {% endif %}
+</div>
+{% endblock %}

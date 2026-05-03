@@ -209,7 +209,7 @@ class PatientProfileBuilder:
     def _derive_bp_status(sbp: pd.Series, dbp: pd.Series) -> pd.Series:
         result = np.select(
             [
-                (sbp > 180) | (dbp > 120),
+                (sbp >= 180) | (dbp >= 120),
                 (sbp >= 140) | (dbp >= 90),
                 sbp.between(130, 139, inclusive="both") | dbp.between(80, 89, inclusive="both"),
                 sbp.between(120, 129, inclusive="both") & (dbp < 80),

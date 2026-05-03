@@ -20,6 +20,7 @@ from .contracts import (
     validate_ranked_columns,
     validate_safety_context_columns,
     validate_participant_features_columns,
+    ensure_ml_output_columns,
 )
 from .fallback import rules_only_fallback
 from .feature_builder import build_ml_feature_table
@@ -84,6 +85,7 @@ def run_ml_reranking_layer(
             ranked_df=ranked_df,
             reason=f"schema_mismatch:{'; '.join(issues)}",
         )
+        reranked_df = ensure_ml_output_columns(reranked_df)
         reranked_df = reranked_df[FINAL_RERANKED_COLUMNS].copy()
 
         return {
@@ -106,6 +108,7 @@ def run_ml_reranking_layer(
             schema_version=artifacts["schema_version"],
             calibration_version=artifacts["calibration_version"],
         )
+        reranked_df = ensure_ml_output_columns(reranked_df)
         reranked_df = reranked_df[FINAL_RERANKED_COLUMNS].copy()
 
         return {
@@ -124,6 +127,7 @@ def run_ml_reranking_layer(
         fusion_strategy=fusion_strategy,
     )
 
+    reranked_df = ensure_ml_output_columns(reranked_df)
     reranked_df = reranked_df[FINAL_RERANKED_COLUMNS].copy()
 
     return {

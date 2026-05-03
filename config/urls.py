@@ -20,7 +20,32 @@ from apps.accounts.views import home_redirect
 from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
+from django.shortcuts import redirect
 
+from apps.accounts.models import User
+
+
+class RoleAwareLoginView(auth_views.LoginView):
+    template_name = "registration/login.html"
+    redirect_authenticated_user = True
+
+    def get_success_url(self):
+        user = self.request.user
+        role = getattr(user, "role", None)
+
+        if role in [User.Role.ADMIN, User.Role.CLINICIAN]:
+            return "/clinician/"
+        return "/user/"
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            role = getattr(request.user, "role", None)
+
+            if role in [User.Role.ADMIN, User.Role.CLINICIAN]:
+                return redirect("clinician:dashboard")
+            return redirect("user:dashboard")
+
+        return super().get(request, *args, **kwargs)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -28,7 +53,7 @@ urlpatterns = [
     path("user/", include("apps.user_portal.urls")),
     path("clinician/", include("apps.clinician_portal.urls")),
     path("testing/", include("apps.testing_portal.urls")),
-    path("login/", auth_views.LoginView.as_view(template_name="registration/login.html"), name="login"),
+    path("login/", RoleAwareLoginView.as_view(), name="login"),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("recs/", include("apps.recommendations.urls")),
     path("de/", include("apps.pghd.urls_de")),

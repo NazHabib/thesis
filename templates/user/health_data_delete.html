@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Delete Health Record{% endblock %}
+
+{% block content %}
+<div class="hero-card mb-4">
+  <div>
+    <p class="muted-label mb-1">Patient health data</p>
+    <h2 class="mb-2">Delete Health Record</h2>
+    <p class="mb-0">
+      Remove a mistaken patient or family-entered health record.
+    </p>
+  </div>
+</div>
+
+<div class="soft-card">
+  <p class="muted-label mb-1">Confirm deletion</p>
+  <h4 class="mb-3">{{ record.label|default:"Health record" }}</h4>
+
+  <p class="text-muted">
+    Recorded {{ record.recorded_at|date:"d M Y" }} · {{ record.get_source_display }}
+  </p>
+
+  <div class="alert alert-warning">
+    This will remove the record from the patient's health data timeline. Future recommendations will no longer use this record.
+  </div>
+
+  <form method="post" class="d-flex flex-wrap gap-2">
+    {% csrf_token %}
+    <button class="btn btn-danger" type="submit">Delete record</button>
+    <a class="btn btn-outline-secondary" href="{% url 'user:health_data_detail' record.id %}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

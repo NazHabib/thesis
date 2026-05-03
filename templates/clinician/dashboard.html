@@ -41,4 +41,38 @@
     </a>
   </div>
 </div>
+
+{% if user.role == "ADMIN" %}
+<div class="row g-3 mt-1">
+  <div class="col-md-4">
+    <a class="text-decoration-none text-dark" href="{% url 'clinician:admin_tools' %}">
+      <div class="metric-card h-100">
+        <div class="muted-label">Administration</div>
+        <h4 class="mt-2">Admin Tools</h4>
+        <p class="text-muted mb-0">Manage assignments and audit live recommendation runs.</p>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-4">
+    <a class="text-decoration-none text-dark" href="{% url 'clinician:patient_assignments' %}">
+      <div class="metric-card h-100">
+        <div class="muted-label">Access control</div>
+        <h4 class="mt-2">Patient Assignments</h4>
+        <p class="text-muted mb-0">Assign patients to clinicians for controlled review access.</p>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-4">
+    <a class="text-decoration-none text-dark" href="{% url 'clinician:pipeline_runs' %}">
+      <div class="metric-card h-100">
+        <div class="muted-label">Audit</div>
+        <h4 class="mt-2">Pipeline Runs</h4>
+        <p class="text-muted mb-0">Verify whether recommendations used the live pipeline or fallback.</p>
+      </div>
+    </a>
+  </div>
+</div>
+{% endif %}
 {% endblock %}

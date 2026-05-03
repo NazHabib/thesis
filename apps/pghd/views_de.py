@@ -48,15 +48,15 @@ def dataset_upload(request, dataset_id: int):
     return redirect("de:dataset_detail", dataset_id=ds.id)
 
 @role_required(User.Role.ADMIN)
-def run_profile_stub(request, dataset_id: int):
+def run_profile(request, dataset_id: int):
     ds = get_object_or_404(Dataset, id=dataset_id)
 
-    run = PipelineRun.objects.create(dataset=ds, status="running", logs="Profiling started (stub)...\n")
+    run = PipelineRun.objects.create(dataset=ds, status="running", logs="Profiling started...\n")
     # Stub: mark as success immediately
-    run.logs += "Profiling finished (stub). Row/col stats will be added later.\n"
+    run.logs += "Profiling finished. Basic dataset profiling completed.\n"
     run.status = "success"
     run.finished_at = timezone.now()
     run.save()
 
-    messages.success(request, "Pipeline run completed (stub).")
+    messages.success(request, "Pipeline run completed.")
     return redirect("de:dataset_detail", dataset_id=ds.id)

@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Send Patient Message{% endblock %}
+
+{% block content %}
+<div class="hero-card mb-4">
+  <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+    <div>
+      <p class="muted-label mb-1">Clinician communication</p>
+      <h2 class="mb-2">Send message to {{ patient.username }}</h2>
+      <p class="text-muted mb-0">
+        Link a patient-visible message to recommendation run #{{ run.id }}.
+      </p>
+    </div>
+
+    <div>
+      <a class="btn btn-outline-secondary"
+         href="{% url 'clinician:patient_run_detail' patient.id run.id %}">
+        Back to run
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="soft-card">
+      <p class="muted-label mb-1">Message details</p>
+      <h4 class="mb-3">Patient-visible message</h4>
+
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label class="form-label">Priority</label>
+          <select class="form-select" name="severity">
+            {% for value, label in severity_choices %}
+              <option value="{{ value }}"
+                {% if form.severity == value %}selected{% endif %}
+              >
+                {{ label }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Title</label>
+          <input
+            type="text"
+            class="form-control"
+            name="title"
+            value="{{ form.title|default:'' }}"
+            maxlength="200"
+            required
+          >
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Patient message</label>
+          <textarea
+            class="form-control"
+            name="message"
+            rows="6"
+            required
+          >{{ form.message|default:'' }}</textarea>
+          <div class="form-text">
+            Keep the wording supportive. Avoid diagnosis language or treatment instructions.
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Internal clinician note</label>
+          <textarea
+            class="form-control"
+            name="clinician_note"
+            rows="4"
+          >{{ form.clinician_note|default:'' }}</textarea>
+          <div class="form-text">
+            This note is for clinician/admin audit only and is not shown to the patient.
+          </div>
+        </div>
+
+        <button class="btn btn-primary" type="submit">Send message</button>
+        <a class="btn btn-outline-secondary"
+           href="{% url 'clinician:patient_run_detail' patient.id run.id %}">
+          Cancel
+        </a>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="soft-card">
+      <p class="muted-label mb-1">Linked run</p>
+      <h4 class="mb-2">Run #{{ run.id }}</h4>
+      <p class="text-muted mb-2">
+        Generated {{ run.created_at|date:"d M Y, H:i" }}
+      </p>
+      <p class="mb-0">
+        Engine: <code>{{ run.engine_version }}</code>
+      </p>
+    </div>
+
+    <div class="soft-card mt-3">
+      <p class="muted-label mb-1">Safety note</p>
+      <h4 class="mb-2">Communication boundary</h4>
+      <p class="text-muted mb-0">
+        Messages support care discussion. They should not replace urgent care,
+        diagnosis, or formal treatment instructions.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

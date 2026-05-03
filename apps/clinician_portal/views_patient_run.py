@@ -10,6 +10,10 @@ from apps.accounts.models import User
 from apps.profiles.services import clinician_can_access_patient
 from apps.recommendations.models import RecommendationRun
 
+from django.contrib import messages
+from django.shortcuts import redirect
+from django.utils import timezone
+
 
 def _safe_read_jsonl(path: Path) -> pd.DataFrame:
     if not path.exists():
@@ -139,3 +143,31 @@ def patient_run_detail(request, patient_id: int, run_id: int):
             "run": run,
         },
     )
+    
+@role_required(User.Role.ADMIN, User.Role.CLINICIAN)
+def patient_run_review(request, patient_id: int, run_id: int):
+    patient = get_object_or_404(User, id=patient_id)
+
+    if not clinician_can_access_patient(request.user, patient):
+        return HttpResponseForbidden("Forbidden: patient not assigned.")
+
+    run = get_object_or_404(RecommendationRun, id=run_id, user=patient)
+
+    if request.method != "POST":
+        return redirect("clinician:patient_run_detail", patient_id=patient.id, run_id=run.id)
+
+    run.clinician_reviewed = True
+    run.clinician_reviewed_by = request.user
+    run.clinician_reviewed_at = timezone.now()
+    run.clinician_review_note = request.POST.get("clinician_review_note", "").strip()
+    run.save(
+        update_fields=[
+            "clinician_reviewed",
+            "clinician_reviewed_by",
+            "clinician_reviewed_at",
+            "clinician_review_note",
+        ]
+    )
+
+    messages.success(request, "Recommendation run marked as clinically reviewed.")
+    return redirect("clinician:patient_run_detail", patient_id=patient.id, run_id=run.id)

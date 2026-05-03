@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Send Patient Message{% endblock %}
+
+{% block content %}
+<div class="hero-card mb-4">
+  <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+    <div>
+      <p class="muted-label mb-1">Clinician communication</p>
+      <h2 class="mb-2">Send message to {{ patient.username }}</h2>
+      <p class="text-muted mb-0">
+        Create a patient-visible alert or an internal clinician note.
+      </p>
+    </div>
+
+    <div>
+      <a class="btn btn-outline-secondary"
+         href="{% url 'clinician:patient_detail' patient.id %}">
+        Back to patient
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="soft-card">
+      <p class="muted-label mb-1">Message details</p>
+      <h4 class="mb-3">Patient communication</h4>
+
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label class="form-label">Priority</label>
+          <select class="form-select" name="severity">
+            {% for value, label in severity_choices %}
+              <option value="{{ value }}"
+                {% if form.severity == value %}selected{% endif %}
+              >
+                {{ label }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Title</label>
+          <input
+            type="text"
+            class="form-control"
+            name="title"
+            value="{{ form.title|default:'' }}"
+            maxlength="200"
+            placeholder="Example: Please review your latest blood pressure reading"
+            required
+          >
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Patient message</label>
+          <textarea
+            class="form-control"
+            name="message"
+            rows="6"
+            placeholder="Write a clear, supportive message for the patient or family member."
+            required
+          >{{ form.message|default:'' }}</textarea>
+          <div class="form-text">
+            Avoid diagnosis language. Keep the message supportive and advise professional review when appropriate.
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Internal clinician note</label>
+          <textarea
+            class="form-control"
+            name="clinician_note"
+            rows="4"
+            placeholder="Optional internal note for clinician/admin audit."
+          >{{ form.clinician_note|default:'' }}</textarea>
+        </div>
+
+        <button class="btn btn-primary" type="submit">Save message</button>
+        <a class="btn btn-outline-secondary"
+           href="{% url 'clinician:patient_detail' patient.id %}">
+          Cancel
+        </a>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="soft-card">
+      <p class="muted-label mb-1">Safety note</p>
+      <h4 class="mb-2">Communication boundary</h4>
+      <p class="text-muted mb-0">
+        These messages support care discussion. They should not replace urgent care,
+        diagnosis, or formal treatment instructions.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

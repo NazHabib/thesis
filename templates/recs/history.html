@@ -1,21 +1,53 @@
 {% extends "base.html" %}
 {% block title %}Recommendation History{% endblock %}
+
 {% block content %}
-<h2>Recommendation History</h2>
+<div class="hero-card mb-4">
+  <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+    <div>
+      <p class="muted-label mb-1">Patient guidance</p>
+      <h2 class="mb-2">Recommendation History</h2>
+      <p class="text-muted mb-0">
+        Review previous patient-facing recommendation summaries created for you.
+      </p>
+    </div>
+    <div>
+      <a class="btn btn-primary" href="{% url 'recs:generate' %}">Create new</a>
+      <a class="btn btn-outline-secondary" href="{% url 'user:dashboard' %}">Dashboard</a>
+    </div>
+  </div>
+</div>
 
 {% if runs %}
-  <div class="list-group">
-    {% for run in runs %}
-      <a class="list-group-item list-group-item-action" href="{% url 'recs:detail' run.id %}">
-        <div class="d-flex justify-content-between">
-          <strong>Run #{{ run.id }}</strong>
-          <span class="text-muted">{{ run.created_at }}</span>
-        </div>
-        <small class="text-muted">Engine: {{ run.engine_version }}</small>
-      </a>
-    {% endfor %}
+  <div class="soft-card">
+    <div class="list-group list-group-flush">
+      {% for run in runs %}
+        <a class="list-group-item list-group-item-action px-0 py-3" href="{% url 'recs:detail' run.id %}">
+          <div class="d-flex flex-column flex-md-row justify-content-between gap-2">
+            <div>
+              <h5 class="mb-1">Recommendation summary</h5>
+              <p class="text-muted mb-0">
+                {{ run.items.count }} recommendation{{ run.items.count|pluralize }} available.
+              </p>
+            </div>
+
+            <div class="text-md-end">
+              <span class="badge text-bg-light border">
+                {{ run.created_at|date:"d M Y, H:i" }}
+              </span>
+            </div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
   </div>
 {% else %}
-  <p>No runs yet.</p>
+  <div class="soft-card">
+    <h5 class="mb-2">No recommendation summaries yet</h5>
+    <p class="text-muted mb-3">
+      Create your first recommendation summary to see guidance here.
+    </p>
+    <a class="btn btn-primary" href="{% url 'recs:generate' %}">Create recommendations</a>
+  </div>
 {% endif %}
 {% endblock %}

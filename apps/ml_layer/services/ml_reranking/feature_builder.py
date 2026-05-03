@@ -18,6 +18,7 @@ COLLAB_FEATURE_COLUMNS = [
     "collab_weighted_mean_rule_score_norm",
     "collab_weighted_mean_rank_pre_ml",
     "collab_mean_supporting_similarity",
+    "collab_safety_interpretation",
 ]
 
 PATIENT_PROFILE_COLUMNS = [
@@ -336,8 +337,13 @@ def append_collaborative_features(features_df: pd.DataFrame) -> pd.DataFrame:
 
     added_cols = [c for c in out.columns if c not in before_cols]
 
-    for col in added_cols:
-        if col.startswith("collab_"):
+    for col in COLLAB_FEATURE_COLUMNS:
+        if col not in out.columns:
+            out[col] = "" if col == "collab_safety_interpretation" else 0
+
+        if col == "collab_safety_interpretation":
+            out[col] = out[col].fillna("")
+        else:
             out[col] = out[col].fillna(0)
 
     return out

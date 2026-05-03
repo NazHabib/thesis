@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}Update Health Data{% endblock %}
+
+{% block content %}
+<div class="hero-card mb-4">
+  <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+    <div>
+      <p class="muted-label mb-1">Patient health data</p>
+      <h2 class="mb-2">Update Health Data</h2>
+      <p class="text-muted mb-0">
+        Enter the latest available measurements. Leave unknown fields blank.
+      </p>
+    </div>
+    <div>
+      <a class="btn btn-outline-secondary" href="{% url 'user:health_data' %}">Back to health data</a>
+    </div>
+  </div>
+</div>
+
+<form method="post" class="soft-card">
+  {% csrf_token %}
+
+  <div class="mb-4">
+    <p class="muted-label mb-1">Snapshot label</p>
+    <h4 class="mb-3">Reference point</h4>
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Label</label>
+        <input
+          class="form-control"
+          name="label"
+          value="{{ snapshot.label }}"
+          placeholder="Example: Latest home measurements"
+        >
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="mb-4">
+    <p class="muted-label mb-1">Body measurements</p>
+    <h4 class="mb-3">Height, weight and BMI</h4>
+
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">Height in cm</label>
+        <input class="form-control" name="height_cm" value="{{ snapshot.height_cm|default_if_none:'' }}">
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">Weight in kg</label>
+        <input class="form-control" name="weight_kg" value="{{ snapshot.weight_kg|default_if_none:'' }}">
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">BMI</label>
+        <input class="form-control" name="bmi" value="{{ snapshot.bmi|default_if_none:'' }}">
+        <div class="form-text">If left blank, BMI can be calculated from height and weight.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="mb-4">
+    <p class="muted-label mb-1">Clinical measurements</p>
+    <h4 class="mb-3">Blood pressure, glucose and cholesterol</h4>
+
+    <div class="row g-3">
+      <div class="col-md-3">
+        <label class="form-label">HbA1c</label>
+        <input class="form-control" name="hba1c" value="{{ snapshot.hba1c|default_if_none:'' }}">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Systolic BP</label>
+        <input class="form-control" name="systolic_bp" value="{{ snapshot.systolic_bp|default_if_none:'' }}">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Diastolic BP</label>
+        <input class="form-control" name="diastolic_bp" value="{{ snapshot.diastolic_bp|default_if_none:'' }}">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Total cholesterol</label>
+        <input class="form-control" name="total_cholesterol_mg_dl" value="{{ snapshot.total_cholesterol_mg_dl|default_if_none:'' }}">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">HDL cholesterol</label>
+        <input class="form-control" name="hdl_mg_dl" value="{{ snapshot.hdl_mg_dl|default_if_none:'' }}">
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="mb-4">
+    <p class="muted-label mb-1">Diet and lifestyle</p>
+    <h4 class="mb-3">Daily habits</h4>
+
+    <div class="row g-3">
+      <div class="col-md-3">
+        <label class="form-label">Sodium mg/day</label>
+        <input class="form-control" name="sodium_mg_day" value="{{ snapshot.sodium_mg_day|default_if_none:'' }}">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Fibre g/day</label>
+        <input class="form-control" name="fibre_g_day" value="{{ snapshot.fibre_g_day|default_if_none:'' }}">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Sugar g/day</label>
+        <input class="form-control" name="sugar_g_day" value="{{ snapshot.sugar_g_day|default_if_none:'' }}">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Activity minutes/week</label>
+        <input class="form-control" name="mvpa_minutes_week" value="{{ snapshot.mvpa_minutes_week|default_if_none:'' }}">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label">Sedentary hours/day</label>
+        <input class="form-control" name="sedentary_hours_day" value="{{ snapshot.sedentary_hours_day|default_if_none:'' }}">
+      </div>
+
+      <div class="col-md-4">
+        <div class="border rounded-3 p-3 h-100">
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              name="current_smoker"
+              id="current_smoker"
+              {% if snapshot.current_smoker %}checked{% endif %}
+            >
+            <label class="form-check-label" for="current_smoker">
+              Current smoker
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="border rounded-3 p-3 h-100">
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              name="alcohol_over_guideline"
+              id="alcohol_over_guideline"
+              {% if snapshot.alcohol_over_guideline %}checked{% endif %}
+            >
+            <label class="form-check-label" for="alcohol_over_guideline">
+              Alcohol intake above guideline
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="mb-4">
+    <p class="muted-label mb-1">Optional notes</p>
+    <label class="form-label">Notes</label>
+    <textarea class="form-control" name="notes" rows="3">{{ snapshot.notes }}</textarea>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2">
+    <button class="btn btn-primary" type="submit">Save health data</button>
+    <a class="btn btn-outline-secondary" href="{% url 'user:health_data' %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

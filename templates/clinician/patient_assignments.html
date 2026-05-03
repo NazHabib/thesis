@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Patient Assignments{% endblock %}
+
+{% block content %}
+<div class="hero-card mb-4">
+  <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+    <div>
+      <p class="muted-label mb-1">Admin area</p>
+      <h2 class="mb-2">Patient Assignments</h2>
+      <p class="mb-0">
+        Control which clinicians can access which patient records and recommendation histories.
+      </p>
+    </div>
+    <div>
+      <a class="btn btn-outline-light" href="{% url 'clinician:admin_tools' %}">Admin tools</a>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-4">
+    <div class="soft-card h-100">
+      <p class="muted-label mb-1">Create assignment</p>
+      <h4 class="mb-3">Assign patient to clinician</h4>
+
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label class="form-label">Clinician</label>
+          <select class="form-select" name="clinician_id" required>
+            <option value="">Choose clinician</option>
+            {% for clinician in clinicians %}
+              <option value="{{ clinician.id }}">
+                {{ clinician.username }}{% if clinician.email %} · {{ clinician.email }}{% endif %}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Patient</label>
+          <select class="form-select" name="patient_id" required>
+            <option value="">Choose patient</option>
+            {% for patient in patients %}
+              <option value="{{ patient.id }}">
+                {{ patient.username }}{% if patient.email %} · {{ patient.email }}{% endif %}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <button class="btn btn-primary w-100" type="submit">Create assignment</button>
+      </form>
+
+      <hr>
+
+      <p class="text-muted small mb-0">
+        This only controls clinician portal access. It does not change the patient's own account or recommendations.
+      </p>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="soft-card h-100">
+      <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+        <div>
+          <p class="muted-label mb-1">Current access</p>
+          <h4 class="mb-0">Active assignments</h4>
+        </div>
+        <span class="badge text-bg-light border">{{ assignments|length }} links</span>
+      </div>
+
+      {% if assignments %}
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Clinician</th>
+                <th>Patient</th>
+                <th>Created</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for link in assignments %}
+                <tr>
+                  <td>
+                    <strong>{{ link.clinician.username }}</strong>
+                    {% if link.clinician.email %}
+                      <div class="text-muted small">{{ link.clinician.email }}</div>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <a href="{% url 'clinician:patient_detail' link.patient.id %}" class="fw-semibold text-decoration-none">
+                      {{ link.patient.username }}
+                    </a>
+                    {% if link.patient.email %}
+                      <div class="text-muted small">{{ link.patient.email }}</div>
+                    {% endif %}
+                  </td>
+                  <td>{{ link.created_at|date:"d M Y, H:i" }}</td>
+                  <td class="text-end">
+                    <form method="post" action="{% url 'clinician:remove_patient_assignment' link.id %}">
+                      {% csrf_token %}
+                      <button class="btn btn-sm btn-outline-danger" type="submit">
+                        Remove
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="border rounded-3 p-3 bg-light">
+          <h5>No assignments yet</h5>
+          <p class="text-muted mb-0">
+            Create the first clinician-patient link using the form on the left.
+          </p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
