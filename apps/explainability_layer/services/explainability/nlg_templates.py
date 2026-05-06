@@ -1,6 +1,12 @@
 from __future__ import annotations
 
 
+TRIAGE_REASON_PATIENT_TEXT = {
+    "hypertensive_crisis": "very high blood pressure indicators",
+    "severe_hyperglycemia": "very high blood sugar indicators",
+    "both": "very high blood pressure and blood sugar indicators",
+}
+
 def build_patient_facing_explanation(
     bundle_title: str,
     rationale: str,
@@ -36,8 +42,12 @@ def build_patient_facing_explanation(
         parts.append(str(followup_timing_text).strip())
 
     if triage_mode and triage_reason and str(triage_reason).lower() != "none":
+        reason_text = TRIAGE_REASON_PATIENT_TEXT.get(
+            str(triage_reason).lower(),
+            "higher-risk clinical indicators",
+        )
         parts.append(
-            f"This was generated in safety-first mode because of {str(triage_reason).replace('_', ' ')}."
+            f"This was generated in safety-first mode because of {reason_text}."
         )
 
     return " ".join(parts)
@@ -131,15 +141,17 @@ def build_ml_rerank_note(
     fusion_strategy: str | None = None,
 ) -> str:
     status = str(rerank_status or "").lower()
+    strategy = str(fusion_strategy or "").lower()
 
-    if status == "rules_only_fallback":
+    if not status and not strategy:
+        return "No ML reranking metadata was available for this recommendation."
+
+    if status == "rules_only_fallback" or strategy == "rules_only_fallback":
         if fallback_reason:
             return f"Final ordering remained rules-only because the ML layer fell back ({fallback_reason})."
         return "Final ordering remained rules-only."
 
-    strategy_text = ""
-    if fusion_strategy:
-        strategy_text = f" Fusion strategy: {fusion_strategy}."
+    strategy_text = f" Fusion strategy: {fusion_strategy}." if fusion_strategy else ""
 
     return (
         "Final ordering may reflect bounded ML reranking refinement without overriding upstream clinical safety constraints."

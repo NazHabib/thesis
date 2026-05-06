@@ -13,7 +13,7 @@ ACTION_CODE_PREFIX_MAP = {
     "RECOMMEND_SMOKING": "Smoking",
     "RECOMMEND_ALCOHOL": "Alcohol",
     "RECOMMEND_WEIGHT": "Weight",
-    "RECOMMEND_LIPID": "Lipids",
+    "RECOMMEND_LIPIDS": "Lipids",
 }
 
 

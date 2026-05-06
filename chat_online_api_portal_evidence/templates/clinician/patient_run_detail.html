@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}Patient {{ patient.username }} Run {{ run.id }}{% endblock %}
+
+{% block content %}
+<div class="hero-card mb-4">
+  <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+    <div>
+      <p class="muted-label mb-1">Clinician review</p>
+      <h2 class="mb-2">{{ patient.username }} — Run #{{ run.id }}</h2>
+      <p class="text-muted mb-0">
+        Generated {{ run.created_at|date:"d M Y, H:i" }} · Engine {{ run.engine_version }}
+      </p>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 align-items-start">
+      <a class="btn btn-primary"
+         href="{% url 'clinician:send_run_message' patient.id run.id %}">
+        Send patient message
+      </a>
+
+      <a class="btn btn-outline-secondary"
+         href="{% url 'clinician:patient_detail' patient.id %}">
+        Back to patient
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-4">
+    <div class="metric-card h-100">
+      <p class="muted-label mb-1">Review status</p>
+      {% if run.clinician_reviewed %}
+        <h4 class="mb-1">Reviewed</h4>
+        <p class="text-muted mb-0">
+          {% if run.clinician_reviewed_by %}
+            By {{ run.clinician_reviewed_by.username }}
+          {% endif %}
+          {% if run.clinician_reviewed_at %}
+            · {{ run.clinician_reviewed_at|date:"d M Y, H:i" }}
+          {% endif %}
+        </p>
+      {% else %}
+        <h4 class="mb-1">Awaiting review</h4>
+        <p class="text-muted mb-0">This run has not been marked as clinically reviewed.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="metric-card h-100">
+      <p class="muted-label mb-1">Recommendation items</p>
+      <h4 class="mb-1">{{ run.items.count }}</h4>
+      <p class="text-muted mb-0">Items generated for this patient run.</p>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="metric-card h-100">
+      <p class="muted-label mb-1">Pipeline mode</p>
+      {% if run.engine_version == "live_single_patient_pipeline" %}
+        <h4 class="mb-1">Live pipeline</h4>
+        <span class="badge text-bg-success">Full pipeline</span>
+      {% elif run.engine_version == "reference_match_fallback" %}
+        <h4 class="mb-1">Fallback</h4>
+        <span class="badge text-bg-warning">Reference match</span>
+      {% else %}
+        <h4 class="mb-1">Other</h4>
+        <span class="badge text-bg-secondary">{{ run.engine_version }}</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% if not run.clinician_reviewed %}
+  <div class="soft-card mb-4">
+    <p class="muted-label mb-1">Clinical oversight</p>
+    <h4 class="mb-3">Mark this recommendation run as reviewed</h4>
+
+    <form method="post" action="{% url 'clinician:patient_run_review' patient.id run.id %}">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label class="form-label">Clinician review note</label>
+        <textarea
+          name="clinician_review_note"
+          class="form-control"
+          rows="4"
+          placeholder="Optional internal note. Example: Reviewed recommendation ordering; appropriate for patient discussion."
+        ></textarea>
+        <div class="form-text">
+          This note is for clinician/admin audit. It is not shown on the patient recommendation page.
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Mark as reviewed</button>
+    </form>
+  </div>
+{% else %}
+  {% if run.clinician_review_note %}
+    <div class="soft-card mb-4">
+      <p class="muted-label mb-1">Clinician review note</p>
+      <p class="mb-0">{{ run.clinician_review_note }}</p>
+    </div>
+  {% endif %}
+{% endif %}
+
+{% for item in run.items.all %}
+  <div class="soft-card mb-3">
+    <div class="d-flex justify-content-between gap-3">
+      <div>
+        <h4 class="mb-2">{{ item.title }}</h4>
+        <p class="mb-1"><strong>Category:</strong> {{ item.category }}</p>
+      </div>
+      <span class="badge text-bg-secondary align-self-start">Priority {{ item.priority }}</span>
+    </div>
+
+    {% if item.rationale %}
+      <p class="mb-1"><strong>Rationale:</strong> {{ item.rationale }}</p>
+    {% endif %}
+
+    {% if item.explanation %}
+      <p class="mb-1"><strong>Explanation:</strong> {{ item.explanation }}</p>
+    {% endif %}
+
+    <p class="mb-0 text-muted">
+      <small>Source: {{ item.source }} · Confidence: {{ item.confidence }}</small>
+    </p>
+  </div>
+{% empty %}
+  <div class="soft-card">
+    <h5 class="mb-2">No recommendation items</h5>
+    <p class="text-muted mb-0">This run does not contain recommendation items.</p>
+  </div>
+{% endfor %}
+
+<div class="soft-card mt-4">
+  <p class="muted-label mb-1">Decision-support boundary</p>
+  <p class="text-muted mb-0">
+    Marking this run as reviewed records clinician oversight. It does not convert the system output into diagnosis or treatment.
+  </p>
+</div>
+{% endblock %}

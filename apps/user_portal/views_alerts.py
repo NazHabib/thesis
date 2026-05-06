@@ -5,6 +5,8 @@ from apps.accounts.models import User
 from apps.accounts.permissions import role_required
 from apps.alerts.models import AlertEvent
 
+from django.views.decorators.http import require_POST
+
 
 @role_required(User.Role.ADMIN, User.Role.CLINICIAN, User.Role.USER)
 def alerts_list(request):
@@ -28,7 +30,8 @@ def alerts_list(request):
     )
 
 
-@role_required(User.Role.ADMIN, User.Role.CLINICIAN, User.Role.USER)
+@require_POST
+@role_required(User.Role.USER)
 def alert_ack(request, alert_id: int):
     alert = get_object_or_404(
         AlertEvent,

@@ -7,7 +7,7 @@
   "model_path": "/mnt/c/Users/nazmu/documents/thesis_proj/apps/ml_layer/artifacts/models/lgbm_model_v1.9.0_temporal_collab_profile.joblib",
   "preprocessor_path": "/mnt/c/Users/nazmu/documents/thesis_proj/apps/ml_layer/artifacts/preprocessors/lgbm_preprocessor_v1.9.0_temporal_collab_profile.joblib",
   "calibrator_path": "/mnt/c/Users/nazmu/documents/thesis_proj/apps/ml_layer/artifacts/calibrators/calibrator_isotonic_v1_profile.joblib",
-  "max_ml_contrib": 0.5,
+  "max_ml_contrib": 0.75,
   "training": {
     "feature_profile": "temporal_collab_profile_full",
     "top_k_positive": 3,

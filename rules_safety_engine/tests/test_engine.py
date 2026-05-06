@@ -286,3 +286,49 @@ def test_rulebase_audit_detects_missing_explanation_template():
 
     audit = audit_rulebase(rules)
     assert any(x["issue_type"] == "missing_explanation_template" for x in audit["issues"])
+    
+    
+def test_critical_escalation_ranks_above_high_forbid():
+    df = pd.DataFrame({
+        "ParticipantKey": ["P1"],
+        "SBP_mean": [185],
+        "DBP_mean": [121],
+        "BMXBMI": [42],
+    })
+
+    rules = [
+        Rule(
+            rule_id="CRITICAL_ESCALATE",
+            rule_version="1.0.0",
+            name="Critical escalation",
+            group="safety",
+            priority=100,
+            condition="SBP_mean >= 180 or DBP_mean >= 120",
+            missing_policy="na_false",
+            severity="critical",
+            action_type="escalate",
+            action_code="URGENT_REVIEW",
+            conflict_group="SAFETY_TEST",
+            conflict_policy="keep_strongest",
+        ),
+        Rule(
+            rule_id="HIGH_FORBID",
+            rule_version="1.0.0",
+            name="High forbid",
+            group="safety",
+            priority=999,
+            condition="BMXBMI >= 40",
+            missing_policy="na_false",
+            severity="high",
+            action_type="forbid",
+            action_code="AVOID_UNSUPERVISED_INTENSE_ACTIVITY",
+            conflict_group="SAFETY_TEST",
+            conflict_policy="keep_strongest",
+        ),
+    ]
+
+    result = evaluate_rules(df, rules)
+    codes = [r.action_code for r in result.recommendations]
+
+    assert "URGENT_REVIEW" in codes
+    assert "AVOID_UNSUPERVISED_INTENSE_ACTIVITY" not in codes

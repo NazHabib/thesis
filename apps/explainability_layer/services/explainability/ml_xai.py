@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from .feature_labels import humanize_feature_name, feature_group, is_clinical_only_feature
+
 import joblib
 import numpy as np
 import pandas as pd
@@ -24,172 +26,6 @@ ACTIVE_MANIFEST_PATH = (
     / "manifests"
     / "active_manifest.json"
 )
-
-
-FEATURE_LABEL_MAP = {
-    "num__score_norm": "Normalized rule score",
-    "num__confidence_score": "Upstream confidence score",
-    "num__total_score": "Rule-based total score",
-    "num__priority": "Recommendation priority",
-    "num__domain_alignment": "Domain alignment score",
-    "num__base_action_score": "Base action score",
-    "num__base_severity_score": "Base severity score",
-    "num__evidence_strength": "Evidence strength score",
-    "num__missing_penalty": "Missing-data penalty",
-    "num__contraindication_penalty": "Contraindication penalty",
-    "num__data_completeness_score": "Data completeness score",
-    "num__LBXGH": "HbA1c",
-    "num__DR1TSODI": "Day-1 sodium intake",
-    "num__DR1TFIBE": "Day-1 fibre intake",
-    "num__DR1TSUGR": "Day-1 total sugar intake",
-    "num__SBP_mean": "Mean systolic blood pressure",
-    "num__DBP_mean": "Mean diastolic blood pressure",
-    "num__BMXBMI": "Body mass index",
-    "num__BMXWAIST": "Waist circumference",
-    "num__Current_smoker_flag": "Current smoker flag",
-    "num__Any_MVPA_flag": "Any moderate/vigorous activity flag",
-    "num__HDL_low_flag": "Low HDL flag",
-    "num__TC_high_flag": "High total cholesterol flag",
-    "num__DM_severity_score": "Diabetes severity score",
-    "num__HTN_severity_score": "Hypertension severity score",
-    "num__Obesity_severity_score": "Obesity severity score",
-    "num__Lifestyle_risk_score": "Lifestyle risk score",
-    "num__Cardiometabolic_severity_score": "Cardiometabolic severity score",
-    "num__Alcohol_over_guideline_flag": "Alcohol above guideline flag",
-    "num__SatFat_over_10pct_flag": "Saturated fat above 10% energy flag",
-    "num__Sodium_over_2300_flag": "Sodium above 2300 mg flag",
-    "num__Sodium_over_1500_flag": "Sodium above 1500 mg flag",
-    "num__Hypertensive_crisis_flag": "Hypertensive crisis flag",
-    "num__Severe_hyperglycemia_flag": "Severe hyperglycaemia flag",
-    "cat__confidence_label_high": "High upstream confidence",
-    "cat__confidence_label_medium": "Medium upstream confidence",
-    "cat__confidence_label_low": "Low upstream confidence",
-    "cat__Severity_band_Low": "Low severity band",
-    "cat__Severity_band_Moderate": "Moderate severity band",
-    "cat__Severity_band_High": "High severity band",
-    "cat__bundle_family_DietPattern": "Diet pattern bundle family",
-    "cat__bundle_family_Movement": "Movement bundle family",
-    "cat__bundle_family_Monitoring": "Monitoring bundle family",
-    "cat__bundle_family_Weight": "Weight bundle family",
-    "cat__bundle_family_Smoking": "Smoking bundle family",
-    "cat__bundle_family_Lipids": "Lipids bundle family",
-    "cat__severity_high": "High candidate severity",
-    "cat__severity_low": "Low candidate severity",
-    "cat__severity_moderate": "Moderate candidate severity",
-    "num__is_monitoring_bundle": "Monitoring bundle indicator",
-    "num__is_diet_bundle": "Diet bundle indicator",
-    "num__is_movement_bundle": "Movement bundle indicator",
-    "num__is_weight_bundle": "Weight bundle indicator",
-    "num__is_smoking_bundle": "Smoking bundle indicator",
-    "cat__action_type_inform": "Informational action type",
-    "cat__action_type_recommend": "Recommendation action type",
-    "num__Hypertension": "Hypertension flag",
-    "num__Diabetes": "Diabetes flag",
-    "num__Prediabetes": "Prediabetes flag",
-    "cat__action_type_escalate": "Escalation action type",
-    "cat__bundle_family_DietPattern": "Diet pattern bundle family",
-    "cat__bundle_family_Movement": "Movement bundle family",
-    "cat__bundle_family_Monitoring": "Monitoring bundle family",
-    "cat__bundle_family_Weight": "Weight bundle family",
-    "cat__bundle_family_Smoking": "Smoking bundle family",
-    "cat__bundle_family_Lipids": "Lipids bundle family",
-    "cat__severity_high": "higher-priority recommendation context",
-    "cat__severity_moderate": "moderate-priority recommendation context",
-    "cat__severity_low": "lower-priority recommendation context",
-    "num__is_monitoring_bundle": "monitoring-related need",
-    "num__is_diet_bundle": "diet-related need",
-    "num__is_movement_bundle": "physical-activity-related need",
-    "num__is_weight_bundle": "weight-related need",
-    "num__is_smoking_bundle": "smoking-related need",
-    "cat__action_type_inform": "supporting informational context",
-    "cat__action_type_recommend": "direct recommendation context",
-    "cat__action_type_escalate": "escalation context",
-    "num__followup_horizon_days": "recommended follow-up interval",
-    "num__persistence_risk_proxy": "persistence of elevated risk",
-    "num__repeat_measurement_available": "repeat measurements available",
-    "num__longitudinal_ready_flag": "longitudinal data readiness",
-    "num__short_followup_flag": "short follow-up need",
-    "num__high_persistence_risk_flag": "higher persistence risk",
-    "num__longitudinal_ready_x_monitoring_bundle": "monitoring supported by longitudinal data",
-    "num__followup_horizon_x_monitoring_bundle": "monitoring linked to follow-up interval",
-    "cat__followup_urgency_urgent": "urgent follow-up context",
-    "cat__followup_urgency_soon": "near-term follow-up context",
-    "cat__followup_urgency_monitor": "monitoring follow-up context",
-    "cat__followup_urgency_routine": "routine follow-up context",
-    "cat__monitoring_need_level_very_high": "very high monitoring need",
-    "cat__monitoring_need_level_high": "high monitoring need",
-    "cat__monitoring_need_level_moderate": "moderate monitoring need",
-    "cat__monitoring_need_level_low": "low monitoring need",
-    "cat__temporal_risk_tier_acute": "acute temporal risk",
-    "cat__temporal_risk_tier_high": "high temporal risk",
-    "cat__temporal_risk_tier_elevated": "elevated temporal risk",
-    "cat__temporal_risk_tier_stable": "stable temporal risk",
-    "cat__temporal_data_quality_good": "good temporal data quality",
-    "cat__temporal_data_quality_usable": "usable temporal data quality",
-    "cat__temporal_data_quality_limited": "limited temporal data quality",
-}
-
-FEATURE_GROUP_MAP = {
-    "score_norm": "meta_ranking",
-    "confidence_score": "meta_ranking",
-    "total_score": "meta_ranking",
-    "priority": "meta_ranking",
-    "domain_alignment": "meta_ranking",
-    "base_action_score": "meta_ranking",
-    "base_severity_score": "meta_ranking",
-    "evidence_strength": "meta_ranking",
-    "missing_penalty": "meta_ranking",
-    "contraindication_penalty": "meta_ranking",
-    "data_completeness_score": "meta_ranking",
-    "LBXGH": "clinical",
-    "SBP_mean": "clinical",
-    "DBP_mean": "clinical",
-    "BMXBMI": "clinical",
-    "BMXWAIST": "clinical",
-    "HDL_low_flag": "clinical",
-    "TC_high_flag": "clinical",
-    "DM_severity_score": "clinical",
-    "HTN_severity_score": "clinical",
-    "Obesity_severity_score": "clinical",
-    "Lifestyle_risk_score": "clinical",
-    "Cardiometabolic_severity_score": "clinical",
-    "DR1TSODI": "lifestyle",
-    "DR1TFIBE": "lifestyle",
-    "DR1TSUGR": "lifestyle",
-    "Current_smoker_flag": "lifestyle",
-    "Any_MVPA_flag": "lifestyle",
-    "Alcohol_over_guideline_flag": "lifestyle",
-    "SatFat_over_10pct_flag": "lifestyle",
-    "Sodium_over_2300_flag": "lifestyle",
-    "Sodium_over_1500_flag": "lifestyle",
-    "Hypertensive_crisis_flag": "safety_context",
-    "Severe_hyperglycemia_flag": "safety_context",
-    "Severity_band": "safety_context",
-    "bundle_family": "candidate_context",
-    "severity": "candidate_context",
-    "action_type": "candidate_context",
-    "is_monitoring_bundle": "candidate_context",
-    "is_diet_bundle": "candidate_context",
-    "is_movement_bundle": "candidate_context",
-    "is_weight_bundle": "candidate_context",
-    "is_smoking_bundle": "candidate_context",
-    "Hypertension": "clinical",
-    "Diabetes": "clinical",
-    "Prediabetes": "clinical",
-    "action_code": "candidate_context",
-    "followup_horizon_days": "temporal",
-    "persistence_risk_proxy": "temporal",
-    "repeat_measurement_available": "temporal",
-    "longitudinal_ready_flag": "temporal",
-    "short_followup_flag": "temporal",
-    "high_persistence_risk_flag": "temporal",
-    "longitudinal_ready_x_monitoring_bundle": "temporal",
-    "followup_horizon_x_monitoring_bundle": "temporal",
-    "followup_urgency": "temporal",
-    "monitoring_need_level": "temporal",
-    "temporal_risk_tier": "temporal",
-    "temporal_data_quality": "temporal",
-}
 
 
 def build_bundle_ml_xai_payload(
@@ -431,37 +267,11 @@ def _extract_positive_class_shap(shap_values: Any) -> np.ndarray:
     return np.asarray(shap_values)
 
 
-def _feature_label(feature_name: str) -> str:
-    if feature_name in FEATURE_LABEL_MAP:
-        return FEATURE_LABEL_MAP[feature_name]
-
-    raw = feature_name
-    if "__" in raw:
-        raw = raw.split("__", 1)[1]
-
-    return raw.replace("_", " ")
-
-
-def _feature_group(feature_name: str) -> str:
-    raw = feature_name
-    if "__" in raw:
-        raw = raw.split("__", 1)[1]
-
-    if raw in FEATURE_GROUP_MAP:
-        return FEATURE_GROUP_MAP[raw]
-
-    for key, group in FEATURE_GROUP_MAP.items():
-        if raw.startswith(key):
-            return group
-
-    return "other"
-
-
 def _factor_dict(feature_name: str, shap_value: float) -> dict:
     return {
         "feature": str(feature_name),
-        "feature_label": _feature_label(str(feature_name)),
-        "feature_group": _feature_group(str(feature_name)),
+        "feature_label": humanize_feature_name(str(feature_name)),
+        "feature_group": feature_group(str(feature_name)),
         "shap_value": float(shap_value),
     }
 

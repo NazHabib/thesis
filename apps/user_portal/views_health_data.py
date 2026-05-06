@@ -8,6 +8,7 @@ from apps.accounts.models import User
 from apps.accounts.permissions import role_required
 from apps.profiles.models import PatientHealthRecord
 from apps.profiles.services import build_current_health_feature_payload
+from django.utils.dateparse import parse_date
 
 
 def _float_or_none(value: str):
@@ -67,11 +68,14 @@ def _validate_record_values(record: PatientHealthRecord) -> list[str]:
 def _populate_record_from_post(record: PatientHealthRecord, post_data):
     recorded_at = post_data.get("recorded_at", "").strip()
     if recorded_at:
-        record.recorded_at = recorded_at
+        parsed_recorded_at = parse_date(recorded_at)
+        if parsed_recorded_at is None:
+            raise ValueError("Invalid recorded date.")
+        record.recorded_at = parsed_recorded_at
     else:
         record.recorded_at = timezone.localdate()
 
-    record.source = post_data.get("source", PatientHealthRecord.Source.PATIENT)
+    record.source = PatientHealthRecord.Source.PATIENT
     record.label = post_data.get("label", "").strip() or "Health record"
 
     record.age_years = _int_or_none(post_data.get("age_years", ""))
@@ -160,8 +164,6 @@ def health_data(request):
         "Alcohol_over_guideline_flag",
         "TotalChol_mg_dL",
         "HDL_mg_dL",
-        "Hypertension",
-        "Diabetes",
     ]
 
     important_completed = sum(

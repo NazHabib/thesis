@@ -147,7 +147,7 @@ def score_candidates(df: pd.DataFrame) -> pd.DataFrame:
     out["base_severity_score"] = out["severity_normalized"].map(SEVERITY_SCORE_MAP).fillna(0).astype(float)
 
     out["priority_num"] = pd.to_numeric(out["priority"], errors="coerce").fillna(0.0)
-    out["base_action_score"] = out["base_severity_score"] + out["priority_num"].clip(lower=0, upper=500) / 10.0
+    out["base_action_score"] = out["base_severity_score"] + out["priority_num"].clip(lower=0, upper=1200) / 10.0
 
     passed_counts = out["evidence"].apply(count_passed_evidence).astype(float)
     out["evidence_strength"] = (passed_counts * EVIDENCE_BONUS_PER_PASSED).clip(upper=EVIDENCE_BONUS_CAP)

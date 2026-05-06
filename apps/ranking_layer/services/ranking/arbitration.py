@@ -40,17 +40,32 @@ def apply_conflict_policy(group: pd.DataFrame) -> pd.DataFrame:
 
 
 def apply_family_cap(group: pd.DataFrame) -> pd.DataFrame:
-    if "bundle_family" not in group.columns:
-        return _sort_candidate_frame(group).head(MAX_RECOMMENDATIONS_PER_PARTICIPANT)
+    sorted_group = _sort_candidate_frame(group)
 
-    capped = (
-        _sort_candidate_frame(group)
-        .groupby("bundle_family", sort=False, group_keys=False)
-        .head(MAX_PER_FAMILY)
-    )
+    safety_mask = sorted_group["action_type"].astype("string").isin({"escalate", "forbid"})
+    safety_items = sorted_group[safety_mask]
+    normal_items = sorted_group[~safety_mask]
 
-    capped = _sort_candidate_frame(capped)
-    return capped.head(MAX_RECOMMENDATIONS_PER_PARTICIPANT)
+    if "bundle_family" not in normal_items.columns:
+        capped_normal = _sort_candidate_frame(normal_items).head(MAX_RECOMMENDATIONS_PER_PARTICIPANT)
+    else:
+        capped_normal = (
+            _sort_candidate_frame(normal_items)
+            .groupby("bundle_family", sort=False, group_keys=False)
+            .head(MAX_PER_FAMILY)
+        )
+
+    combined = pd.concat([safety_items, capped_normal], ignore_index=True, sort=False)
+    combined = _sort_candidate_frame(combined)
+
+    if safety_items.empty:
+        return combined.head(MAX_RECOMMENDATIONS_PER_PARTICIPANT)
+
+    normal_slots = max(0, MAX_RECOMMENDATIONS_PER_PARTICIPANT - len(safety_items))
+    capped_normal = _sort_candidate_frame(capped_normal).head(normal_slots)
+
+    combined = pd.concat([safety_items, capped_normal], ignore_index=True, sort=False)
+    return _sort_candidate_frame(combined)
 
 
 def arbitrate_candidates(df: pd.DataFrame) -> pd.DataFrame:

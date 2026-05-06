@@ -1,7 +1,12 @@
 import pandas as pd
 
 from .config import EXPLAINABILITY_VERSION
-from .contracts import validate_final_bundle_columns, validate_safety_context_columns
+from .contracts import (
+    validate_final_bundle_columns,
+    validate_safety_context_columns,
+    PATIENT_SAFE_EXPLAINABILITY_FIELDS,
+    CLINICIAN_EXPLAINABILITY_FIELDS,
+)
 from .explainers import explain_bundle
 from .nlg_templates import (
     build_patient_facing_explanation,
@@ -60,6 +65,16 @@ FINAL_EXPLAINED_COLUMNS = [
     "fusion_ml_component",
 ]
 
+def build_patient_safe_explainability_view(explained_df: pd.DataFrame) -> pd.DataFrame:
+    out = explained_df.copy()
+    cols = [c for c in PATIENT_SAFE_EXPLAINABILITY_FIELDS if c in out.columns]
+    return out[cols].copy()
+
+
+def build_clinician_explainability_view(explained_df: pd.DataFrame) -> pd.DataFrame:
+    out = explained_df.copy()
+    cols = [c for c in CLINICIAN_EXPLAINABILITY_FIELDS if c in out.columns]
+    return out[cols].copy()
 
 def run_explainability_layer(
     safety_context_df: pd.DataFrame,
@@ -70,23 +85,29 @@ def run_explainability_layer(
     validate_safety_context_columns(safety_context_df)
     validate_final_bundle_columns(final_recommendations_df)
 
+    safety_merge_columns = [
+        "ParticipantKey",
+        "feature_tier",
+        "triage_mode",
+        "triage_reason",
+        "confidence_ceiling_global",
+        "followup_urgency",
+        "followup_horizon_days",
+        "monitoring_need_level",
+        "temporal_risk_tier",
+        "persistence_risk_proxy",
+        "temporal_data_quality",
+        "longitudinal_ready_flag",
+    ]
+
+    safety_merge_df = safety_context_df.copy()
+
+    for col in safety_merge_columns:
+        if col not in safety_merge_df.columns:
+            safety_merge_df[col] = None
+
     merged_df = final_recommendations_df.merge(
-        safety_context_df[
-            [
-                "ParticipantKey",
-                "feature_tier",
-                "triage_mode",
-                "triage_reason",
-                "confidence_ceiling_global",
-                "followup_urgency",
-                "followup_horizon_days",
-                "monitoring_need_level",
-                "temporal_risk_tier",
-                "persistence_risk_proxy",
-                "temporal_data_quality",
-                "longitudinal_ready_flag",
-            ]
-        ].drop_duplicates(subset=["ParticipantKey"]),
+        safety_merge_df[safety_merge_columns].drop_duplicates(subset=["ParticipantKey"]),
         on="ParticipantKey",
         how="left",
         suffixes=("", "_ctx"),

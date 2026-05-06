@@ -5,6 +5,7 @@ from .config import (
     ALLOW_ONE_SUPPORT_ITEM_IN_TRIAGE,
     CONF_TO_INT,
     GENERATED_ESCALATE_CODE,
+    GENERATED_ESCALATE_PRIORITY,
     INT_TO_CONF,
     SEVERITY_RANK,
 )
@@ -54,28 +55,27 @@ def apply_cold_start_gating(
     )
     
     if df.empty:
-        out = df.copy()
-        defaults = {
-            "coldstart_gate": pd.Series(dtype="object"),
-            "coldstart_drop_reason": pd.Series(dtype="object"),
-            "generated_by_layer": pd.Series(dtype="object"),
-            "coldstart_confidence_ceiling": pd.Series(dtype="object"),
-            "coldstart_note_codes": pd.Series(dtype="object"),
-            "cold_start_flag": pd.Series(dtype="bool"),
-        }
-        for col, default in defaults.items():
-            if col not in out.columns:
-                out[col] = default
-        return out
+        for col in [
+            "action_code",
+            "action_type",
+            "severity",
+            "priority",
+            "tags",
+            "evidence",
+            "source_rule_ids",
+            "bundle_family",
+        ]:
+            if col not in df.columns:
+                df[col] = pd.Series(dtype="object")
 
     df["coldstart_gate"] = "keep"
     df["coldstart_drop_reason"] = None
     df["generated_by_layer"] = None
 
-    is_triage = df["triage_mode"].fillna(False)
-    is_escalate = df["action_type"].astype("string").eq("escalate")
+    if "triage_mode" not in df.columns:
+        df["triage_mode"] = False
 
-    is_triage = df["triage_mode"].fillna(False)
+    is_triage = df["triage_mode"].fillna(False).astype(bool)
     is_escalate = df["action_type"].astype("string").eq("escalate")
 
     df.loc[is_triage & ~is_escalate, "coldstart_gate"] = "drop"
@@ -157,14 +157,20 @@ def apply_cold_start_gating(
 
     df["cold_start_flag"] = df["feature_tier"].eq("minimal")
 
-    triage_pks = set(df.loc[df["triage_mode"], "ParticipantKey"].unique())
+    triage_pks = set(
+        safety_context_df.loc[
+            safety_context_df["triage_mode"].fillna(False),
+            "ParticipantKey",
+        ].astype(str)
+    )
+
     existing_escalate_pks = set(
         df.loc[
-            (df["triage_mode"])
+            (df["triage_mode"].fillna(False))
             & (df["action_type"].astype("string") == "escalate")
             & (df["coldstart_gate"] == "keep"),
             "ParticipantKey",
-        ].unique()
+        ].astype(str)
     )
     missing_escalates = triage_pks - existing_escalate_pks
 
@@ -177,7 +183,7 @@ def apply_cold_start_gating(
             action_code=GENERATED_ESCALATE_CODE,
             action_type="escalate",
             severity="critical",
-            priority=100,
+            priority=GENERATED_ESCALATE_PRIORITY,
             tags=[["monitoring"] for _ in range(len(base))],
             evidence=[
                 [{

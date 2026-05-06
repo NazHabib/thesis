@@ -7,6 +7,7 @@ from . import views_patient_run
 from . import views_alerts
 from . import views_admin
 from . import views_messages
+from . import views_patient_health
 
 app_name = "clinician"
 
@@ -30,4 +31,14 @@ urlpatterns = [
     path("system-behaviour/", views.system_behaviour, name="system_behaviour"),
     path("model-performance/", views.model_performance, name="model_performance"),
     path("alerts/", views_alerts.alerts_list, name="alerts"),
+    path(
+        "patient/<int:patient_id>/health-data/add/",
+        views_patient_health.clinician_health_data_add,
+        name="clinician_health_data_add",
+    ),
+    path(
+        "patient/<int:patient_id>/generate-recommendations/",
+        views_patient_health.clinician_generate_patient_recommendations,
+        name="clinician_generate_patient_recommendations",
+    ),
 ]

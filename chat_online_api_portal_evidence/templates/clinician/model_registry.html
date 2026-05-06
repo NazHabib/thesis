@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}Model Registry{% endblock %}
+
+{% block content %}
+<div class="card hero-card p-4 mb-4">
+  <div class="card-body">
+    <div class="muted-label text-white-50">Experiment history</div>
+    <h1 class="display-6 fw-bold mb-2">Model Registry</h1>
+    <p class="mb-0 text-white-50">
+      All trained reranker models and ablation variants created during the thesis project.
+    </p>
+  </div>
+</div>
+
+<div class="alert alert-secondary mb-4">
+  <strong>Evolution:</strong>
+  Baseline → Temporal → Collaborative → Weighted collaborative → Patient-profile-enhanced final hybrid model
+</div>
+
+<div class="card soft-card mb-4">
+  <div class="card-body">
+    <div class="muted-label">Model selection rationale</div>
+    <h4>Why the final model was selected</h4>
+    <ul class="mb-0">
+      <li>Uses the richest feature representation: temporal, collaborative, and patient profile signals.</li>
+      <li>Maintains strong validation ROC-AUC while improving calibrated probability behaviour.</li>
+      <li>Supports the final hybrid architecture used by the presentation layer.</li>
+      <li>Preserves safety-first behaviour through fallback and bounded fusion rather than direct ML override.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="metric-card">
+      <div class="muted-label">Total models</div>
+      <h3>{{ model_count }}</h3>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <div class="metric-card">
+      <div class="muted-label">Active model</div>
+      <h3>{{ active_version }}</h3>
+    </div>
+  </div>
+</div>
+
+<div class="card soft-card">
+  <div class="card-body">
+    <div class="muted-label">Artifacts</div>
+    <h4 class="mb-3">Trained model manifests</h4>
+
+    <div class="table-responsive">
+      <table class="table table-hover table-sm align-middle">
+        <colgroup>
+          <col style="width: 15%;">
+          <col style="width: 12%;">
+          <col style="width: 14%;">
+          <col style="width: 15%;">
+          <col style="width: 10%;">
+          <col style="width: 13%;">
+          <col style="width: 6%;">
+          <col style="width: 7%;">
+          <col style="width: 10%;">
+          <col style="width: 6%;">
+        </colgroup>
+
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Profile</th>
+            <th>Innovation</th>
+            <th>Features</th>
+            <th>Data</th>
+            <th>Metrics</th>
+            <th>Δ AUC</th>
+            <th>Calibration</th>
+            <th>Label</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for m in models %}
+            <tr>
+              <td>
+                <strong>{{ m.model_version }}</strong>
+                <div class="small text-muted">{{ m.file_name }}</div>
+              </td>
+
+              <td>
+                {{ m.feature_profile|default:"unknown" }}
+                <div class="small text-muted">Schema {{ m.schema_version }}</div>
+              </td>
+
+              <td>
+                {% if "profile" in m.model_version %}
+                  <span class="badge text-bg-dark">Patient profile</span>
+                {% elif "weighted" in m.model_version %}
+                  <span class="badge text-bg-success">Weighted collab</span>
+                {% elif "collab" in m.model_version %}
+                  <span class="badge text-bg-success">Collaborative</span>
+                {% elif "temporal_only" in m.model_version %}
+                  <span class="badge text-bg-primary">Temporal only</span>
+                {% elif "temporal_full" in m.model_version %}
+                  <span class="badge text-bg-primary">Temporal full</span>
+                {% elif "no_temporal" in m.model_version %}
+                  <span class="badge text-bg-secondary">No temporal</span>
+                {% else %}
+                  <span class="badge text-bg-secondary">Baseline</span>
+                {% endif %}
+              </td>
+
+              <td>
+                {% if m.temporal_feature_count %}
+                  <span class="badge text-bg-primary">T {{ m.temporal_feature_count }}</span>
+                {% endif %}
+                {% if m.collaborative_feature_count %}
+                  <span class="badge text-bg-success">C {{ m.collaborative_feature_count }}</span>
+                {% endif %}
+                {% if m.patient_profile_feature_count %}
+                  <span class="badge text-bg-dark">P {{ m.patient_profile_feature_count }}</span>
+                {% endif %}
+                {% if not m.temporal_feature_count and not m.collaborative_feature_count and not m.patient_profile_feature_count %}
+                  <span class="text-muted small">Baseline</span>
+                {% endif %}
+              </td>
+
+              <td class="small">
+                <strong>Train:</strong> {{ m.train_rows|default:"-" }}<br>
+                <span class="text-muted">Val:</span> {{ m.val_rows|default:"-" }}<br>
+                <span class="text-muted">Test:</span> {{ m.test_rows|default:"-" }}
+              </td>
+
+              <td class="small">
+                <strong>AUC:</strong> {{ m.val_roc_auc|floatformat:4 }}<br>
+                <span class="text-muted">LogLoss:</span> {{ m.val_log_loss_calibrated|floatformat:4 }}<br>
+                <span class="text-muted">Brier:</span> {{ m.val_brier_calibrated|floatformat:4 }}
+              </td>
+
+              <td class="small">
+                {% if m.delta_auc %}
+                  <span class="{% if m.delta_auc > 0 %}text-success{% else %}text-danger{% endif %}">
+                    {{ m.delta_auc|floatformat:4 }}
+                  </span>
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+
+              <td class="small">
+                {{ m.calibration_method|default:"-" }}<br>
+                <span class="text-muted">{{ m.calibration_version }}</span>
+              </td>
+
+              <td class="small">
+                {{ m.label_scheme|default:"-" }}<br>
+                <span class="text-muted">min {{ m.min_score_norm|default:"-" }}</span>
+              </td>
+
+              <td>
+                {% if m.is_active %}
+                  <span class="badge text-bg-success">Active</span>
+                {% else %}
+                  <span class="badge text-bg-secondary">Archived</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="10" class="text-muted">No model manifests found.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

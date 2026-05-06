@@ -39,13 +39,20 @@ class MLArtifactLoader:
         manifest = MLArtifactLoader.load_manifest(manifest_path)
         ready = MLArtifactLoader.artifact_paths_exist(manifest)
 
+        try:
+            max_ml_contrib = float(manifest.get("max_ml_contrib", 0.75))
+        except (TypeError, ValueError):
+            max_ml_contrib = 0.75
+
+        max_ml_contrib = max(0.0, min(max_ml_contrib, 0.75))
+
         return {
             "manifest": manifest,
             "artifacts_ready": ready,
             "model_version": manifest.get("model_version", "unavailable"),
             "schema_version": manifest.get("feature_schema_version", "unavailable"),
             "calibration_version": manifest.get("calibration_version", "unavailable"),
-            "max_ml_contrib": float(manifest.get("max_ml_contrib", 0.5)),
+            "max_ml_contrib": max_ml_contrib,
         }
 
     @staticmethod

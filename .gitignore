@@ -291,3 +291,10 @@ __pycache__/
 .vscode/
 .idea/
 *.swp
+chat_online_api_portal_evidence.rar
+chat_online_api_portal_evidence.zip
+chat_project_evidence.zip
+chat_project_evidence.rar
+make_chat_zip.sh
+make_online_api_portal_zip.sh
+portal_runtime_evidence.zip

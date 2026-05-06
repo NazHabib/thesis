@@ -1,10 +1,38 @@
 {
-  "cold_start_version": "csl_1.0.0",
+  "cold_start_version": "csl_1.1.0",
+  "participants": 22282,
+  "input_cfm_rows": 22282,
+  "input_participant_candidate_rows": 22282,
+  "output_safety_context_rows": 22282,
+  "output_gated_candidates": 169009,
+  "triage_count": 471,
+  "feature_tier_counts": {
+    "minimal": 4153,
+    "core": 2053,
+    "full": 16076
+  },
+  "confidence_ceiling_global_counts": {
+    "high": 18129,
+    "medium": 4153
+  },
+  "followup_urgency_counts": {
+    "routine": 10595,
+    "soon": 5474,
+    "monitor": 4838,
+    "urgent": 1375
+  },
+  "temporal_risk_tier_counts": {
+    "stable": 12518,
+    "elevated": 6610,
+    "high": 1779,
+    "acute": 1375
+  },
+  "gated_bundle_family_counts": {
+    "unknown": 169009
+  },
   "cfm_path": "nhanes_step1_out/NHANES_Master_engineered.parquet",
   "participants_path": "rules_safety_engine/output/recommendations.jsonl",
-  "safety_context_rows": 22282,
-  "gated_candidate_rows": 169009,
-  "timestamp_utc": "2026-03-29T11:49:21.480365+00:00",
+  "timestamp_utc": "2026-05-03T23:22:20.291405+00:00",
   "status": "success",
   "output_files": {
     "safety_context": "apps/recs_csl/output/safety_context.jsonl",

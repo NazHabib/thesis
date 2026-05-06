@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}My Health Dashboard{% endblock %}
+
+{% block content %}
+<div class="hero-card mb-4">
+  <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+    <div>
+      <p class="muted-label mb-1">Patient area</p>
+      <h2 class="mb-2">My Health Dashboard</h2>
+      <p class="text-muted mb-0">
+        Review your latest health guidance, check alerts, and keep your profile up to date.
+      </p>
+    </div>
+    <div class="d-flex flex-wrap gap-2 align-items-start">
+      <a class="btn btn-primary" href="{% url 'recs:generate' %}">Create recommendations</a>
+      <a class="btn btn-outline-primary" href="{% url 'recs:history' %}">View history</a>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="metric-card h-100">
+      <p class="muted-label mb-1">Recommendation summaries</p>
+      <h3 class="mb-1">{{ runs_count }}</h3>
+      <p class="text-muted mb-0">Previous guidance created for you.</p>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="metric-card h-100">
+      <p class="muted-label mb-1">Open alerts</p>
+      <h3 class="mb-1">{{ open_alerts_count }}</h3>
+      <p class="text-muted mb-0">Items that may need your attention.</p>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="metric-card h-100">
+      <p class="muted-label mb-1">Health records</p>
+      <h3 class="mb-1">{{ health_record_count }}</h3>
+      {% if latest_health_record %}
+        <p class="text-muted mb-0">Latest record: {{ latest_health_record.recorded_at|date:"d M Y" }}.</p>
+      {% else %}
+        <p class="text-muted mb-0">Add health data to create a clearer reference point.</p>
+      {% endif %}
+    </div>
+   </div>
+  </div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="soft-card h-100">
+      <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+        <div>
+          <p class="muted-label mb-1">Latest guidance</p>
+          <h4 class="mb-1">Top recommendations</h4>
+          {% if latest_run %}
+            <p class="text-muted mb-0">Created {{ latest_run.created_at|date:"d M Y, H:i" }}</p>
+          {% else %}
+            <p class="text-muted mb-0">No recommendations have been created yet.</p>
+          {% endif %}
+        </div>
+
+        {% if latest_run %}
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'recs:detail' latest_run.id %}">
+            Open
+          </a>
+        {% endif %}
+      </div>
+
+      {% if latest_items %}
+        <div class="list-group list-group-flush">
+          {% for item in latest_items %}
+            <div class="list-group-item px-0">
+              <div class="d-flex justify-content-between gap-3">
+                <div>
+                  <strong>{{ item.title }}</strong>
+                  {% if item.rationale %}
+                    <p class="text-muted mb-0 mt-1">{{ item.rationale }}</p>
+                  {% endif %}
+                </div>
+                {% if item.priority <= 1 %}
+                  <span class="badge text-bg-primary align-self-start">Top</span>
+                {% elif item.priority <= 3 %}
+                  <span class="badge text-bg-light border align-self-start">Recommended</span>
+                {% else %}
+                  <span class="badge text-bg-light border align-self-start">Helpful option</span>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="border rounded-3 p-3 bg-light">
+          <p class="mb-2">Create your first recommendation summary to see personalised guidance here.</p>
+          <a class="btn btn-primary btn-sm" href="{% url 'recs:generate' %}">Create recommendations</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="soft-card h-100">
+      <p class="muted-label mb-1">Quick actions</p>
+      <h4 class="mb-3">Manage my care</h4>
+
+      <div class="d-grid gap-2">
+        <a class="btn btn-outline-primary" href="{% url 'recs:generate' %}">Create recommendations</a>
+        <a class="btn btn-outline-secondary" href="{% url 'recs:history' %}">Recommendation history</a>
+        <a class="btn btn-outline-secondary" href="{% url 'user:profile' %}">My profile</a>
+        <a class="btn btn-outline-secondary" href="{% url 'user:health_data' %}">My health data</a>
+        <a class="btn btn-outline-warning" href="{% url 'user:alerts' %}">My alerts</a>
+      </div>
+
+      <hr>
+
+      <p class="text-muted small mb-0">
+        This guidance is designed to support care decisions and does not replace advice from a healthcare professional.
+      </p>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-1">
+  <div class="col-lg-4">
+    <div class="soft-card h-100">
+      <p class="muted-label mb-1">Using this portal</p>
+      <h4 class="mb-3">For patients and family support</h4>
+      <p class="text-muted mb-0">
+        This page can be used by the patient or by a trusted family member helping them review guidance,
+        prepare questions, and support follow-up with a healthcare professional.
+      </p>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="soft-card h-100">
+      <p class="muted-label mb-1">Next steps</p>
+      <h4 class="mb-3">What to do next</h4>
+
+      <ul class="mb-0 text-muted">
+        <li>Review the top recommendations.</li>
+        <li>Check the suggested follow-up timing.</li>
+        <li>Update the health profile if details have changed.</li>
+        <li>Discuss important changes with a healthcare professional.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="soft-card h-100">
+      <p class="muted-label mb-1">Safety</p>
+      <h4 class="mb-3">When to seek help</h4>
+      <p class="text-muted mb-0">
+        If symptoms feel urgent, severe, or unusual, seek medical help directly. This system provides
+        supportive guidance only and should not delay urgent care.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

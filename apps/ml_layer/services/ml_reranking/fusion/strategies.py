@@ -29,11 +29,13 @@ class MinMaxAdditiveFusion:
     ) -> pd.DataFrame:
         out = df.copy()
 
+        alpha = max(0.0, min(1.0, float(ctx.lambda_u)))
+
         out["rule_score_norm_participant"] = participant_minmax(out["total_score"])
-        out["fusion_rule_component"] = out["rule_score_norm_participant"]
+        out["fusion_rule_component"] = (1.0 - alpha) * out["rule_score_norm_participant"]
 
         out["fusion_ml_component"] = (
-            ctx.lambda_u * pd.to_numeric(out["ml_score"], errors="coerce").fillna(0.0)
+            alpha * pd.to_numeric(out["ml_score"], errors="coerce").fillna(0.0)
         ).clip(lower=0.0, upper=ctx.max_ml_contrib)
 
         out["ml_contrib"] = out["fusion_ml_component"]
@@ -63,7 +65,8 @@ class WeightedAverageFusion:
 
         out["rule_score_norm_participant"] = participant_minmax(out["total_score"])
         out["fusion_rule_component"] = (1.0 - alpha) * out["rule_score_norm_participant"]
-        out["fusion_ml_component"] = alpha * pd.to_numeric(out["ml_score"], errors="coerce").fillna(0.0)
+        out["fusion_ml_component"] = ( alpha * pd.to_numeric(out["ml_score"], errors="coerce").fillna(0.0)
+        ).clip(lower=0.0, upper=ctx.max_ml_contrib)
 
         out["ml_contrib"] = out["fusion_ml_component"]
         out["final_score"] = out["fusion_rule_component"] + out["fusion_ml_component"]

@@ -33,7 +33,20 @@ PATIENT_PROFILE_COLUMNS = [
     "profile_version",
 ]
 
-
+LIVE_PATIENT_PROFILE_FEATURE_COLUMNS = [
+    "profile_age_group",
+    "profile_cardiometabolic_risk",
+    "profile_glycaemic_status",
+    "profile_bp_status",
+    "profile_weight_status",
+    "profile_lifestyle_flags",
+    "profile_version",
+    "profile_data_completeness_score",
+    "profile_current_smoker_flag",
+    "profile_inactive_flag",
+    "profile_high_alcohol_risk_flag",
+    "profile_poor_diet_signal_flag",
+]
 
 PARTICIPANT_FEATURE_COLUMNS = [
     "ParticipantKey",
@@ -78,6 +91,7 @@ PARTICIPANT_FEATURE_COLUMNS = [
     "repeat_measurement_available",
     "temporal_data_quality",
     "longitudinal_ready_flag",
+    *LIVE_PATIENT_PROFILE_FEATURE_COLUMNS,
 ]
 
 
@@ -177,7 +191,8 @@ def add_interaction_features(df: pd.DataFrame) -> pd.DataFrame:
         out["smoker_x_smoking_bundle"] = out["Current_smoker_flag"].fillna(0.0) * out["is_smoking_bundle"]
 
     if "Any_MVPA_flag" in out.columns:
-        out["inactive_flag_proxy"] = (out["Any_MVPA_flag"].fillna(0.0) == 0.0).astype(int)
+        mvpa_flag = pd.to_numeric(out["Any_MVPA_flag"], errors="coerce")
+        out["inactive_flag_proxy"] = (mvpa_flag.notna() & (mvpa_flag == 0.0)).astype(int)
         out["inactive_x_movement_bundle"] = out["inactive_flag_proxy"] * out["is_movement_bundle"]
 
     if "Sodium_over_2300_flag" in out.columns:
@@ -226,6 +241,51 @@ def _parse_lifestyle_flags(raw_value) -> set[str]:
 
 
 def append_patient_profile_features(features_df: pd.DataFrame) -> pd.DataFrame:
+    out = features_df.copy()
+    out["ParticipantKey"] = out["ParticipantKey"].astype(str)
+
+    live_profile_cols_present = any(
+        col in out.columns for col in LIVE_PATIENT_PROFILE_FEATURE_COLUMNS
+    )
+
+    if live_profile_cols_present:
+        defaults = {
+            "profile_age_group": "unknown",
+            "profile_cardiometabolic_risk": "unknown",
+            "profile_glycaemic_status": "unknown",
+            "profile_bp_status": "unknown",
+            "profile_weight_status": "unknown",
+            "profile_lifestyle_flags": "[]",
+            "profile_version": "unknown",
+            "profile_data_completeness_score": 0.0,
+            "profile_current_smoker_flag": 0,
+            "profile_inactive_flag": 0,
+            "profile_high_alcohol_risk_flag": 0,
+            "profile_poor_diet_signal_flag": 0,
+        }
+
+        for col, default in defaults.items():
+            if col not in out.columns:
+                out[col] = default
+            else:
+                out[col] = out[col].fillna(default)
+
+        out["profile_data_completeness_score"] = (
+            pd.to_numeric(out["profile_data_completeness_score"], errors="coerce")
+            .fillna(0.0)
+            .astype("float32")
+        )
+
+        for col in [
+            "profile_current_smoker_flag",
+            "profile_inactive_flag",
+            "profile_high_alcohol_risk_flag",
+            "profile_poor_diet_signal_flag",
+        ]:
+            out[col] = pd.to_numeric(out[col], errors="coerce").fillna(0).astype(int)
+
+        return out
+
     profile_df = load_patient_profiles_snapshot(columns=PATIENT_PROFILE_COLUMNS)
 
     if profile_df.empty:
@@ -254,17 +314,6 @@ def append_patient_profile_features(features_df: pd.DataFrame) -> pd.DataFrame:
         subset=["ParticipantKey"],
         keep="last",
     )
-
-    out = features_df.copy()
-    out["ParticipantKey"] = out["ParticipantKey"].astype(str)
-    
-    existing_profile_cols = [
-        c for c in out.columns
-        if c.startswith("profile_")
-    ]
-
-    if existing_profile_cols:
-        out = out.drop(columns=existing_profile_cols)
 
     out = out.merge(
         profile_df,

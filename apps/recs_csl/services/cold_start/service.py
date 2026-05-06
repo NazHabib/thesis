@@ -70,23 +70,21 @@ def run_cold_start_layer(cfm_df: pd.DataFrame, participants_df: pd.DataFrame):
     safety_context_df = build_safety_context(tiered_df)
     candidates_df = explode_candidates(participants_df)
 
-    if candidates_df.empty:
-        gated_candidates_df = pd.DataFrame(columns=GATED_CANDIDATE_COLUMNS)
-    else:
-        missing_context = sorted(
-            set(candidates_df["ParticipantKey"].astype(str))
-            - set(safety_context_df["ParticipantKey"].astype(str))
-        )
-        if missing_context:
-            preview = missing_context[:10]
-            raise ValueError(
-                "Missing safety context for candidate participants: "
-                f"{preview}"
-                + (" ..." if len(missing_context) > 10 else "")
-            )
+    missing_context = sorted(
+        set(candidates_df["ParticipantKey"].astype(str))
+        - set(safety_context_df["ParticipantKey"].astype(str))
+    ) if not candidates_df.empty else []
 
-        gated_candidates_df = apply_cold_start_gating(candidates_df, safety_context_df)
-        gated_candidates_df = gated_candidates_df[GATED_CANDIDATE_COLUMNS].copy()
+    if missing_context:
+        preview = missing_context[:10]
+        raise ValueError(
+            "Missing safety context for candidate participants: "
+            f"{preview}"
+            + (" ..." if len(missing_context) > 10 else "")
+        )
+
+    gated_candidates_df = apply_cold_start_gating(candidates_df, safety_context_df)
+    gated_candidates_df = gated_candidates_df[GATED_CANDIDATE_COLUMNS].copy()
 
     safety_context_df = safety_context_df[SAFETY_CONTEXT_COLUMNS].copy()
     

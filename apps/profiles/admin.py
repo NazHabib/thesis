@@ -1,7 +1,6 @@
 from django.contrib import admin
 
-from .models import PatientProfile, ClinicianPatientLink, PatientHealthRecord
-
+from .models import PatientProfile, ClinicianPatientLink, PatientHealthRecord, ClinicianHealthRecord
 
 @admin.register(PatientProfile)
 class PatientProfileAdmin(admin.ModelAdmin):
@@ -14,6 +13,7 @@ class PatientProfileAdmin(admin.ModelAdmin):
 class PatientHealthRecordAdmin(admin.ModelAdmin):
     list_display = (
         "user",
+        "entered_by",
         "recorded_at",
         "source",
         "bmi",
@@ -22,7 +22,14 @@ class PatientHealthRecordAdmin(admin.ModelAdmin):
         "diastolic_bp",
         "updated_at",
     )
-    search_fields = ("user__username", "user__email", "label", "notes")
+    search_fields = (
+        "user__username",
+        "user__email",
+        "entered_by__username",
+        "entered_by__email",
+        "label",
+        "notes",
+    )
     list_filter = (
         "source",
         "current_smoker",
@@ -34,6 +41,38 @@ class PatientHealthRecordAdmin(admin.ModelAdmin):
     )
     readonly_fields = ("created_at", "updated_at")
 
+@admin.register(ClinicianHealthRecord)
+class ClinicianHealthRecordAdmin(admin.ModelAdmin):
+    list_display = (
+        "patient",
+        "clinician",
+        "recorded_at",
+        "source",
+        "bmi",
+        "hba1c",
+        "systolic_bp",
+        "diastolic_bp",
+        "updated_at",
+    )
+    search_fields = (
+        "patient__username",
+        "patient__email",
+        "clinician__username",
+        "clinician__email",
+        "label",
+        "notes",
+    )
+    list_filter = (
+        "source",
+        "smoking_status",
+        "current_smoker",
+        "alcohol_over_guideline",
+        "known_prediabetes",
+        "known_severe_hyperglycemia",
+        "known_hypertensive_crisis",
+        "recorded_at",
+    )
+    readonly_fields = ("created_at", "updated_at")
 
 @admin.register(ClinicianPatientLink)
 class ClinicianPatientLinkAdmin(admin.ModelAdmin):

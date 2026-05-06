@@ -129,7 +129,7 @@ class Command(BaseCommand):
         ].to_dict(orient="records")
 
         low_frequency_active_rules = firing_join_df.loc[
-            (firing_join_df["enabled"] == True) & (firing_join_df["n_fired"] <= 10),
+            firing_join_df["enabled"].astype(bool) & (firing_join_df["n_fired"] <= 10),
             ["rule_id", "group", "action_code", "severity", "n_fired"]
         ].sort_values(["n_fired", "rule_id"], ascending=[True, True], kind="stable")
 

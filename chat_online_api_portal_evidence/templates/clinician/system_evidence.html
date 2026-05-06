@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}System Evidence{% endblock %}
+
+{% block content %}
+<div class="card hero-card p-4 mb-4">
+  <div class="card-body">
+    <div class="muted-label text-white-50">Thesis evidence layer</div>
+    <h1 class="display-6 fw-bold mb-2">Dataset, Model, and Pipeline Evidence</h1>
+    <p class="mb-0 text-white-50">
+      Transparent summary of the data scope, active ML model, fusion strategy, and pipeline outputs.
+    </p>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="metric-card">
+      <div class="muted-label">Participants</div>
+      <h3>{{ pipeline_counts.participants }}</h3>
+      <div class="text-muted small">Pipeline run scope</div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="metric-card">
+      <div class="muted-label">Ranked Candidates</div>
+      <h3>{{ pipeline_counts.ranked_candidates }}</h3>
+      <div class="text-muted small">Before ML reranking</div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="metric-card">
+      <div class="muted-label">Final Bundles</div>
+      <h3>{{ pipeline_counts.final_bundles }}</h3>
+      <div class="text-muted small">After fusion + bundling</div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="metric-card">
+      <div class="muted-label">Explained Outputs</div>
+      <h3>{{ pipeline_counts.explained_recommendations }}</h3>
+      <div class="text-muted small">Presentation-ready recommendations</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-6">
+    <div class="card soft-card h-100">
+      <div class="card-body">
+        <div class="muted-label">Active model</div>
+        <h4>{{ model.version }}</h4>
+
+        <hr>
+
+        <p><strong>Model:</strong> {{ model.name }}</p>
+        <p><strong>Feature profile:</strong> {{ model.feature_profile }}</p>
+        <p><strong>Schema:</strong> {{ model.schema }}</p>
+        <p><strong>Calibration:</strong> {{ model.calibration_method }} / {{ model.calibration }}</p>
+        <p><strong>Label scheme:</strong> {{ model.label_scheme }}</p>
+        <p><strong>Minimum score norm:</strong> {{ model.min_score_norm }}</p>
+        <p class="mb-0"><strong>Max ML contribution:</strong> {{ model.max_ml_contrib }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card soft-card h-100">
+      <div class="card-body">
+        <div class="muted-label">Training dataset</div>
+        <h4>NHANES-derived engineered cohort</h4>
+
+        <hr>
+
+        <p><strong>Training rows:</strong> {{ training.train_rows }}</p>
+        <p><strong>Validation rows:</strong> {{ training.val_rows }}</p>
+        <p><strong>Test rows:</strong> {{ training.test_rows }}</p>
+        <p><strong>Training participants:</strong> {{ training.train_participants }}</p>
+        <p><strong>Validation participants:</strong> {{ training.val_participants }}</p>
+        <p><strong>Test participants:</strong> {{ training.test_participants }}</p>
+        <p><strong>Temporal features:</strong> {{ training.temporal_feature_count }}</p>
+        <p><strong>Collaborative features:</strong> {{ training.collaborative_feature_count }}</p>
+        <p class="mb-0"><strong>Patient profile features:</strong> {{ training.patient_profile_feature_count }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mt-1">
+  <div class="col-md-6">
+    <div class="card soft-card h-100">
+      <div class="card-body">
+        <div class="muted-label">Validation metrics</div>
+        <h4>Model performance</h4>
+
+        <hr>
+
+        <p><strong>Validation ROC-AUC:</strong> {{ metrics.val_roc_auc|floatformat:4 }}</p>
+        <p><strong>Validation log loss:</strong> {{ metrics.val_log_loss|floatformat:4 }}</p>
+        <p><strong>Calibrated log loss:</strong> {{ metrics.val_log_loss_calibrated|floatformat:4 }}</p>
+        <p><strong>Brier raw:</strong> {{ metrics.val_brier_raw|floatformat:4 }}</p>
+        <p><strong>Brier calibrated:</strong> {{ metrics.val_brier_calibrated|floatformat:4 }}</p>
+        <p><strong>Training positive rate:</strong> {{ metrics.train_positive_rate|floatformat:4 }}</p>
+        <p class="mb-0"><strong>Validation positive rate:</strong> {{ metrics.val_positive_rate|floatformat:4 }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card soft-card h-100">
+      <div class="card-body">
+        <div class="muted-label">Runtime hybrid layer</div>
+        <h4>Fusion and safety behaviour</h4>
+
+        <hr>
+
+        <p><strong>Fusion strategy:</strong> {{ ml_runtime.fusion_strategy }}</p>
+        <p><strong>Rerank mode:</strong> {{ ml_runtime.rerank_mode }}</p>
+        <p><strong>ML reranked:</strong> {{ ml_runtime.rerank_status_counts.ml_reranked }}</p>
+        <p><strong>Rules-only fallback:</strong> {{ ml_runtime.rerank_status_counts.rules_only_fallback }}</p>
+        <p><strong>Triage count:</strong> {{ ml_runtime.triage_count }}</p>
+        <p><strong>Mean rule component:</strong> {{ ml_runtime.fusion.mean_rule_component }}</p>
+        <p class="mb-0"><strong>Mean ML component:</strong> {{ ml_runtime.fusion.mean_ml_component }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card soft-card mt-4">
+  <div class="card-body">
+    <div class="muted-label">Pipeline trace</div>
+    <h4>End-to-end output flow</h4>
+
+    <div class="alert alert-secondary mt-3 mb-0">
+      <strong>Flow:</strong>
+      {{ pipeline_counts.gated_candidates }} gated candidates →
+      {{ pipeline_counts.ranked_candidates }} ranked candidates →
+      {{ pipeline_counts.reranked_candidates }} reranked candidates →
+      {{ pipeline_counts.final_bundles }} final bundles →
+      {{ pipeline_counts.explained_recommendations }} explained recommendations
+    </div>
+  </div>
+</div>
+{% endblock %}

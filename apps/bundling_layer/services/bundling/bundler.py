@@ -143,16 +143,26 @@ def apply_triage_policy(df: pd.DataFrame) -> pd.DataFrame:
     for participant_key, grp in triage_df.groupby("ParticipantKey", sort=False):
         escalates = grp[grp["action_type"] == "escalate"].copy()
 
+        sort_cols = [
+            "bundle_score",
+            "confidence_score",
+            "followup_window_order",
+            "followup_horizon_days",
+            "priority",
+            "bundle_title",
+        ]
+        ascending = [False, False, True, True, False, True]
+
         if not escalates.empty:
             keep = escalates.sort_values(
-                ["bundle_score", "confidence_score", "followup_window_order", "followup_horizon_days", "priority", "bundle_title"],
-                ascending=[False, False, True, True, True, True],
+                sort_cols,
+                ascending=ascending,
                 kind="stable",
             ).head(1)
         else:
             keep = grp.sort_values(
-                ["bundle_score", "confidence_score", "followup_window_order", "followup_horizon_days", "priority", "bundle_title"],
-                ascending=[False, False, True, True, True, True],
+                sort_cols,
+                ascending=ascending,
                 kind="stable",
             ).head(1)
 
@@ -169,8 +179,16 @@ def apply_triage_policy(df: pd.DataFrame) -> pd.DataFrame:
 
 def select_top_bundles(df: pd.DataFrame) -> pd.DataFrame:
     out = df.sort_values(
-        ["ParticipantKey", "bundle_score", "confidence_score", "followup_window_order", "followup_horizon_days", "priority", "bundle_title"],
-        ascending=[True, False, False, True, True, True, True],
+        [
+            "ParticipantKey",
+            "bundle_score",
+            "confidence_score",
+            "followup_window_order",
+            "followup_horizon_days",
+            "priority",
+            "bundle_title",
+        ],
+        ascending=[True, False, False, True, True, False, True],
         kind="stable",
     ).copy()
 

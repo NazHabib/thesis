@@ -1,0 +1,229 @@
+{
+  "run_scope": {
+    "participant_key": null,
+    "limit": 200
+  },
+  "cold_start": {
+    "cold_start_version": "csl_1.1.0",
+    "participants": 200,
+    "input_cfm_rows": 200,
+    "input_participant_candidate_rows": 200,
+    "output_safety_context_rows": 200,
+    "output_gated_candidates": 1457,
+    "triage_count": 7,
+    "feature_tier_counts": {
+      "minimal": 33,
+      "core": 11,
+      "full": 156
+    },
+    "confidence_ceiling_global_counts": {
+      "high": 167,
+      "medium": 33
+    },
+    "followup_urgency_counts": {
+      "routine": 105,
+      "soon": 43,
+      "monitor": 38,
+      "urgent": 14
+    },
+    "temporal_risk_tier_counts": {
+      "stable": 120,
+      "elevated": 53,
+      "acute": 14,
+      "high": 13
+    },
+    "gated_bundle_family_counts": {
+      "Monitoring": 655,
+      "DietPattern": 315,
+      "Movement": 182,
+      "Weight": 155,
+      "Lipids": 84,
+      "Smoking": 60,
+      "IntegratedCardiometabolic": 6
+    }
+  },
+  "ranking": {
+    "ranking_version": "ranking_1.2.0",
+    "participants": 200,
+    "input_candidates": 1457,
+    "output_ranked_candidates": 795,
+    "triage_count": 7,
+    "feature_tier_counts": {
+      "minimal": 33,
+      "core": 11,
+      "full": 156
+    },
+    "avg_ranked_per_participant": 3.975,
+    "confidence_counts": {
+      "high": 259,
+      "medium": 402,
+      "low": 134
+    },
+    "severity_counts": {
+      "moderate": 366,
+      "low": 230,
+      "high": 192,
+      "critical": 7
+    },
+    "action_type_counts": {
+      "recommend": 511,
+      "inform": 203,
+      "escalate": 81
+    },
+    "bundle_family_counts": {
+      "Monitoring": 316,
+      "DietPattern": 233,
+      "Movement": 127,
+      "Lipids": 49,
+      "Weight": 38,
+      "Smoking": 26,
+      "IntegratedCardiometabolic": 6
+    },
+    "score_summary": {
+      "min_total_score": -14.0,
+      "max_total_score": 197.0,
+      "mean_total_score": 110.9925
+    }
+  },
+  "ml_reranking": {
+    "ml_reranking_version": "0.1.0",
+    "fusion_strategy": "minmax_additive_v1",
+    "fusion": {
+      "strategy_counts": {
+        "minmax_additive_v1": 788,
+        "rules_only_fallback": 7
+      },
+      "status_counts": {
+        "fused": 788,
+        "fallback": 7
+      },
+      "mean_rule_component": 0.47261,
+      "mean_ml_component": 0.202266
+    },
+    "participants": 200,
+    "input_ranked_candidates": 795,
+    "output_reranked_candidates": 795,
+    "triage_count": 7,
+    "feature_tier_counts": {
+      "minimal": 33,
+      "core": 11,
+      "full": 156
+    },
+    "rerank_mode": "mixed",
+    "collaborative_summary": {
+      "collab_available_pct": 95.4717,
+      "mean_neighbor_count": 19.0943,
+      "mean_support_rate": 0.6342,
+      "mean_family_support_rate": 0.8081,
+      "mean_similarity": 0.8371,
+      "mean_weighted_support_rate": 0.5602,
+      "mean_weighted_rule_score_norm": 0.7176,
+      "mean_weighted_rank_pre_ml": 2.4321
+    },
+    "rerank_status_counts": {
+      "ml_reranked": 788,
+      "rules_only_fallback": 7
+    },
+    "fallback_reason_counts": {
+      "none": 788,
+      "triage_mode": 7
+    },
+    "score_summary": {
+      "min_total_score": -14.0,
+      "max_total_score": 197.0,
+      "mean_total_score": 110.9925,
+      "min_final_score": 0.0,
+      "max_final_score": 1.5,
+      "mean_final_score": 0.6749
+    }
+  },
+  "fusion_strategy": null,
+  "bundling": {
+    "bundling_version": "bundling_1.0.0",
+    "participants": 200,
+    "input_ranked_candidates": 795,
+    "output_final_recommendations": 548,
+    "triage_count": 7,
+    "avg_bundles_per_participant": 2.74,
+    "avg_actions_per_bundle": 1.3504,
+    "bundle_family_counts": {
+      "Monitoring": 188,
+      "DietPattern": 135,
+      "Movement": 112,
+      "Lipids": 46,
+      "Weight": 35,
+      "Smoking": 26,
+      "IntegratedCardiometabolic": 6
+    },
+    "confidence_counts": {
+      "high": 131,
+      "medium": 351,
+      "low": 66
+    },
+    "followup_window_counts": {
+      "routine_annual": 239,
+      "within_3_months": 157,
+      "within_6_months": 120,
+      "within_1_month": 32
+    },
+    "followup_urgency_counts": {
+      "routine": 239,
+      "soon": 157,
+      "monitor": 120,
+      "urgent": 32
+    },
+    "temporal_risk_tier_counts": {
+      "stable": 288,
+      "elevated": 181,
+      "high": 47,
+      "acute": 32
+    },
+    "score_summary": {
+      "min_bundle_score": 0.0,
+      "max_bundle_score": 1.5,
+      "mean_bundle_score": 0.8951
+    }
+  },
+  "explainability": {
+    "explainability_version": "1.0.0",
+    "participants": 200,
+    "input_final_recommendations": 548,
+    "output_explained_recommendations": 548,
+    "triage_count": 7,
+    "confidence_counts": {
+      "high": 131,
+      "medium": 351,
+      "low": 66
+    },
+    "followup_window_counts": {
+      "routine_annual": 239,
+      "within_3_months": 157,
+      "within_6_months": 120,
+      "within_1_month": 32
+    },
+    "followup_urgency_counts": {
+      "routine": 239,
+      "soon": 157,
+      "monitor": 120,
+      "urgent": 32
+    },
+    "temporal_risk_tier_counts": {
+      "stable": 288,
+      "elevated": 181,
+      "high": 47,
+      "acute": 32
+    },
+    "bundle_family_counts": {
+      "Monitoring": 188,
+      "DietPattern": 135,
+      "Movement": 112,
+      "Lipids": 46,
+      "Weight": 35,
+      "Smoking": 26,
+      "IntegratedCardiometabolic": 6
+    },
+    "xai_status_counts": {
+      "ok": 548
+    }
+  }
+}

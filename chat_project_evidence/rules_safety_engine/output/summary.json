@@ -1,0 +1,9 @@
+{
+  "n_participants_with_recommendations": 22282,
+  "avg_recommendations_per_patient": 7.585001346378243,
+  "median_recommendations_per_patient": 8.0,
+  "max_recommendations_per_patient": 16,
+  "total_fired_rules": 207529,
+  "total_recommendations": 169009,
+  "total_conflicts": 46153
+}

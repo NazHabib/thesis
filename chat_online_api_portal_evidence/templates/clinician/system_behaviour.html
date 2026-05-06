@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block title %}System Behaviour{% endblock %}
+
+{% block content %}
+<div class="card hero-card p-4 mb-4">
+  <div class="card-body">
+    <div class="muted-label text-white-50">Safety and robustness</div>
+    <h1 class="display-6 fw-bold mb-2">Failure / Fallback Behaviour</h1>
+    <p class="mb-0 text-white-50">
+      How the system behaves under missing data, triage mode, and ML fallback conditions.
+    </p>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="metric-card">
+      <div class="muted-label">Triage cases</div>
+      <h3>{{ cold_start.triage_count }}</h3>
+      <div class="text-muted small">Safety-first mode</div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="metric-card">
+      <div class="muted-label">ML reranked</div>
+      <h3>{{ ml_reranked_pct }}%</h3>
+      <div class="text-muted small">{{ ml_reranked }} candidates</div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="metric-card">
+      <div class="muted-label">Rules fallback</div>
+      <h3>{{ fallback_pct }}%</h3>
+      <div class="text-muted small">{{ fallback }} candidates</div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="metric-card">
+      <div class="muted-label">XAI status</div>
+      <h3>{{ explainability.xai_status_counts.ok }}</h3>
+      <div class="text-muted small">Explainability outputs OK</div>
+    </div>
+  </div>
+</div>
+
+<div class="alert alert-secondary mb-4">
+  <strong>Safety principle:</strong>
+  ML is never allowed to override safety constraints. In triage or unsuitable runtime conditions,
+  the system falls back to rules-only ordering.
+</div>
+
+<div class="row g-4">
+  <div class="col-md-6">
+    <div class="card soft-card h-100">
+      <div class="card-body">
+        <div class="muted-label">Cold-start data tiers</div>
+        <h4>Available data quality</h4>
+
+        <table class="table table-sm mt-3">
+          <thead>
+            <tr>
+              <th>Tier</th>
+              <th>Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for k, v in feature_tier_counts.items %}
+              <tr>
+                <td>{{ k }}</td>
+                <td>{{ v }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <p class="text-muted small mb-0">
+          Feature tiers allow the system to operate even when only partial participant data are available.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card soft-card h-100">
+      <div class="card-body">
+        <div class="muted-label">Confidence ceilings</div>
+        <h4>Conservative communication</h4>
+
+        <table class="table table-sm mt-3">
+          <thead>
+            <tr>
+              <th>Ceiling</th>
+              <th>Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for k, v in confidence_ceiling_counts.items %}
+              <tr>
+                <td>{{ k }}</td>
+                <td>{{ v }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <p class="text-muted small mb-0">
+          Confidence ceilings prevent overconfident recommendations when evidence is incomplete.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mt-1">
+  <div class="col-md-6">
+    <div class="card soft-card h-100">
+      <div class="card-body">
+        <div class="muted-label">Reranking status</div>
+        <h4>ML vs fallback</h4>
+
+        <table class="table table-sm mt-3">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for k, v in rerank_counts.items %}
+              <tr>
+                <td>{{ k }}</td>
+                <td>{{ v }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <p class="text-muted small mb-0">
+          Mixed mode means most candidates used ML reranking, while safety-critical cases remained rules-only.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card soft-card h-100">
+      <div class="card-body">
+        <div class="muted-label">Fallback reasons</div>
+        <h4>Why fallback happened</h4>
+
+        <table class="table table-sm mt-3">
+          <thead>
+            <tr>
+              <th>Reason</th>
+              <th>Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for k, v in fallback_counts.items %}
+              <tr>
+                <td>{{ k }}</td>
+                <td>{{ v }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <p class="text-muted small mb-0">
+          Fallback is an intentional safety mechanism, not a system failure.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

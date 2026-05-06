@@ -1,0 +1,227 @@
+import pandas as pd
+
+from .config import EXPLAINABILITY_VERSION
+from .contracts import (
+    validate_final_bundle_columns,
+    validate_safety_context_columns,
+    PATIENT_SAFE_EXPLAINABILITY_FIELDS,
+    CLINICIAN_EXPLAINABILITY_FIELDS,
+)
+from .explainers import explain_bundle
+from .nlg_templates import (
+    build_patient_facing_explanation,
+    build_clinician_facing_explanation,
+    build_patient_confidence_explanation,
+    build_clinician_confidence_explanation,
+    build_safety_context_note,
+    build_ml_rerank_note,
+)
+
+
+FINAL_EXPLAINED_COLUMNS = [
+    "ParticipantKey",
+    "bundle_title",
+    "bundle_family",
+    "category",
+    "action_codes",
+    "action_type",
+    "priority",
+    "tags",
+    "source_rule_ids",
+    "evidence",
+    "coldstart_note_codes",
+    "bundle_score",
+    "confidence_score",
+    "confidence_label",
+    "rationale",
+    "explanation",
+    "triage_mode",
+    "triage_reason",
+    "followup_urgency",
+    "followup_horizon_days",
+    "monitoring_need_level",
+    "temporal_risk_tier",
+    "persistence_risk_proxy",
+    "temporal_data_quality",
+    "longitudinal_ready_flag",
+    "followup_window_label",
+    "followup_window_order",
+    "followup_timing_text",
+    "patient_facing_explanation",
+    "clinician_facing_explanation",
+    "patient_confidence_explanation",
+    "clinician_confidence_explanation",
+    "safety_context_note",
+    "ml_rerank_note",
+    "clinician_ml_xai_explanation",
+    "patient_ml_xai_explanation",
+    "ml_xai_payload",
+    "traceability_payload",
+    "fusion_strategy",
+    "fusion_version",
+    "fusion_status",
+    "rule_score_norm_participant",
+    "fusion_rule_component",
+    "fusion_ml_component",
+]
+
+def build_patient_safe_explainability_view(explained_df: pd.DataFrame) -> pd.DataFrame:
+    out = explained_df.copy()
+    cols = [c for c in PATIENT_SAFE_EXPLAINABILITY_FIELDS if c in out.columns]
+    return out[cols].copy()
+
+
+def build_clinician_explainability_view(explained_df: pd.DataFrame) -> pd.DataFrame:
+    out = explained_df.copy()
+    cols = [c for c in CLINICIAN_EXPLAINABILITY_FIELDS if c in out.columns]
+    return out[cols].copy()
+
+def run_explainability_layer(
+    safety_context_df: pd.DataFrame,
+    final_recommendations_df: pd.DataFrame,
+    reranked_df: pd.DataFrame | None = None,
+    participant_features_df: pd.DataFrame | None = None,
+) -> dict:
+    validate_safety_context_columns(safety_context_df)
+    validate_final_bundle_columns(final_recommendations_df)
+
+    safety_merge_columns = [
+        "ParticipantKey",
+        "feature_tier",
+        "triage_mode",
+        "triage_reason",
+        "confidence_ceiling_global",
+        "followup_urgency",
+        "followup_horizon_days",
+        "monitoring_need_level",
+        "temporal_risk_tier",
+        "persistence_risk_proxy",
+        "temporal_data_quality",
+        "longitudinal_ready_flag",
+    ]
+
+    safety_merge_df = safety_context_df.copy()
+
+    for col in safety_merge_columns:
+        if col not in safety_merge_df.columns:
+            safety_merge_df[col] = None
+
+    merged_df = final_recommendations_df.merge(
+        safety_merge_df[safety_merge_columns].drop_duplicates(subset=["ParticipantKey"]),
+        on="ParticipantKey",
+        how="left",
+        suffixes=("", "_ctx"),
+        validate="m:1",
+    )
+
+    explained_records = []
+    for _, row in merged_df.iterrows():
+        base = row.to_dict()
+
+        explanation_payload = explain_bundle(
+            base,
+            reranked_df=reranked_df,
+            safety_context_df=safety_context_df,
+            participant_features_df=participant_features_df,
+        )
+        base.update(explanation_payload)
+
+        base["patient_facing_explanation"] = build_patient_facing_explanation(
+            bundle_title=base.get("bundle_title", "This recommendation"),
+            rationale=base.get("rationale", "It was identified as clinically appropriate."),
+            confidence_label=base.get("confidence_label", "medium"),
+            triage_mode=bool(base.get("triage_mode", False)),
+            triage_reason=base.get("triage_reason", "none"),
+            followup_timing_text=base.get("followup_timing_text"),
+        )
+        base["clinician_facing_explanation"] = build_clinician_facing_explanation(
+            bundle_family=base.get("bundle_family", "unknown"),
+            action_count=len(base.get("action_codes", []) or []),
+            confidence_label=base.get("confidence_label", "medium"),
+            bundle_score=base.get("bundle_score"),
+            source_rule_ids=base.get("source_rule_ids", []),
+            followup_urgency=base.get("followup_urgency"),
+            followup_window_label=base.get("followup_window_label"),
+            ml_rerank_note=None,
+        )
+        base["patient_confidence_explanation"] = build_patient_confidence_explanation(
+            confidence_label=base.get("confidence_label", "medium"),
+        )
+
+        base["clinician_confidence_explanation"] = build_clinician_confidence_explanation(
+            confidence_label=base.get("confidence_label", "medium"),
+            feature_tier=base.get("feature_tier"),
+            triage_mode=bool(base.get("triage_mode", False)),
+            coldstart_note_codes=base.get("coldstart_note_codes", []),
+        )
+
+        base["safety_context_note"] = build_safety_context_note(
+            triage_mode=bool(base.get("triage_mode", False)),
+            triage_reason=base.get("triage_reason", "none"),
+        )
+
+        base["ml_rerank_note"] = build_ml_rerank_note(
+            rerank_status=base.get("rerank_status"),
+            fallback_reason=base.get("fallback_reason"),
+            fusion_strategy=base.get("fusion_strategy"),
+        )
+
+        explained_records.append(base)
+
+    explained_df = pd.DataFrame(explained_records)
+
+    if "triage_mode_ctx" in explained_df.columns:
+        explained_df = explained_df.drop(columns=["triage_mode_ctx"])
+    if "triage_reason_ctx" in explained_df.columns:
+        explained_df = explained_df.drop(columns=["triage_reason_ctx"])
+
+    if explained_df.empty:
+        explained_df = pd.DataFrame(columns=FINAL_EXPLAINED_COLUMNS)
+
+    for col in FINAL_EXPLAINED_COLUMNS:
+        if col not in explained_df.columns:
+            explained_df[col] = None
+
+    explained_df = explained_df[FINAL_EXPLAINED_COLUMNS].copy()
+
+    n_participants = int(safety_context_df["ParticipantKey"].nunique())
+
+    manifest = {
+        "explainability_version": EXPLAINABILITY_VERSION,
+        "participants": n_participants,
+        "input_final_recommendations": int(len(final_recommendations_df)),
+        "output_explained_recommendations": int(len(explained_df)),
+        "triage_count": int(safety_context_df["triage_mode"].fillna(False).sum()),
+        "confidence_counts": {
+            "high": int((explained_df["confidence_label"] == "high").sum()),
+            "medium": int((explained_df["confidence_label"] == "medium").sum()),
+            "low": int((explained_df["confidence_label"] == "low").sum()),
+        },
+        "followup_window_counts": {
+    	    str(k): int(v)
+    	    for k, v in explained_df["followup_window_label"].fillna("unknown").value_counts(dropna=False).to_dict().items()
+	} if "followup_window_label" in explained_df.columns else {},
+        "followup_urgency_counts": {
+            str(k): int(v)
+            for k, v in explained_df["followup_urgency"].fillna("unknown").value_counts(dropna=False).to_dict().items()
+        } if "followup_urgency" in explained_df.columns else {},
+        "temporal_risk_tier_counts": {
+            str(k): int(v)
+            for k, v in explained_df["temporal_risk_tier"].fillna("unknown").value_counts(dropna=False).to_dict().items()
+        } if "temporal_risk_tier" in explained_df.columns else {},
+        "bundle_family_counts": {
+            str(k): int(v)
+            for k, v in explained_df["bundle_family"].value_counts(dropna=False).to_dict().items()
+        },
+        "xai_status_counts": {
+            str(k): int(v)
+            for k, v in explained_df["ml_xai_payload"].apply(
+                lambda x: x.get("xai_status", "unknown") if isinstance(x, dict) else "unknown"
+            ).value_counts(dropna=False).to_dict().items()
+        },
+    }
+
+    return {
+        "explained_recommendations": explained_df,
+        "manifest": manifest,
+    }

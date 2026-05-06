@@ -42,12 +42,30 @@ SEVERITY_RANK = {
 def _action_arbitration_rank(action_type: str, severity: str, priority: int) -> Tuple[int, int, int]:
     """
     Higher tuple wins.
-    Safety-first:
-      critical escalate > forbid > escalate > recommend/inform
+
+    Safety-first ordering:
+    1) critical escalation
+    2) critical/high forbid
+    3) high/moderate escalation
+    4) lower forbid
+    5) recommendations/information ordered by severity and priority
     """
-    action_base = ACTION_RANK.get(action_type, 0)
     severity_base = SEVERITY_RANK.get(severity, 0)
-    return (action_base, severity_base, priority)
+
+    if action_type == "escalate" and severity == "critical":
+        safety_base = 5
+    elif action_type == "forbid" and severity in {"critical", "high"}:
+        safety_base = 4
+    elif action_type == "escalate":
+        safety_base = 3
+    elif action_type == "forbid":
+        safety_base = 2
+    elif action_type in {"recommend", "inform"}:
+        safety_base = 1
+    else:
+        safety_base = 0
+
+    return (safety_base, severity_base, priority)
 
 
 def _build_title(action_code: str) -> str:

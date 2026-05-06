@@ -129,11 +129,9 @@ class Command(BaseCommand):
         )
 
         manifest = {
-            "cold_start_version": "csl_1.0.0",
+            **result["manifest"],
             "cfm_path": cfm_path,
             "participants_path": participants_path,
-            "safety_context_rows": int(len(result["safety_context"])),
-            "gated_candidate_rows": int(len(result["gated_candidates"])),
             "timestamp_utc": datetime.now(timezone.utc).isoformat(),
             "status": "success",
             "output_files": {

@@ -1,5 +1,5 @@
 {
-  "ranking_version": "ranking_1.0.0",
+  "ranking_version": "ranking_1.2.0",
   "participants": 22282,
   "input_candidates": 169009,
   "output_ranked_candidates": 94973,
@@ -11,31 +11,37 @@
   },
   "avg_ranked_per_participant": 4.2623,
   "confidence_counts": {
-    "high": 37909,
-    "medium": 32266,
-    "low": 24798
+    "high": 31314,
+    "medium": 34732,
+    "low": 28927
+  },
+  "severity_counts": {
+    "moderate": 44006,
+    "low": 29007,
+    "high": 21476,
+    "critical": 484
   },
   "action_type_counts": {
-    "recommend": 61078,
-    "inform": 26079,
-    "escalate": 7816
+    "recommend": 60813,
+    "inform": 26124,
+    "escalate": 8036
   },
   "bundle_family_counts": {
-    "DietPattern": 25892,
-    "Monitoring": 22718,
-    "IntegratedCardiometabolic": 21976,
-    "Movement": 11314,
-    "Lipids": 4963,
-    "Weight": 3614,
-    "Smoking": 3069,
-    "Alcohol": 1427
+    "DietPattern": 26136,
+    "Monitoring": 22362,
+    "IntegratedCardiometabolic": 22084,
+    "Movement": 11370,
+    "Lipids": 4646,
+    "Weight": 3961,
+    "Smoking": 2976,
+    "Alcohol": 1438
   },
   "score_summary": {
-    "min_total_score": -14.0,
-    "max_total_score": 241.0,
-    "mean_total_score": 120.9297
+    "min_total_score": -19.0,
+    "max_total_score": 273.0,
+    "mean_total_score": 118.0979
   },
-  "timestamp_utc": "2026-03-29T23:19:12.163516+00:00",
+  "timestamp_utc": "2026-05-04T11:02:21.508583+00:00",
   "status": "success",
   "input_files": {
     "safety_context": "apps/recs_csl/output/safety_context.jsonl",

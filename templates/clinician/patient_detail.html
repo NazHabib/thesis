@@ -14,6 +14,16 @@
     <div class="d-flex flex-wrap gap-2">
       <a class="btn btn-outline-secondary" href="{% url 'clinician:patients' %}">Back to patients</a>
       <a class="btn btn-primary" href="{% url 'clinician:send_patient_message' patient.id %}">Send patient message</a>
+      <a class="btn btn-outline-primary" href="{% url 'clinician:clinician_health_data_add' patient.id %}">
+        Add clinical health record
+      </a>
+
+      <form method="post" action="{% url 'clinician:clinician_generate_patient_recommendations' patient.id %}" class="d-inline">
+        {% csrf_token %}
+        <button class="btn btn-success" type="submit">
+          Generate recommendations
+        </button>
+      </form>
       <a class="btn btn-outline-primary" href="#health-data">Health timeline</a>
       <a class="btn btn-outline-primary" href="#recommendations">Recommendation runs</a>
     </div>

@@ -23,9 +23,10 @@ def dashboard(request):
 
     open_alerts_count = AlertEvent.objects.filter(
         user=request.user,
+        visibility=AlertEvent.Visibility.PATIENT_VISIBLE,
         acknowledged=False,
     ).count()
-
+    
     latest_health_record = (
         PatientHealthRecord.objects
         .filter(user=request.user)

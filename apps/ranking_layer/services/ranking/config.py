@@ -2,6 +2,7 @@ from apps.common.clinical_safety.severity import SEVERITY_TO_SCORE
 
 
 SEVERITY_SCORE_MAP = {
+    "informational": SEVERITY_TO_SCORE["informational"],
     "low": SEVERITY_TO_SCORE["low"],
     "moderate": SEVERITY_TO_SCORE["moderate"],
     "high": SEVERITY_TO_SCORE["high"],
