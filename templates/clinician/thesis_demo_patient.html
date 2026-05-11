@@ -22,27 +22,37 @@
     <div class="row">
       <div class="col-md-6">
         <h6 class="text-muted">Before (Rule-based)</h6>
-        <ul class="small">
-          {% for row in candidate_rows %}
-            <li>{{ row.action_code }} ({{ row.total_score|floatformat:2 }})</li>
-          {% endfor %}
-        </ul>
-      </div>
+        <div class="row">
+	  <div class="col-md-6">
+	    <h6 class="text-muted">Before (Rule-based)</h6>
+	    <div class="row">
+		  <div class="col-md-6">
+		    <h6 class="text-muted">Before ML reranking — rule-based candidates</h6>
+		    <ul class="small">
+		      {% for row in before_candidate_rows %}
+			<li>{{ row.action_code }} ({{ row.total_score|floatformat:2 }})</li>
+		      {% empty %}
+			<li class="text-muted">No rule-based candidate rows available.</li>
+		      {% endfor %}
+		    </ul>
+		  </div>
 
-      <div class="col-md-6">
-        <h6 class="text-muted">After (Hybrid Fusion)</h6>
-        <ul class="small">
-          {% for rec in recommendations %}
-            <li>
-              {{ rec.bundle_title }} ({{ rec.bundle_score|floatformat:2 }})
-              <span class="text-muted small">
-                ← from {{ rec.action_codes }}
-              </span>
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
-    </div>
+		  <div class="col-md-6">
+		    <h6 class="text-muted">After hybrid fusion — final bundles</h6>
+		    <ul class="small">
+		      {% for rec in recommendations %}
+			<li>
+			  {{ rec.bundle_title }} ({{ rec.bundle_score|floatformat:2 }})
+			  <span class="text-muted small">
+			    ← from {{ rec.action_codes }}
+			  </span>
+			</li>
+		      {% empty %}
+			<li class="text-muted">No final bundles available.</li>
+		      {% endfor %}
+		    </ul>
+		  </div>
+		</div>
   </div>
 </div>
 
@@ -76,30 +86,34 @@
             </div>
           </div>
 
-          <h6>Fusion</h6>
-              <p class="mb-1"><strong>Strategy:</strong> {{ rec.fusion_strategy }}</p>
-              <p class="mb-1">
-                <strong>Rule:</strong> {{ rec.fusion_rule_component|floatformat:3 }}
-                ({{ rec.fusion_rule_pct }}%)
-              </p>
-              <p class="mb-2">
-                <strong>ML:</strong> {{ rec.fusion_ml_component|floatformat:3 }}
-                ({{ rec.fusion_ml_pct }}%)
-              </p>
+                    <div class="col-md-4">
+			    <div class="border rounded p-3 bg-light h-100">
+			      <h6>Fusion</h6>
+			      <p class="mb-1"><strong>Strategy:</strong> {{ rec.fusion_strategy }}</p>
+			      <p class="mb-1">
+				<strong>Rule:</strong> {{ rec.fusion_rule_component|floatformat:3 }}
+				({{ rec.fusion_rule_pct }}%)
+			      </p>
+			      <p class="mb-2">
+				<strong>ML:</strong> {{ rec.fusion_ml_component|floatformat:3 }}
+				({{ rec.fusion_ml_pct }}%)
+			      </p>
 
-              <div class="mt-2">
-                <div class="small text-muted mb-1">Fusion contribution</div>
-                <div class="progress" style="height: 18px;">
-                  <div class="progress-bar bg-primary"
-                       style="width: {{ rec.fusion_rule_pct }}%;">
-                    Rule
-                  </div>
-                  <div class="progress-bar bg-success"
-                       style="width: {{ rec.fusion_ml_pct }}%;">
-                    ML
-                  </div>
-                </div>
-              </div>
+			      <div class="mt-2">
+				<div class="small text-muted mb-1">Fusion contribution</div>
+				<div class="progress" style="height: 18px;">
+				  <div class="progress-bar bg-primary"
+				       style="width: {{ rec.fusion_rule_pct }}%;">
+				    Rule
+				  </div>
+				  <div class="progress-bar bg-success"
+				       style="width: {{ rec.fusion_ml_pct }}%;">
+				    ML
+				  </div>
+				</div>
+			      </div>
+			    </div>
+			  </div>
 
           <div class="col-md-4">
             <div class="border rounded p-3 bg-light h-100">
@@ -159,7 +173,7 @@
 <div class="card shadow-sm mt-4">
   <div class="card-body">
     <h5>Top reranked candidates</h5>
-    {% if candidate_rows %}
+    {% if after_candidate_rows %}
       <div class="table-responsive">
         <table class="table table-sm align-middle">
           <thead>
@@ -173,7 +187,7 @@
             </tr>
           </thead>
           <tbody>
-            {% for row in candidate_rows %}
+            {% for row in after_candidate_rows %}
               <tr>
                 <td>{{ row.action_code }}</td>
                 <td>{{ row.bundle_family }}</td>

@@ -1,4 +1,5 @@
 from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -46,6 +47,7 @@ class BundlingRunResponse(BaseModel):
 class PipelineRunRequest(BaseModel):
     cfm: list[dict[str, Any]] = Field(default_factory=list)
     participants: list[dict[str, Any]] = Field(default_factory=list)
+    fusion_strategy: str | None = None
 
 
 class PipelineRunResponse(BaseModel):
@@ -53,6 +55,11 @@ class PipelineRunResponse(BaseModel):
     safety_context: list[dict[str, Any]]
     gated_candidates: list[dict[str, Any]]
     ranked_recommendations: list[dict[str, Any]]
+    reranked_recommendations: list[dict[str, Any]]
     final_recommendations: list[dict[str, Any]]
+    explained_recommendations: list[dict[str, Any]]
+    cold_start_manifest: dict[str, Any]
     ranking_manifest: dict[str, Any]
+    ml_reranking_manifest: dict[str, Any]
     bundling_manifest: dict[str, Any]
+    explainability_manifest: dict[str, Any]

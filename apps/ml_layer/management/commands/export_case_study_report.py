@@ -166,7 +166,17 @@ class Command(BaseCommand):
     def _sort_ranked_before_ml(df: pd.DataFrame) -> pd.DataFrame:
         if df.empty:
             return df
-        sort_cols = [c for c in ["bundle_score", "confidence_score", "followup_window_order", "followup_horizon_days", "priority", "bundle_title"] if c in df.columns]
+        sort_cols = [
+            c for c in [
+                "total_score",
+                "confidence_score",
+                "followup_window_order",
+                "followup_horizon_days",
+                "priority",
+                "action_code",
+            ]
+            if c in df.columns
+        ]
         asc = [False, False, True, True, False, True][: len(sort_cols)]
         return df.sort_values(by=sort_cols, ascending=asc, kind="stable").reset_index(drop=True)
 
@@ -230,14 +240,20 @@ class Command(BaseCommand):
                 "min_followup_horizon_days": float(pd.to_numeric(bundles_case["followup_horizon_days"], errors="coerce").dropna().min())
                 if "followup_horizon_days" in bundles_case.columns and pd.to_numeric(bundles_case["followup_horizon_days"], errors="coerce").dropna().shape[0] > 0 else None,
             }
+            
+        fusion_strategy = None
+        if not reranked_case.empty and "fusion_strategy" in reranked_case.columns:
+            values = reranked_case["fusion_strategy"].dropna().astype(str).unique().tolist()
+            fusion_strategy = values[0] if values else None
+    
 
         summary = {
             "participant_key": participant_key,
             "metadata": {
-                "model_version": model_version,
-                "fusion_strategy": "participant_minmax_total_score_plus_ml_contrib",
-                "shap_model_version": shap_report.get("model_version") if shap_report else None,
-            },
+            "model_version": model_version,
+            "fusion_strategy": fusion_strategy,
+            "shap_model_version": shap_report.get("model_version") if shap_report else None,
+        },
             "counts": {
                 "ranked_before_ml": int(len(ranked_case)),
                 "reranked_after_ml": int(len(reranked_case)),
@@ -296,6 +312,11 @@ class Command(BaseCommand):
         top_hybrid_action = None
         if not reranked_case.empty and "action_code" in reranked_case.columns:
             top_hybrid_action = reranked_case.iloc[0]["action_code"]
+            
+        fusion_strategy = None
+        if not reranked_case.empty and "fusion_strategy" in reranked_case.columns:
+            values = reranked_case["fusion_strategy"].dropna().astype(str).unique().tolist()
+            fusion_strategy = values[0] if values else None
 
         top_bundle = None
         top_followup_urgency = None
@@ -356,7 +377,7 @@ class Command(BaseCommand):
             "n_bundles": int(len(bundles_case)),
             "n_explained_recommendations": int(len(explained_case)),
             "model_version": model_version,
-            "fusion_strategy": "participant_minmax_total_score_plus_ml_contrib",
+            "fusion_strategy": fusion_strategy,
             "shap_model_version": shap_report.get("model_version") if shap_report else None,
             "top_followup_window_label": str(top_followup_window_label) if top_followup_window_label is not None else None,
             "top_followup_timing_text": str(top_followup_timing_text) if top_followup_timing_text is not None else None,

@@ -11,9 +11,9 @@
   "n_candidates_after_ml": 5,
   "n_bundles": 3,
   "n_explained_recommendations": 3,
-  "model_version": "v1.7.4_temporal_full",
-  "fusion_strategy": "participant_minmax_total_score_plus_ml_contrib",
-  "shap_model_version": "v1.6.0",
+  "model_version": "v1.9.0_temporal_collab_profile",
+  "fusion_strategy": "minmax_additive_v1",
+  "shap_model_version": "v1.9.0_temporal_collab_profile",
   "top_followup_window_label": "within_3_months",
   "top_followup_timing_text": "Dietary progress could be reviewed within about 3 months. Earlier review may be appropriate if monitoring needs increase."
 }
