@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+{% block title %}Patient {{ patient.username }}{% endblock %}
+
+{% block content %}
+<div class="hero-card mb-4">
+  <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+    <div>
+      <p class="muted-label mb-1">Care access</p>
+      <h2 class="mb-2">Patient: {{ patient.username }}</h2>
+      <p class="text-muted mb-0">
+        Review profile, patient-entered health data, and recommendation history.
+      </p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-outline-secondary" href="{% url 'clinician:patients' %}">Back to patients</a>
+      <a class="btn btn-primary" href="{% url 'clinician:send_patient_message' patient.id %}">Send patient message</a>
+      <a class="btn btn-outline-primary" href="{% url 'clinician:clinician_health_data_add' patient.id %}">
+        Add clinical health record
+      </a>
+
+      <form method="post" action="{% url 'clinician:clinician_generate_patient_recommendations' patient.id %}" class="d-inline">
+        {% csrf_token %}
+        <button class="btn btn-success" type="submit">
+          Generate recommendations
+        </button>
+      </form>
+      <a class="btn btn-outline-primary" href="#health-data">Health timeline</a>
+      <a class="btn btn-outline-primary" href="#recommendations">Recommendation runs</a>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="metric-card h-100">
+      <p class="muted-label mb-1">Patient</p>
+      <h4 class="mb-1">{{ patient.username }}</h4>
+      <p class="text-muted mb-0">{{ patient.email|default:"No email recorded" }}</p>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="metric-card h-100">
+      <p class="muted-label mb-1">Health records</p>
+      <h3 class="mb-1">{{ health_record_count }}</h3>
+      <p class="text-muted mb-0">Patient or family-entered records.</p>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="metric-card h-100">
+      <p class="muted-label mb-1">Recommendation runs</p>
+      <h3 class="mb-1">{{ rec_runs|length }}</h3>
+      <p class="text-muted mb-0">Recent recommendation summaries.</p>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-5">
+    <div class="soft-card h-100">
+      <p class="muted-label mb-1">Profile</p>
+      <h4 class="mb-3">Patient profile</h4>
+
+      {% if profile %}
+        <div class="row g-3">
+          <div class="col-md-6">
+            <p class="muted-label mb-1">Diabetes</p>
+            <p class="mb-0">{{ profile.has_dm|yesno:"Recorded,Not recorded" }}</p>
+          </div>
+
+          <div class="col-md-6">
+            <p class="muted-label mb-1">High blood pressure</p>
+            <p class="mb-0">{{ profile.has_htn|yesno:"Recorded,Not recorded" }}</p>
+          </div>
+
+          <div class="col-md-6">
+            <p class="muted-label mb-1">Sex</p>
+            <p class="mb-0">{{ profile.sex|default:"Not provided" }}</p>
+          </div>
+
+          <div class="col-md-6">
+            <p class="muted-label mb-1">Date of birth</p>
+            <p class="mb-0">{{ profile.date_of_birth|date:"d M Y"|default:"Not provided" }}</p>
+          </div>
+
+          <div class="col-md-6">
+            <p class="muted-label mb-1">Target glucose</p>
+            <p class="mb-0">
+              {% if profile.target_glucose_min or profile.target_glucose_max %}
+                {{ profile.target_glucose_min|default:"?" }} - {{ profile.target_glucose_max|default:"?" }}
+              {% else %}
+                Not provided
+              {% endif %}
+            </p>
+          </div>
+
+          <div class="col-md-6">
+            <p class="muted-label mb-1">Target BP</p>
+            <p class="mb-0">
+              {% if profile.target_bp_sys or profile.target_bp_dia %}
+                {{ profile.target_bp_sys|default:"?" }}/{{ profile.target_bp_dia|default:"?" }}
+              {% else %}
+                Not provided
+              {% endif %}
+            </p>
+          </div>
+        </div>
+      {% else %}
+        <p class="text-muted mb-0">No profile found.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-7" id="health-data">
+    <div class="soft-card h-100">
+      <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+        <div>
+          <p class="muted-label mb-1">Latest health context</p>
+          <h4 class="mb-0">Current recommendation reference point</h4>
+        </div>
+        {% if latest_health_record %}
+          <span class="badge text-bg-light border">
+            {{ latest_health_record.recorded_at|date:"d M Y" }}
+          </span>
+        {% endif %}
+      </div>
+
+      {% if latest_health_record %}
+        <div class="row g-3">
+          <div class="col-md-4">
+            <p class="muted-label mb-1">BMI</p>
+            <p class="mb-0">{{ current_health_payload.BMXBMI|default:"Not provided" }}</p>
+          </div>
+
+          <div class="col-md-4">
+            <p class="muted-label mb-1">HbA1c</p>
+            <p class="mb-0">{{ current_health_payload.LBXGH|default:"Not provided" }}</p>
+          </div>
+
+          <div class="col-md-4">
+            <p class="muted-label mb-1">Blood pressure</p>
+            <p class="mb-0">
+              {% if current_health_payload.SBP_mean or current_health_payload.DBP_mean %}
+                {{ current_health_payload.SBP_mean|default:"?" }}/{{ current_health_payload.DBP_mean|default:"?" }}
+              {% else %}
+                Not provided
+              {% endif %}
+            </p>
+          </div>
+
+          <div class="col-md-4">
+            <p class="muted-label mb-1">Sodium</p>
+            <p class="mb-0">
+              {{ current_health_payload.DR1TSODI|default:"Not provided" }}
+              {% if current_health_payload.DR1TSODI %} mg/day{% endif %}
+            </p>
+          </div>
+
+          <div class="col-md-4">
+            <p class="muted-label mb-1">Physical activity</p>
+            {% if current_health_payload.Any_MVPA_flag == 1 %}
+              <span class="badge text-bg-success">Activity signal present</span>
+            {% elif current_health_payload.Any_MVPA_flag == 0 %}
+              <span class="badge text-bg-warning">Low activity signal</span>
+            {% else %}
+              <span class="badge text-bg-light border">Not provided</span>
+            {% endif %}
+          </div>
+
+          <div class="col-md-4">
+            <p class="muted-label mb-1">Smoking</p>
+            {% if current_health_payload.Current_smoker_flag == 1 %}
+              <span class="badge text-bg-warning">Current smoker</span>
+            {% else %}
+              <span class="badge text-bg-light border">Not recorded</span>
+            {% endif %}
+          </div>
+        </div>
+
+        <hr>
+
+        <p class="text-muted mb-0">
+          These values are built from the latest non-empty patient health records and are used by the live recommendation pipeline.
+        </p>
+      {% else %}
+        <div class="border rounded-3 bg-light p-3">
+          <h5 class="mb-2">No health data recorded yet</h5>
+          <p class="text-muted mb-0">
+            The patient has not added health records. Recommendations may rely on profile data or fallback context only.
+          </p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="soft-card mb-4">
+  <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+    <div>
+      <p class="muted-label mb-1">Health timeline</p>
+      <h4 class="mb-0">Recent health records</h4>
+    </div>
+    <span class="badge text-bg-light border">{{ health_record_count }} records</span>
+  </div>
+
+  {% if recent_health_records %}
+    <div class="table-responsive">
+      <table class="table table-sm align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Recorded</th>
+            <th>Source</th>
+            <th>BMI</th>
+            <th>HbA1c</th>
+            <th>Blood pressure</th>
+            <th>Smoking</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for record in recent_health_records %}
+            <tr>
+              <td>
+                <strong>{{ record.recorded_at|date:"d M Y" }}</strong>
+                <div class="text-muted small">{{ record.label|default:"Health record" }}</div>
+              </td>
+              <td>{{ record.get_source_display }}</td>
+              <td>{{ record.bmi|default:"—" }}</td>
+              <td>{{ record.hba1c|default:"—" }}</td>
+              <td>
+                {% if record.systolic_bp or record.diastolic_bp %}
+                  {{ record.systolic_bp|default:"?" }}/{{ record.diastolic_bp|default:"?" }}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td>
+                {% if record.current_smoker %}
+                  <span class="badge text-bg-warning">Current smoker</span>
+                {% else %}
+                  <span class="badge text-bg-light border">Not recorded</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-muted mb-0">No patient-entered health records yet.</p>
+  {% endif %}
+</div>
+
+<div class="soft-card" id="recommendations">
+  <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+    <div>
+      <p class="muted-label mb-1">Recommendation history</p>
+      <h4 class="mb-0">Recent recommendation runs</h4>
+    </div>
+  </div>
+
+  {% if rec_runs %}
+    <div class="list-group list-group-flush">
+      {% for run in rec_runs %}
+        <a class="list-group-item list-group-item-action px-0"
+           href="{% url 'clinician:patient_run_detail' patient.id run.id %}">
+          <div class="d-flex flex-column flex-md-row justify-content-between gap-2">
+            <div>
+              <strong>Run #{{ run.id }}</strong>
+              <div class="d-flex flex-wrap gap-2 mt-1">
+               <small class="text-muted">Engine: {{ run.engine_version }}</small>
+
+               {% if run.clinician_reviewed %}
+                 <span class="badge text-bg-success">Clinician reviewed</span>
+               {% else %}
+                 <span class="badge text-bg-warning">Awaiting review</span>
+               {% endif %}
+             </div>
+            </div>
+            <div class="text-md-end">
+              <span class="text-muted">{{ run.created_at|date:"d M Y, H:i" }}</span>
+              <div class="small">{{ run.items.count }} items</div>
+            </div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted mb-0">No recommendation runs yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

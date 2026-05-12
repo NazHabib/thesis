@@ -273,7 +273,7 @@ def _add_rule_engine_derived_fields(row: dict[str, Any]) -> None:
         row["Diabetes"] = max(int(row.get("Diabetes") or 0), int(hba1c >= 6.5))
         row["Severe_hyperglycemia_flag"] = max(
             int(row.get("Severe_hyperglycemia_flag") or 0),
-            int(hba1c >= 9.0),
+            int(hba1c >= 10.0),
         )
 
     if sbp is not None or dbp is not None:

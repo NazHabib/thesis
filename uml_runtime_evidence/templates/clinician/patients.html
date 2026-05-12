@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Assigned Patients{% endblock %}
+
+{% block content %}
+<div class="hero-card mb-4">
+  <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+    <div>
+      <p class="muted-label mb-1">Care access</p>
+      <h2 class="mb-2">Assigned Patients</h2>
+      <p class="mb-0">
+        Review patient profiles and recommendation histories available to your role.
+      </p>
+    </div>
+
+    {% if user.role == "ADMIN" %}
+      <div>
+        <a class="btn btn-primary" href="{% url 'clinician:patient_assignments' %}">
+          Manage assignments
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="soft-card">
+  {% if links %}
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead>
+          <tr>
+            {% if user.role == "ADMIN" %}
+              <th>Clinician</th>
+            {% endif %}
+            <th>Patient</th>
+            <th>Assigned</th>
+            <th class="text-end">Open</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for link in links %}
+            <tr>
+              {% if user.role == "ADMIN" %}
+                <td>
+                  <strong>{{ link.clinician.username }}</strong>
+                  {% if link.clinician.email %}
+                    <div class="text-muted small">{{ link.clinician.email }}</div>
+                  {% endif %}
+                </td>
+              {% endif %}
+              <td>
+                <strong>{{ link.patient.username }}</strong>
+                {% if link.patient.email %}
+                  <div class="text-muted small">{{ link.patient.email }}</div>
+                {% endif %}
+              </td>
+              <td>{{ link.created_at|date:"d M Y, H:i" }}</td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-primary"
+                   href="{% url 'clinician:patient_detail' link.patient.id %}">
+                  Open patient
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="border rounded-3 p-3 bg-light">
+      <h5>No assigned patients yet</h5>
+      {% if user.role == "ADMIN" %}
+        <p class="text-muted mb-3">Create clinician-patient links from the assignment manager.</p>
+        <a class="btn btn-primary" href="{% url 'clinician:patient_assignments' %}">Manage assignments</a>
+      {% else %}
+        <p class="text-muted mb-0">Ask an admin to assign patients to your clinician account.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% block title %}Health Record{% endblock %}
+
+{% block content %}
+<div class="hero-card mb-4">
+  <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+    <div>
+      <p class="muted-label mb-1">Patient health record</p>
+      <h2 class="mb-2">{{ record.label|default:"Health record" }}</h2>
+      <p class="mb-0">
+        Recorded {{ record.recorded_at|date:"d M Y" }} · {{ record.get_source_display }}
+      </p>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 align-items-start">
+      <a class="btn btn-primary" href="{% url 'user:health_data_edit' record.id %}">
+        Edit record
+      </a>
+      <a class="btn btn-outline-danger" href="{% url 'user:health_data_delete' record.id %}">
+        Delete
+      </a>
+      <a class="btn btn-outline-light" href="{% url 'user:health_data' %}">
+        Back to health data
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="soft-card h-100">
+      <p class="muted-label mb-1">Body and clinical measurements</p>
+      <h4 class="mb-3">Recorded values</h4>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <p class="muted-label mb-1">Age</p>
+          <p class="mb-0">{{ record.age_years|default:"Not provided" }}</p>
+        </div>
+
+        <div class="col-md-6">
+          <p class="muted-label mb-1">Sex</p>
+          <p class="mb-0">
+            {% if record.sex_code == 1 %}
+              Male
+            {% elif record.sex_code == 2 %}
+              Female
+            {% else %}
+              Not provided
+            {% endif %}
+          </p>
+        </div>
+
+        <div class="col-md-6">
+          <p class="muted-label mb-1">Height</p>
+          <p class="mb-0">
+            {{ record.height_cm|default:"Not provided" }}{% if record.height_cm %} cm{% endif %}
+          </p>
+        </div>
+
+        <div class="col-md-6">
+          <p class="muted-label mb-1">Weight</p>
+          <p class="mb-0">
+            {{ record.weight_kg|default:"Not provided" }}{% if record.weight_kg %} kg{% endif %}
+          </p>
+        </div>
+
+        <div class="col-md-6">
+          <p class="muted-label mb-1">BMI</p>
+          <p class="mb-0">{{ record.bmi|default:"Not provided" }}</p>
+        </div>
+
+        <div class="col-md-6">
+          <p class="muted-label mb-1">Waist</p>
+          <p class="mb-0">
+            {{ record.waist_cm|default:"Not provided" }}{% if record.waist_cm %} cm{% endif %}
+          </p>
+        </div>
+
+        <div class="col-md-6">
+          <p class="muted-label mb-1">HbA1c</p>
+          <p class="mb-0">{{ record.hba1c|default:"Not provided" }}</p>
+        </div>
+
+        <div class="col-md-6">
+          <p class="muted-label mb-1">Blood pressure</p>
+          <p class="mb-0">
+            {% if record.systolic_bp or record.diastolic_bp %}
+              {{ record.systolic_bp|default:"?" }}/{{ record.diastolic_bp|default:"?" }}
+              {% if record.bp_readings_count %}
+                <span class="text-muted">({{ record.bp_readings_count }} readings)</span>
+              {% endif %}
+            {% else %}
+              Not provided
+            {% endif %}
+          </p>
+        </div>
+
+        <div class="col-md-6">
+          <p class="muted-label mb-1">Total cholesterol</p>
+          <p class="mb-0">{{ record.total_cholesterol_mg_dl|default:"Not provided" }}</p>
+        </div>
+
+        <div class="col-md-6">
+          <p class="muted-label mb-1">HDL cholesterol</p>
+          <p class="mb-0">{{ record.hdl_mg_dl|default:"Not provided" }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="soft-card h-100">
+      <p class="muted-label mb-1">Diet and lifestyle</p>
+      <h4 class="mb-3">Recorded context</h4>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <p class="muted-label mb-1">Calories</p>
+          <p class="mb-0">
+            {{ record.calories_kcal_day|default:"Not provided" }}{% if record.calories_kcal_day %} kcal/day{% endif %}
+          </p>
+        </div>
+
+        <div class="col-md-6">
+          <p class="muted-label mb-1">Sodium</p>
+          <p class="mb-0">
+            {{ record.sodium_mg_day|default:"Not provided" }}{% if record.sodium_mg_day %} mg/day{% endif %}
+          </p>
+        </div>
+
+        <div class="col-md-6">
+          <p class="muted-label mb-1">Sugar</p>
+          <p class="mb-0">
+            {{ record.sugar_g_day|default:"Not provided" }}{% if record.sugar_g_day %} g/day{% endif %}
+          </p>
+        </div>
+
+        <div class="col-md-6">
+          <p class="muted-label mb-1">Fibre</p>
+          <p class="mb-0">
+            {{ record.fibre_g_day|default:"Not provided" }}{% if record.fibre_g_day %} g/day{% endif %}
+          </p>
+        </div>
+
+        <div class="col-md-6">
+          <p class="muted-label mb-1">Saturated fat</p>
+          <p class="mb-0">
+            {{ record.saturated_fat_g_day|default:"Not provided" }}{% if record.saturated_fat_g_day %} g/day{% endif %}
+          </p>
+        </div>
+
+        <div class="col-md-6">
+          <p class="muted-label mb-1">Alcohol</p>
+          <p class="mb-0">
+            {{ record.alcohol_g_day|default:"Not provided" }}{% if record.alcohol_g_day %} g/day{% endif %}
+          </p>
+        </div>
+
+        <div class="col-md-6">
+          <p class="muted-label mb-1">Activity</p>
+          <p class="mb-0">
+            {{ record.mvpa_minutes_week|default:"Not provided" }}{% if record.mvpa_minutes_week %} min/week{% endif %}
+          </p>
+        </div>
+
+        <div class="col-md-6">
+          <p class="muted-label mb-1">Sedentary time</p>
+          <p class="mb-0">
+            {{ record.sedentary_hours_day|default:"Not provided" }}{% if record.sedentary_hours_day %} hours/day{% endif %}
+          </p>
+        </div>
+
+        <div class="col-md-6">
+          <p class="muted-label mb-1">Diet information</p>
+          {% if record.diet_day_reliable %}
+            <span class="badge text-bg-success">Marked reliable</span>
+          {% else %}
+            <span class="badge text-bg-light border">Limited or uncertain</span>
+          {% endif %}
+        </div>
+
+        <div class="col-md-6">
+          <p class="muted-label mb-1">Smoking</p>
+          {% if record.current_smoker %}
+            <span class="badge text-bg-warning">Current smoker</span>
+          {% else %}
+            <span class="badge text-bg-light border">Not recorded as current smoker</span>
+          {% endif %}
+        </div>
+
+        <div class="col-md-6">
+          <p class="muted-label mb-1">Alcohol above guideline</p>
+          {% if record.alcohol_over_guideline %}
+            <span class="badge text-bg-warning">Recorded</span>
+          {% else %}
+            <span class="badge text-bg-light border">Not recorded</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mt-1">
+  <div class="col-lg-6">
+    <div class="soft-card h-100">
+      <p class="muted-label mb-1">Known risk context</p>
+      <h4 class="mb-3">Safety-related flags</h4>
+
+      <div class="d-flex flex-wrap gap-2">
+        {% if record.known_prediabetes %}
+          <span class="badge text-bg-warning">Known prediabetes</span>
+        {% else %}
+          <span class="badge text-bg-light border">Prediabetes not recorded</span>
+        {% endif %}
+
+        {% if record.known_severe_hyperglycemia %}
+          <span class="badge text-bg-danger">Severe hyperglycaemia recorded</span>
+        {% else %}
+          <span class="badge text-bg-light border">Severe hyperglycaemia not recorded</span>
+        {% endif %}
+
+        {% if record.known_hypertensive_crisis %}
+          <span class="badge text-bg-danger">Hypertensive crisis recorded</span>
+        {% else %}
+          <span class="badge text-bg-light border">Hypertensive crisis not recorded</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="soft-card h-100">
+      <p class="muted-label mb-1">How this is used</p>
+      <h4 class="mb-3">Recommendation reference point</h4>
+      <p class="text-muted mb-0">
+        This record contributes to the patient's current health reference point. The latest non-empty values are used most strongly,
+        while previous records remain available for history and trend context.
+      </p>
+    </div>
+  </div>
+</div>
+
+{% if record.notes %}
+  <div class="soft-card mt-4">
+    <p class="muted-label mb-1">Notes</p>
+    <p class="mb-0">{{ record.notes }}</p>
+  </div>
+{% endif %}
+
+<div class="soft-card mt-4">
+  <p class="muted-label mb-1">Timeline note</p>
+  <p class="text-muted mb-0">
+    Later records can be added without deleting this historical entry. Edit this record only if the information was entered incorrectly.
+  </p>
+</div>
+{% endblock %}

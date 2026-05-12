@@ -298,3 +298,8 @@ chat_project_evidence.rar
 make_chat_zip.sh
 make_online_api_portal_zip.sh
 portal_runtime_evidence.zip
+make_medical_decision_evidence_zip.sh
+medical_decision_evidence.zip
+make_uml_runtime_evidence_zip.sh
+uml_runtime_evidence.zip
+medical_decision_evidence/FILE_LIST.txt

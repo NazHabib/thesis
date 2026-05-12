@@ -81,38 +81,48 @@ def thesis_demo_patient(request, participant_key: str):
     data = _load_thesis_outputs()
     explained_df = data["explained"]
     bundles_df = data["bundles"]
-    ranked_before_ml_df = data["ranked_before_ml"]
     reranked_df = data["reranked"]
 
-    if explained_df.empty or "ParticipantKey" not in explained_df.columns:
+    participant_key = str(participant_key).strip()
+
+    def _match_participant(df: pd.DataFrame, key: str) -> pd.DataFrame:
+        if df.empty or "ParticipantKey" not in df.columns:
+            return pd.DataFrame()
+
+        working = df.copy()
+        working["_ParticipantKey_str"] = working["ParticipantKey"].astype(str).str.strip()
+
+        matched = working[working["_ParticipantKey_str"] == key].copy()
+
+        # Robust fallback for cases where numeric-like keys are parsed differently.
+        if matched.empty and key.endswith(".0"):
+            alt_key = key[:-2]
+            matched = working[working["_ParticipantKey_str"] == alt_key].copy()
+        elif matched.empty:
+            alt_key = f"{key}.0"
+            matched = working[working["_ParticipantKey_str"] == alt_key].copy()
+
+        if "_ParticipantKey_str" in matched.columns:
+            matched = matched.drop(columns=["_ParticipantKey_str"])
+
+        return matched
+
+    patient_df = _match_participant(explained_df, participant_key)
+
+    if patient_df.empty:
         recommendations = []
     else:
-        patient_df = explained_df[
-            explained_df["ParticipantKey"].astype(str) == str(participant_key)
-        ].copy()
-
         if "bundle_rank" in patient_df.columns:
             patient_df = patient_df.sort_values("bundle_rank", kind="stable")
         elif "bundle_score" in patient_df.columns:
-            patient_df = patient_df.sort_values(
-                "bundle_score",
-                ascending=False,
-                kind="stable",
-            )
+            patient_df = patient_df.sort_values("bundle_score", ascending=False, kind="stable")
 
         for col in ["fusion_rule_component", "fusion_ml_component"]:
             if col not in patient_df.columns:
                 patient_df[col] = 0.0
 
-        rule = pd.to_numeric(
-            patient_df["fusion_rule_component"],
-            errors="coerce",
-        ).fillna(0.0)
-        ml = pd.to_numeric(
-            patient_df["fusion_ml_component"],
-            errors="coerce",
-        ).fillna(0.0)
-
+        rule = pd.to_numeric(patient_df["fusion_rule_component"], errors="coerce").fillna(0.0)
+        ml = pd.to_numeric(patient_df["fusion_ml_component"], errors="coerce").fillna(0.0)
         total = (rule + ml).replace(0, 1)
 
         patient_df["fusion_rule_pct"] = ((rule / total) * 100).round(1)
@@ -120,48 +130,22 @@ def thesis_demo_patient(request, participant_key: str):
 
         recommendations = patient_df.to_dict("records")
 
-    if bundles_df.empty or "ParticipantKey" not in bundles_df.columns:
-        bundle_rows = []
+    bundle_case_df = _match_participant(bundles_df, participant_key)
+    bundle_rows = bundle_case_df.to_dict("records") if not bundle_case_df.empty else []
+
+    reranked_case_df = _match_participant(reranked_df, participant_key)
+
+    if reranked_case_df.empty:
+        candidate_rows = []
     else:
-        bundle_rows = (
-            bundles_df[bundles_df["ParticipantKey"].astype(str) == str(participant_key)]
+        sort_col = "final_score" if "final_score" in reranked_case_df.columns else "total_score"
+        candidate_rows = (
+            reranked_case_df
             .copy()
+            .sort_values(sort_col, ascending=False, kind="stable")
+            .head(10)
             .to_dict("records")
         )
-
-    if ranked_before_ml_df.empty or "ParticipantKey" not in ranked_before_ml_df.columns:
-        before_candidate_rows = []
-    else:
-        before_df = ranked_before_ml_df[
-            ranked_before_ml_df["ParticipantKey"].astype(str) == str(participant_key)
-        ].copy()
-
-        before_sort_col = "total_score" if "total_score" in before_df.columns else None
-        if before_sort_col:
-            before_df = before_df.sort_values(
-                before_sort_col,
-                ascending=False,
-                kind="stable",
-            )
-
-        before_candidate_rows = before_df.head(10).to_dict("records")
-
-    if reranked_df.empty or "ParticipantKey" not in reranked_df.columns:
-        after_candidate_rows = []
-    else:
-        after_df = reranked_df[
-            reranked_df["ParticipantKey"].astype(str) == str(participant_key)
-        ].copy()
-
-        after_sort_col = "final_score" if "final_score" in after_df.columns else "total_score"
-        if after_sort_col in after_df.columns:
-            after_df = after_df.sort_values(
-                after_sort_col,
-                ascending=False,
-                kind="stable",
-            )
-
-        after_candidate_rows = after_df.head(10).to_dict("records")
 
     return render(
         request,
@@ -170,8 +154,7 @@ def thesis_demo_patient(request, participant_key: str):
             "participant_key": participant_key,
             "recommendations": recommendations,
             "bundle_rows": bundle_rows,
-            "before_candidate_rows": before_candidate_rows,
-            "after_candidate_rows": after_candidate_rows,
+            "candidate_rows": candidate_rows,
         },
     )
 

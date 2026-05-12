@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Create Recommendations{% endblock %}
+
+{% block content %}
+<div class="hero-card mb-4">
+  <div>
+    <p class="muted-label mb-1">Patient guidance</p>
+    <h2 class="mb-2">Create Recommendations</h2>
+    <p class="text-muted mb-0">
+      Create a simple recommendation summary from the completed hybrid health recommendation pipeline.
+    </p>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="soft-card">
+      <h4 class="mb-3">What you will see</h4>
+
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <div class="border rounded-3 p-3 h-100">
+            <strong>Top guidance</strong>
+            <p class="text-muted small mb-0 mt-2">
+              A short list of the most relevant recommendations.
+            </p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="border rounded-3 p-3 h-100">
+            <strong>Why it may help</strong>
+            <p class="text-muted small mb-0 mt-2">
+              Patient-friendly explanations written in supportive language.
+            </p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="border rounded-3 p-3 h-100">
+            <strong>Follow-up timing</strong>
+            <p class="text-muted small mb-0 mt-2">
+              A clear indication of when the recommendation could be reviewed.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        <button class="btn btn-primary" type="submit">Create my recommendations</button>
+        <a class="btn btn-outline-secondary" href="{% url 'user:dashboard' %}">Back to dashboard</a>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="soft-card">
+      <h5 class="mb-2">Important note</h5>
+      <p class="text-muted mb-0">
+        This system supports health guidance and care discussions. It does not replace medical advice,
+        diagnosis, or treatment from a healthcare professional.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

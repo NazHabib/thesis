@@ -106,7 +106,7 @@ def _hba1c_category(hba1c: float | None) -> tuple[int, int, int]:
 
     prediabetes = int(5.7 <= hba1c < 6.5)
     diabetes = int(hba1c >= 6.5)
-    severe = int(hba1c >= 9.0)
+    severe = int(hba1c >= 10.0)
 
     return prediabetes, diabetes, severe
 

@@ -17,42 +17,57 @@
 
 <div class="card shadow-sm mb-4">
   <div class="card-body">
-    <h5>Ranking evolution (Rule vs Hybrid)</h5>
+    <h5>Ranking evolution</h5>
+    <p class="text-muted small">
+      Candidate-level ordering before ML fusion compared with final bundled hybrid recommendations.
+    </p>
 
-    <div class="row">
+    <div class="row g-3">
       <div class="col-md-6">
-        <h6 class="text-muted">Before (Rule-based)</h6>
-        <div class="row">
-	  <div class="col-md-6">
-	    <h6 class="text-muted">Before (Rule-based)</h6>
-	    <div class="row">
-		  <div class="col-md-6">
-		    <h6 class="text-muted">Before ML reranking — rule-based candidates</h6>
-		    <ul class="small">
-		      {% for row in before_candidate_rows %}
-			<li>{{ row.action_code }} ({{ row.total_score|floatformat:2 }})</li>
-		      {% empty %}
-			<li class="text-muted">No rule-based candidate rows available.</li>
-		      {% endfor %}
-		    </ul>
-		  </div>
+        <div class="border rounded p-3 bg-light h-100">
+          <h6 class="text-muted">Before ML fusion</h6>
 
-		  <div class="col-md-6">
-		    <h6 class="text-muted">After hybrid fusion — final bundles</h6>
-		    <ul class="small">
-		      {% for rec in recommendations %}
-			<li>
-			  {{ rec.bundle_title }} ({{ rec.bundle_score|floatformat:2 }})
-			  <span class="text-muted small">
-			    ← from {{ rec.action_codes }}
-			  </span>
-			</li>
-		      {% empty %}
-			<li class="text-muted">No final bundles available.</li>
-		      {% endfor %}
-		    </ul>
-		  </div>
-		</div>
+          {% if candidate_rows %}
+            <ol class="small mb-0">
+              {% for row in candidate_rows %}
+                <li class="mb-2">
+                  <strong>{{ row.action_code }}</strong><br>
+                  Rule score: {{ row.total_score|floatformat:3 }}
+                  {% if row.ml_score is not None %}
+                    · ML score: {{ row.ml_score|floatformat:3 }}
+                  {% endif %}
+                  {% if row.final_score is not None %}
+                    · Final: {{ row.final_score|floatformat:3 }}
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ol>
+          {% else %}
+            <p class="text-muted small mb-0">No candidate-level rows available.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="border rounded p-3 bg-light h-100">
+          <h6 class="text-muted">After hybrid fusion and bundling</h6>
+
+          {% if recommendations %}
+            <ol class="small mb-0">
+              {% for rec in recommendations %}
+                <li class="mb-2">
+                  <strong>{{ rec.bundle_title }}</strong><br>
+                  Bundle score: {{ rec.bundle_score|floatformat:3 }}<br>
+                  <span class="text-muted">From: {{ rec.action_codes }}</span>
+                </li>
+              {% endfor %}
+            </ol>
+          {% else %}
+            <p class="text-muted small mb-0">No final bundled recommendations available.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -60,19 +75,20 @@
   {% for rec in recommendations %}
     <div class="card shadow-sm mb-3">
       <div class="card-body">
-        <div class="d-flex justify-content-between align-items-start">
+        <div class="d-flex justify-content-between align-items-start gap-3">
           <div>
-            <span class="badge text-bg-dark mb-2">
-             Rank #{{ forloop.counter }}
-            </span>
+            <span class="badge text-bg-dark mb-2">Rank #{{ forloop.counter }}</span>
             <h4 class="mb-1">{{ rec.bundle_title }}</h4>
             <p class="text-muted mb-2">{{ rec.bundle_family }} · {{ rec.action_type }}</p>
           </div>
+
           <div class="text-end">
             <span class="badge text-bg-{% if rec.confidence_label == 'high' %}success{% elif rec.confidence_label == 'medium' %}warning{% else %}secondary{% endif %}">
               {{ rec.confidence_label|title }} confidence
             </span>
-            <div class="small text-muted mt-1">Score: {{ rec.bundle_score }}</div>
+            <div class="small text-muted mt-1">
+              Score: {{ rec.bundle_score|floatformat:3 }}
+            </div>
           </div>
         </div>
 
@@ -80,61 +96,60 @@
           <div class="col-md-4">
             <div class="border rounded p-3 bg-light h-100">
               <h6>Follow-up</h6>
-              <p class="mb-1"><strong>Urgency:</strong> {{ rec.followup_urgency }}</p>
-              <p class="mb-1"><strong>Window:</strong> {{ rec.followup_window_label }}</p>
-              <p class="mb-0"><strong>Days:</strong> {{ rec.followup_horizon_days }}</p>
+              <p class="mb-1"><strong>Urgency:</strong> {{ rec.followup_urgency|default:"-" }}</p>
+              <p class="mb-1"><strong>Window:</strong> {{ rec.followup_window_label|default:"-" }}</p>
+              <p class="mb-0"><strong>Days:</strong> {{ rec.followup_horizon_days|default:"-" }}</p>
             </div>
           </div>
 
-                    <div class="col-md-4">
-			    <div class="border rounded p-3 bg-light h-100">
-			      <h6>Fusion</h6>
-			      <p class="mb-1"><strong>Strategy:</strong> {{ rec.fusion_strategy }}</p>
-			      <p class="mb-1">
-				<strong>Rule:</strong> {{ rec.fusion_rule_component|floatformat:3 }}
-				({{ rec.fusion_rule_pct }}%)
-			      </p>
-			      <p class="mb-2">
-				<strong>ML:</strong> {{ rec.fusion_ml_component|floatformat:3 }}
-				({{ rec.fusion_ml_pct }}%)
-			      </p>
+          <div class="col-md-4">
+            <div class="border rounded p-3 bg-light h-100">
+              <h6>Fusion</h6>
+              <p class="mb-1"><strong>Strategy:</strong> {{ rec.fusion_strategy|default:"-" }}</p>
+              <p class="mb-1">
+                <strong>Rule:</strong> {{ rec.fusion_rule_component|floatformat:3 }}
+                ({{ rec.fusion_rule_pct }}%)
+              </p>
+              <p class="mb-2">
+                <strong>ML:</strong> {{ rec.fusion_ml_component|floatformat:3 }}
+                ({{ rec.fusion_ml_pct }}%)
+              </p>
 
-			      <div class="mt-2">
-				<div class="small text-muted mb-1">Fusion contribution</div>
-				<div class="progress" style="height: 18px;">
-				  <div class="progress-bar bg-primary"
-				       style="width: {{ rec.fusion_rule_pct }}%;">
-				    Rule
-				  </div>
-				  <div class="progress-bar bg-success"
-				       style="width: {{ rec.fusion_ml_pct }}%;">
-				    ML
-				  </div>
-				</div>
-			      </div>
-			    </div>
-			  </div>
+              <div class="small text-muted mb-1">Fusion contribution</div>
+              <div class="progress" style="height: 18px;">
+                <div class="progress-bar bg-primary"
+                     role="progressbar"
+                     style="width: {{ rec.fusion_rule_pct }}%;">
+                  Rule
+                </div>
+                <div class="progress-bar bg-success"
+                     role="progressbar"
+                     style="width: {{ rec.fusion_ml_pct }}%;">
+                  ML
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div class="col-md-4">
             <div class="border rounded p-3 bg-light h-100">
               <h6>Safety</h6>
               <p class="mb-1"><strong>Triage:</strong> {{ rec.triage_mode }}</p>
-              <p class="mb-0"><strong>Reason:</strong> {{ rec.triage_reason }}</p>
+              <p class="mb-0"><strong>Reason:</strong> {{ rec.triage_reason|default:"none" }}</p>
             </div>
           </div>
         </div>
 
         <div class="mt-3 p-3 bg-light border rounded">
-           <strong>Why this is prioritised</strong>
-           <ul class="mb-0">
-           <li>Selected as top-ranked bundle after hybrid fusion.</li>
-           <li>Highest combined fusion score within its recommendation group.</li>
-           <li>Meets safety constraints.</li>
-           <li>Strong rule-based clinical support.</li>
-           {% if rec.fusion_ml_component %}
-               <li>ML model reinforced the ranking.</li>
-           {% endif %}
-           </ul>
+          <strong>Why this is prioritised</strong>
+          <ul class="mb-0">
+            <li>Selected as a final bundle after safety filtering, ranking, fusion, and bundling.</li>
+            <li>Meets safety constraints before patient-facing presentation.</li>
+            <li>Retains rule-based clinical traceability.</li>
+            {% if rec.fusion_ml_component %}
+              <li>ML reranking contributed within the bounded fusion policy.</li>
+            {% endif %}
+          </ul>
         </div>
 
         <hr>
@@ -155,12 +170,12 @@
             <p><strong>Rule IDs:</strong> {{ rec.source_rule_ids }}</p>
             <p><strong>Cold-start notes:</strong> {{ rec.coldstart_note_codes }}</p>
 
-           {% if rec.ml_xai_payload %}
+            {% if rec.ml_xai_payload %}
               <div class="mt-3">
-               <div class="small text-muted">Top ML drivers influencing this recommendation</div>
-               <pre class="bg-light border rounded p-2 small">{{ rec.ml_xai_payload|truncatechars:300 }}</pre>
+                <div class="small text-muted">Top ML/XAI payload preview</div>
+                <pre class="bg-light border rounded p-2 small">{{ rec.ml_xai_payload|truncatechars:500 }}</pre>
               </div>
-           {% endif %}
+            {% endif %}
           </div>
         </details>
       </div>
@@ -173,7 +188,8 @@
 <div class="card shadow-sm mt-4">
   <div class="card-body">
     <h5>Top reranked candidates</h5>
-    {% if after_candidate_rows %}
+
+    {% if candidate_rows %}
       <div class="table-responsive">
         <table class="table table-sm align-middle">
           <thead>
@@ -187,9 +203,9 @@
             </tr>
           </thead>
           <tbody>
-            {% for row in after_candidate_rows %}
+            {% for row in candidate_rows %}
               <tr>
-                <td>{{ row.action_code }}</td>
+                <td><code>{{ row.action_code }}</code></td>
                 <td>{{ row.bundle_family }}</td>
                 <td>{{ row.total_score|floatformat:3 }}</td>
                 <td>{{ row.ml_score|floatformat:3 }}</td>

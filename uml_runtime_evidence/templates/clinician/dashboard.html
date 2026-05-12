@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Clinician Dashboard{% endblock %}
+
+{% block content %}
+<div class="card hero-card mb-4">
+  <div class="card-body p-4">
+    <p class="mb-2 opacity-75">Clinical presentation layer</p>
+    <h1 class="display-6 fw-bold mb-2">Clinician Dashboard</h1>
+    <p class="mb-0 opacity-75">Review assigned patients, alerts, and thesis demo outputs.</p>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-4">
+    <a class="text-decoration-none text-dark" href="{% url 'clinician:thesis_demo' %}">
+      <div class="metric-card h-100">
+        <div class="muted-label">Presentation</div>
+        <h4 class="mt-2">Thesis Demo</h4>
+        <p class="text-muted mb-0">Pipeline recommendations, fusion, and explainability.</p>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-4">
+    <a class="text-decoration-none text-dark" href="{% url 'clinician:patients' %}">
+      <div class="metric-card h-100">
+        <div class="muted-label">Care access</div>
+        <h4 class="mt-2">Assigned Patients</h4>
+        <p class="text-muted mb-0">Open patient records and recommendation history.</p>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-4">
+    <a class="text-decoration-none text-dark" href="{% url 'clinician:alerts' %}">
+      <div class="metric-card h-100">
+        <div class="muted-label">Safety</div>
+        <h4 class="mt-2">Alerts</h4>
+        <p class="text-muted mb-0">Escalations and safety-relevant events.</p>
+      </div>
+    </a>
+  </div>
+</div>
+
+{% if user.role == "ADMIN" %}
+<div class="row g-3 mt-1">
+  <div class="col-md-4">
+    <a class="text-decoration-none text-dark" href="{% url 'clinician:admin_tools' %}">
+      <div class="metric-card h-100">
+        <div class="muted-label">Administration</div>
+        <h4 class="mt-2">Admin Tools</h4>
+        <p class="text-muted mb-0">Manage assignments and audit live recommendation runs.</p>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-4">
+    <a class="text-decoration-none text-dark" href="{% url 'clinician:patient_assignments' %}">
+      <div class="metric-card h-100">
+        <div class="muted-label">Access control</div>
+        <h4 class="mt-2">Patient Assignments</h4>
+        <p class="text-muted mb-0">Assign patients to clinicians for controlled review access.</p>
+      </div>
+    </a>
+  </div>
+
+  <div class="col-md-4">
+    <a class="text-decoration-none text-dark" href="{% url 'clinician:pipeline_runs' %}">
+      <div class="metric-card h-100">
+        <div class="muted-label">Audit</div>
+        <h4 class="mt-2">Pipeline Runs</h4>
+        <p class="text-muted mb-0">Verify whether recommendations used the live pipeline or fallback.</p>
+      </div>
+    </a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
