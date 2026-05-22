@@ -303,3 +303,5 @@ medical_decision_evidence.zip
 make_uml_runtime_evidence_zip.sh
 uml_runtime_evidence.zip
 medical_decision_evidence/FILE_LIST.txt
+chapter5_code_excerpt_evidence.zip
+make_chapter5_code_excerpt_zip.sh
