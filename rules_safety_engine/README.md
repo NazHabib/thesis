@@ -1,7 +1,7 @@
 # Rules Safety Engine
 
 Purpose:
-Deterministic clinical safety and recommendation rules for Hybrid HRS.
+Deterministic clinical safety and recommendation rules for SafeHybridCare.
 
 Inputs:
 Engineered participant health context with NHANES-style columns.
